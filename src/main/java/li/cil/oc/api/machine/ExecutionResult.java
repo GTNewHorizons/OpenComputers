@@ -47,8 +47,7 @@ public abstract class ExecutionResult {
      * from the server's main thread, to avoid threading issues when interacting
      * with other objects in the world.
      */
-    public static final class SynchronizedCall extends ExecutionResult {
-    }
+    public static final class SynchronizedCall extends ExecutionResult {}
 
     /**
      * Indicates that an error occurred and the computer should crash.

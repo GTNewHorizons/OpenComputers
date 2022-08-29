@@ -53,7 +53,7 @@ class Settings(val config: Config) {
       (-1.0, -1.0)
   }
   val enableNanomachinePfx = config.getBoolean("client.enableNanomachinePfx")
-
+  val transposerFluidTransferRate = try { config.getInt("misc.transposerFluidTransferRate") } catch { case _ : Throwable => 16000 }
   // ----------------------------------------------------------------------- //
   // computer
   val threads = config.getInt("computer.threads") max 1
@@ -149,6 +149,7 @@ class Settings(val config: Config) {
   val chargeRateTablet = config.getDouble("power.chargerChargeRateTablet")
   val generatorEfficiency = config.getDouble("power.generatorEfficiency")
   val solarGeneratorEfficiency = config.getDouble("power.solarGeneratorEfficiency")
+  val ritegUpgradeEfficiency = try { config.getDouble("power.ritegEfficiency") } catch { case _ : Throwable => 0.6}
   val assemblerTickAmount = config.getDouble("power.assemblerTickAmount") max 1
   val disassemblerTickAmount = config.getDouble("power.disassemblerTickAmount") max 1
   val printerTickAmount = config.getDouble("power.printerTickAmount") max 1

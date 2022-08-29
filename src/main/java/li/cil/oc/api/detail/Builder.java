@@ -145,6 +145,5 @@ public interface Builder<T extends Node> {
     /**
      * Builder for nodes that are both component <em>and</em> connector node.
      */
-    public static interface ComponentConnectorBuilder extends Builder<ComponentConnector> {
-    }
+    public static interface ComponentConnectorBuilder extends Builder<ComponentConnector> {}
 }

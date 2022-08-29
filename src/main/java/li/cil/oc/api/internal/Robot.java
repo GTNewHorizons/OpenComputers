@@ -2,8 +2,8 @@ package li.cil.oc.api.internal;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
-import li.cil.oc.api.network.EnvironmentHost;
 import li.cil.oc.api.network.Environment;
+import li.cil.oc.api.network.EnvironmentHost;
 import net.minecraft.inventory.ISidedInventory;
 import net.minecraftforge.fluids.IFluidHandler;
 

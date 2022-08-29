@@ -1,7 +1,7 @@
 package li.cil.oc.api.internal;
 
-import li.cil.oc.api.network.EnvironmentHost;
 import li.cil.oc.api.machine.MachineHost;
+import li.cil.oc.api.network.EnvironmentHost;
 import net.minecraft.entity.player.EntityPlayer;
 
 /**

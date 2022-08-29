@@ -19,7 +19,8 @@ public final class DriverPipeTile extends DriverSidedTileEntity {
     }
 
     @Override
-    public ManagedEnvironment createEnvironment(final World world, final int x, final int y, final int z, final ForgeDirection side) {
+    public ManagedEnvironment createEnvironment(
+            final World world, final int x, final int y, final int z, final ForgeDirection side) {
         return new Environment((IPipeTile) world.getTileEntity(x, y, z));
     }
 
@@ -41,46 +42,48 @@ public final class DriverPipeTile extends DriverSidedTileEntity {
         @Callback(doc = "function():string --  Returns the type of the pipe.")
         public Object[] getPipeType(final Context context, final Arguments args) {
             try {
-                return new Object[]{tileEntity.getPipeType().name()};
+                return new Object[] {tileEntity.getPipeType().name()};
             } catch (Throwable ignored) {
             }
-            return new Object[]{null, "none"};
+            return new Object[] {null, "none"};
         }
 
-        @Callback(doc = "function(side:number):boolean --  Returns whether the pipe is connected to something on the specified side.")
+        @Callback(
+                doc =
+                        "function(side:number):boolean --  Returns whether the pipe is connected to something on the specified side.")
         public Object[] isPipeConnected(final Context context, final Arguments args) {
             try {
-                return new Object[]{tileEntity.isPipeConnected(ForgeDirection.getOrientation(args.checkInteger(0)))};
+                return new Object[] {tileEntity.isPipeConnected(ForgeDirection.getOrientation(args.checkInteger(0)))};
             } catch (Throwable ignored) {
             }
-            return new Object[]{false};
+            return new Object[] {false};
         }
 
         @Callback(doc = "function(color:string):boolean -- Returns whether the pipe is wired with the given color.")
         public Object[] isWired(final Context context, final Arguments args) {
             try {
-                return new Object[]{tileEntity.getPipe().isWired(PipeWire.valueOf(args.checkString(0)))};
+                return new Object[] {tileEntity.getPipe().isWired(PipeWire.valueOf(args.checkString(0)))};
             } catch (Throwable ignored) {
             }
-            return new Object[]{false};
+            return new Object[] {false};
         }
 
         @Callback(doc = "function(color:string):boolean -- Returns whether the wired with the given color is active.")
         public Object[] isWireActive(final Context context, final Arguments args) {
             try {
-                return new Object[]{tileEntity.getPipe().isWireActive(PipeWire.valueOf(args.checkString(0)))};
+                return new Object[] {tileEntity.getPipe().isWireActive(PipeWire.valueOf(args.checkString(0)))};
             } catch (Throwable ignored) {
             }
-            return new Object[]{false};
+            return new Object[] {false};
         }
 
         @Callback(doc = "function(side:number):boolean -- Returns whether the pipe has a gate on the specified side.")
         public Object[] hasGate(final Context context, final Arguments args) {
             try {
-                return new Object[]{tileEntity.getPipe().hasGate(ForgeDirection.getOrientation(args.checkInteger(0)))};
+                return new Object[] {tileEntity.getPipe().hasGate(ForgeDirection.getOrientation(args.checkInteger(0)))};
             } catch (Throwable ignored) {
             }
-            return new Object[]{false};
+            return new Object[] {false};
         }
     }
 }

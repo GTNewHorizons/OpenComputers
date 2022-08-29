@@ -17,7 +17,8 @@ public final class DriverControllable extends DriverSidedTileEntity {
     }
 
     @Override
-    public ManagedEnvironment createEnvironment(final World world, final int x, final int y, final int z, final ForgeDirection side) {
+    public ManagedEnvironment createEnvironment(
+            final World world, final int x, final int y, final int z, final ForgeDirection side) {
         return new Environment((IControllable) world.getTileEntity(x, y, z));
     }
 
@@ -28,12 +29,12 @@ public final class DriverControllable extends DriverSidedTileEntity {
 
         @Callback(doc = "function():string -- Get the current control mode.")
         public Object[] getControlMode(final Context context, final Arguments args) {
-            return new Object[]{tileEntity.getControlMode().name()};
+            return new Object[] {tileEntity.getControlMode().name()};
         }
 
         @Callback(doc = "function(mode:string):boolean -- Test whether the specified control mode is acceptable.")
         public Object[] acceptsControlMode(final Context context, final Arguments args) {
-            return new Object[]{tileEntity.acceptsControlMode(IControllable.Mode.valueOf(args.checkString(0)))};
+            return new Object[] {tileEntity.acceptsControlMode(IControllable.Mode.valueOf(args.checkString(0)))};
         }
 
         @Callback(doc = "function(mode:string):boolean -- Sets the control mode to the specified value.")

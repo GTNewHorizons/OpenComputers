@@ -1,10 +1,9 @@
 package li.cil.oc.api;
 
-import li.cil.oc.api.machine.Architecture;
-import li.cil.oc.api.machine.MachineHost;
-
 import java.util.Collection;
 import java.util.Collections;
+import li.cil.oc.api.machine.Architecture;
+import li.cil.oc.api.machine.MachineHost;
 
 /**
  * This API is intended for people who would like to implement custom computer
@@ -32,16 +31,14 @@ public final class Machine {
      * @param architecture the architecture to register.
      */
     public static void add(Class<? extends Architecture> architecture) {
-        if (API.machine != null)
-            API.machine.add(architecture);
+        if (API.machine != null) API.machine.add(architecture);
     }
 
     /**
      * A list of all <em>registered</em> architectures.
      */
     public static Collection<Class<? extends Architecture>> architectures() {
-        if (API.machine != null)
-            return API.machine.architectures();
+        if (API.machine != null) return API.machine.architectures();
         return Collections.emptyList();
     }
 
@@ -52,8 +49,7 @@ public final class Machine {
      * @return the name of the specified architecture.
      */
     public static String getArchitectureName(Class<? extends Architecture> architecture) {
-        if (API.machine != null)
-            return API.machine.getArchitectureName(architecture);
+        if (API.machine != null) return API.machine.getArchitectureName(architecture);
         return null;
     }
 
@@ -67,15 +63,13 @@ public final class Machine {
      * @return the newly created machine.
      */
     public static li.cil.oc.api.machine.Machine create(MachineHost host) {
-        if (API.machine != null)
-            return API.machine.create(host);
+        if (API.machine != null) return API.machine.create(host);
         return null;
     }
 
     // ----------------------------------------------------------------------- //
 
-    private Machine() {
-    }
+    private Machine() {}
 
     /**
      * The built-in Lua architecture. This will be set to the native Lua

@@ -17,7 +17,8 @@ public final class DriverEnergySource extends DriverSidedTileEntity {
     }
 
     @Override
-    public ManagedEnvironment createEnvironment(final World world, final int x, final int y, final int z, final ForgeDirection side) {
+    public ManagedEnvironment createEnvironment(
+            final World world, final int x, final int y, final int z, final ForgeDirection side) {
         return new Environment((IEnergySource) world.getTileEntity(x, y, z));
     }
 
@@ -28,7 +29,7 @@ public final class DriverEnergySource extends DriverSidedTileEntity {
 
         @Callback
         public Object[] getOfferedEnergy(final Context context, final Arguments args) {
-            return new Object[]{tileEntity.getOfferedEnergy()};
+            return new Object[] {tileEntity.getOfferedEnergy()};
         }
     }
 }

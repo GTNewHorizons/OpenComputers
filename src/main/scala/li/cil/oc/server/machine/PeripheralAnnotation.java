@@ -1,8 +1,7 @@
 package li.cil.oc.server.machine;
 
-import li.cil.oc.api.machine.Callback;
-
 import java.lang.annotation.Annotation;
+import li.cil.oc.api.machine.Callback;
 
 // Java class to avoid those stupid warnings.
 @SuppressWarnings("ClassExplicitlyAnnotation")

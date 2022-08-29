@@ -16,16 +16,13 @@ public abstract class SimpleEnvironment extends TileEntity implements SimpleComp
     }
 
     @Override
-    public void onConnect(Node node) {
-    }
+    public void onConnect(Node node) {}
 
     @Override
-    public void onDisconnect(Node node) {
-    }
+    public void onDisconnect(Node node) {}
 
     @Override
-    public void onMessage(Message message) {
-    }
+    public void onMessage(Message message) {}
 
     // These are always injected, after possibly existing versions have been
     // renamed to the below variants from the SimpleComponentImpl interface.

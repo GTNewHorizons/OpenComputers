@@ -39,14 +39,11 @@ public abstract class AbstractBehavior implements Behavior {
     }
 
     @Override
-    public void onEnable() {
-    }
+    public void onEnable() {}
 
     @Override
-    public void onDisable(DisableReason reason) {
-    }
+    public void onDisable(DisableReason reason) {}
 
     @Override
-    public void update() {
-    }
+    public void update() {}
 }

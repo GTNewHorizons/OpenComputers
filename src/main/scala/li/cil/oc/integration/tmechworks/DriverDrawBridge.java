@@ -17,7 +17,8 @@ public class DriverDrawBridge extends DriverSidedTileEntity {
     }
 
     @Override
-    public ManagedEnvironment createEnvironment(final World world, final int x, final int y, final int z, final ForgeDirection side) {
+    public ManagedEnvironment createEnvironment(
+            final World world, final int x, final int y, final int z, final ForgeDirection side) {
         return new Environment((IDrawbridgeLogicBase) world.getTileEntity(x, y, z));
     }
 
@@ -28,7 +29,7 @@ public class DriverDrawBridge extends DriverSidedTileEntity {
 
         @Callback(doc = "function():boolean -- Whether the draw bridge is currently in its extended state or not.")
         public Object[] hasExtended(final Context context, final Arguments args) {
-            return new Object[]{tileEntity.hasExtended()};
+            return new Object[] {tileEntity.hasExtended()};
         }
     }
 }

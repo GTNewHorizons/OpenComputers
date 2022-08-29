@@ -18,7 +18,8 @@ public final class DriverMassFab extends DriverSidedTileEntity {
     }
 
     @Override
-    public ManagedEnvironment createEnvironment(final World world, final int x, final int y, final int z, final ForgeDirection side) {
+    public ManagedEnvironment createEnvironment(
+            final World world, final int x, final int y, final int z, final ForgeDirection side) {
         return new Environment((TileEntityMatter) world.getTileEntity(x, y, z));
     }
 
@@ -39,7 +40,7 @@ public final class DriverMassFab extends DriverSidedTileEntity {
 
         @Callback
         public Object[] getProgress(final Context context, final Arguments args) {
-            return new Object[]{100 * tileEntity.getEnergy() / tileEntity.getDemandedEnergy()};
+            return new Object[] {100 * tileEntity.getEnergy() / tileEntity.getDemandedEnergy()};
         }
     }
 }

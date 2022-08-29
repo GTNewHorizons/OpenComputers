@@ -15,6 +15,5 @@ public final class CreativeTab {
      */
     public static CreativeTabs instance = CreativeTabs.tabRedstone;
 
-    private CreativeTab() {
-    }
+    private CreativeTab() {}
 }

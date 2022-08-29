@@ -1,12 +1,11 @@
 package li.cil.oc.integration.rotarycraft;
 
 import cpw.mods.fml.common.registry.GameRegistry;
+import java.util.Map;
 import li.cil.oc.api.driver.Converter;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
-
-import java.util.Map;
 
 public class ConverterPumpItem implements Converter {
     final Item Pump = GameRegistry.findItem("RotaryCraft", "rotarycraft_item_pump");

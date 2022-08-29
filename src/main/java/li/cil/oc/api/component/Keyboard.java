@@ -12,6 +12,5 @@ public interface Keyboard extends li.cil.oc.api.internal.Keyboard {
      *
      * @deprecated Use li.cil.oc.api.internal.Keyboard.UsabilityChecker instead.
      */
-    interface UsabilityChecker extends li.cil.oc.api.internal.Keyboard.UsabilityChecker {
-    }
+    interface UsabilityChecker extends li.cil.oc.api.internal.Keyboard.UsabilityChecker {}
 }

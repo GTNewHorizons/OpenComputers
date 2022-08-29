@@ -17,7 +17,8 @@ public final class DriverEnergyStorage extends DriverSidedTileEntity {
     }
 
     @Override
-    public ManagedEnvironment createEnvironment(final World world, final int x, final int y, final int z, final ForgeDirection side) {
+    public ManagedEnvironment createEnvironment(
+            final World world, final int x, final int y, final int z, final ForgeDirection side) {
         return new Environment((IEnergyStorage) world.getTileEntity(x, y, z));
     }
 
@@ -28,17 +29,17 @@ public final class DriverEnergyStorage extends DriverSidedTileEntity {
 
         @Callback
         public Object[] getCapacity(final Context context, final Arguments args) {
-            return new Object[]{tileEntity.getCapacity()};
+            return new Object[] {tileEntity.getCapacity()};
         }
 
         @Callback
         public Object[] getOutput(final Context context, final Arguments args) {
-            return new Object[]{tileEntity.getOutput()};
+            return new Object[] {tileEntity.getOutput()};
         }
 
         @Callback
         public Object[] getStored(final Context context, final Arguments args) {
-            return new Object[]{tileEntity.getStored()};
+            return new Object[] {tileEntity.getStored()};
         }
     }
 }

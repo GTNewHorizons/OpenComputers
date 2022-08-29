@@ -17,7 +17,8 @@ public final class DriverEnergyConductor extends DriverSidedTileEntity {
     }
 
     @Override
-    public ManagedEnvironment createEnvironment(final World world, final int x, final int y, final int z, final ForgeDirection side) {
+    public ManagedEnvironment createEnvironment(
+            final World world, final int x, final int y, final int z, final ForgeDirection side) {
         return new Environment((IEnergyConductor) world.getTileEntity(x, y, z));
     }
 
@@ -28,22 +29,22 @@ public final class DriverEnergyConductor extends DriverSidedTileEntity {
 
         @Callback
         public Object[] getConductionLoss(final Context context, final Arguments args) {
-            return new Object[]{tileEntity.getConductionLoss()};
+            return new Object[] {tileEntity.getConductionLoss()};
         }
 
         @Callback
         public Object[] getConductorBreakdownEnergy(final Context context, final Arguments args) {
-            return new Object[]{tileEntity.getConductorBreakdownEnergy()};
+            return new Object[] {tileEntity.getConductorBreakdownEnergy()};
         }
 
         @Callback
         public Object[] getInsulationBreakdownEnergy(final Context context, final Arguments args) {
-            return new Object[]{tileEntity.getInsulationBreakdownEnergy()};
+            return new Object[] {tileEntity.getInsulationBreakdownEnergy()};
         }
 
         @Callback
         public Object[] getInsulationEnergyAbsorption(final Context context, final Arguments args) {
-            return new Object[]{tileEntity.getInsulationEnergyAbsorption()};
+            return new Object[] {tileEntity.getInsulationEnergyAbsorption()};
         }
     }
 }

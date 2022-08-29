@@ -17,7 +17,8 @@ public final class DriverRedstoneControl extends DriverSidedTileEntity {
     }
 
     @Override
-    public ManagedEnvironment createEnvironment(final World world, final int x, final int y, final int z, final ForgeDirection side) {
+    public ManagedEnvironment createEnvironment(
+            final World world, final int x, final int y, final int z, final ForgeDirection side) {
         return new Environment((IRedstoneControl) world.getTileEntity(x, y, z));
     }
 
@@ -28,48 +29,45 @@ public final class DriverRedstoneControl extends DriverSidedTileEntity {
 
         @Callback(doc = "function():boolean --  Returns whether the control is disabled.")
         public Object[] getControlDisable(final Context context, final Arguments args) {
-            return new Object[]{tileEntity.getControl() == IRedstoneControl.ControlMode.DISABLED};
+            return new Object[] {tileEntity.getControl() == IRedstoneControl.ControlMode.DISABLED};
         }
 
         @Callback(doc = "function():int --  Returns the control status.")
         public Object[] getControlSetting(final Context context, final Arguments args) {
-            return new Object[]{tileEntity.getControl().ordinal()};
-
+            return new Object[] {tileEntity.getControl().ordinal()};
         }
 
         @Callback(doc = "function():string --  Returns the control status.")
         public Object[] getControlSettingName(final Context context, final Arguments args) {
-            return new Object[]{tileEntity.getControl().name()};
-
+            return new Object[] {tileEntity.getControl().name()};
         }
 
         @Callback(doc = "function(int):string --  Returns the name of the given control")
         public Object[] getControlName(final Context context, final Arguments args) {
             IRedstoneControl.ControlMode m = IRedstoneControl.ControlMode.values()[args.checkInteger(0)];
-            return new Object[]{m.name()};
+            return new Object[] {m.name()};
         }
 
         @Callback(doc = "function():boolean --  Returns whether the component is powered.")
         public Object[] isPowered(final Context context, final Arguments args) {
-            return new Object[]{tileEntity.isPowered()};
+            return new Object[] {tileEntity.isPowered()};
         }
 
         @Callback(doc = "function():boolean --  Sets whether the control tp disabled.")
         public Object[] setControlDisable(final Context context, final Arguments args) {
             tileEntity.setControl(IRedstoneControl.ControlMode.DISABLED);
-            return new Object[]{true};
+            return new Object[] {true};
         }
 
         @Callback(doc = "function(state:int):boolean --  Sets the control status to the given value.")
         public Object[] setControlSetting(final Context context, final Arguments args) {
             if (args.isInteger(0)) {
                 tileEntity.setControl(IRedstoneControl.ControlMode.values()[args.checkInteger(0)]);
-                return new Object[]{true};
+                return new Object[] {true};
             } else {
                 tileEntity.setControl(IRedstoneControl.ControlMode.valueOf(args.checkString(0)));
-                return new Object[]{true};
+                return new Object[] {true};
             }
-
         }
     }
 }

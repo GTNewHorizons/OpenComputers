@@ -60,18 +60,20 @@ public interface DeviceInfo {
      */
     final class DeviceAttribute {
         public static final String Class = "class"; // device's class (see below), e.g. "processor"
-        public static final String Description = "description"; // human-readable description of the hardware node, e.g. "Ethernet interface"
+        public static final String Description =
+                "description"; // human-readable description of the hardware node, e.g. "Ethernet interface"
         public static final String Vendor = "vendor"; // vendor/manufacturer of the device, e.g. "Minecorp Inc."
         public static final String Product = "product"; // product name of the device, e.g. "ATY Raderps 4200X"
         public static final String Version = "version"; // version/release of the device, e.g. "2.1.0"
         public static final String Serial = "serial"; // serial number of the device
-        public static final String Capacity = "capacity"; // maximum capacity reported by the device, e.g. unformatted size of a disk
+        public static final String Capacity =
+                "capacity"; // maximum capacity reported by the device, e.g. unformatted size of a disk
         public static final String Size = "size"; // actual size of the device, e.g. actual usable space on a disk
-        public static final String Clock = "clock"; // bus clock (in Hz) of the device, e.g. call speed(s) of a component
+        public static final String Clock =
+                "clock"; // bus clock (in Hz) of the device, e.g. call speed(s) of a component
         public static final String Width = "width"; // address width of the device, in the broadest sense
 
-        private DeviceAttribute() {
-        }
+        private DeviceAttribute() {}
     }
 
     /**
@@ -80,11 +82,14 @@ public interface DeviceInfo {
      * Again, feel free to be somewhat creative with those. When in doubt, use <code>generic</code>.
      */
     final class DeviceClass {
-        public static final String System = "system"; // used to refer to the whole machine, e.g. "Computer", "Server", "Robot"
+        public static final String System =
+                "system"; // used to refer to the whole machine, e.g. "Computer", "Server", "Robot"
         public static final String Bridge = "bridge"; // internal bus converter, maybe useful for some low-level archs?
-        public static final String Memory = "memory"; // memory bank that can contain data, executable code, e.g. RAM, EEPROM
+        public static final String Memory =
+                "memory"; // memory bank that can contain data, executable code, e.g. RAM, EEPROM
         public static final String Processor = "processor"; // execution processor, e.g. CPU, cryptography support
-        public static final String Address = "address"; // memory address range, e.g. video memory (again, low-level archs maybe?)
+        public static final String Address =
+                "address"; // memory address range, e.g. video memory (again, low-level archs maybe?)
         public static final String Storage = "storage"; // storage controller, e.g. IDE controller (low-level...)
         public static final String Disk = "disk"; // random-access storage device, e.g. floppies
         public static final String Tape = "tape"; // sequential-access storage device, e.g. cassette tapes
@@ -94,13 +99,12 @@ public interface DeviceInfo {
         public static final String Input = "input"; // user input device, e.g. keyboard, mouse
         public static final String Printer = "printer"; // printing device, e.g. printer, 3D-printer
         public static final String Multimedia = "multimedia"; // audio/video device, e.g. sound cards
-        public static final String Communication = "communication"; // line communication device, e.g. modem, serial ports
+        public static final String Communication =
+                "communication"; // line communication device, e.g. modem, serial ports
         public static final String Power = "power"; // energy source, e.g. battery, power supply
         public static final String Volume = "volume"; // disk volume, e.g. file system
         public static final String Generic = "generic"; // generic device (used when no other class is suitable)
 
-        private DeviceClass() {
-        }
+        private DeviceClass() {}
     }
-
 }

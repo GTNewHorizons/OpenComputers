@@ -1,11 +1,10 @@
 package li.cil.oc.integration.computercraft;
 
 import com.google.common.collect.Iterables;
-import li.cil.oc.api.machine.Arguments;
-
 import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
 import java.util.List;
+import li.cil.oc.api.machine.Arguments;
 
 public final class CallableHelper {
     private final List<String> _methods;

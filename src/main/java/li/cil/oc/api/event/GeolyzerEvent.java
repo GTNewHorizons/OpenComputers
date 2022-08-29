@@ -2,10 +2,9 @@ package li.cil.oc.api.event;
 
 import cpw.mods.fml.common.eventhandler.Cancelable;
 import cpw.mods.fml.common.eventhandler.Event;
-import li.cil.oc.api.network.EnvironmentHost;
-
 import java.util.HashMap;
 import java.util.Map;
+import li.cil.oc.api.network.EnvironmentHost;
 
 /**
  * This event is fired by the geolyzer block/upgrade.
@@ -80,7 +79,8 @@ public abstract class GeolyzerEvent extends Event {
          */
         public final float[] data = new float[64];
 
-        public Scan(EnvironmentHost host, Map<?, ?> options, int minX, int minY, int minZ, int maxX, int maxY, int maxZ) {
+        public Scan(
+                EnvironmentHost host, Map<?, ?> options, int minX, int minY, int minZ, int maxX, int maxY, int maxZ) {
             super(host, options);
             this.minX = minX;
             this.minY = minY;

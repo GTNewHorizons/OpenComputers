@@ -32,8 +32,7 @@ public class Manual {
      * @param path     the path to the page to open when the tab is clicked.
      */
     public static void addTab(TabIconRenderer renderer, String tooltip, String path) {
-        if (API.manual != null)
-            API.manual.addTab(renderer, tooltip, path);
+        if (API.manual != null) API.manual.addTab(renderer, tooltip, path);
     }
 
     /**
@@ -45,8 +44,7 @@ public class Manual {
      * @param provider the provider to register.
      */
     public static void addProvider(PathProvider provider) {
-        if (API.manual != null)
-            API.manual.addProvider(provider);
+        if (API.manual != null) API.manual.addProvider(provider);
     }
 
     /**
@@ -60,8 +58,7 @@ public class Manual {
      * @param provider the provider to register.
      */
     public static void addProvider(ContentProvider provider) {
-        if (API.manual != null)
-            API.manual.addProvider(provider);
+        if (API.manual != null) API.manual.addProvider(provider);
     }
 
     /**
@@ -83,8 +80,7 @@ public class Manual {
      * @param provider the provider to register.
      */
     public static void addProvider(String prefix, ImageProvider provider) {
-        if (API.manual != null)
-            API.manual.addProvider(prefix, provider);
+        if (API.manual != null) API.manual.addProvider(prefix, provider);
     }
 
     /**
@@ -98,8 +94,7 @@ public class Manual {
      * @return the custom renderer for that path.
      */
     public static ImageRenderer imageFor(String path) {
-        if (API.manual != null)
-            return API.manual.imageFor(path);
+        if (API.manual != null) return API.manual.imageFor(path);
         return null;
     }
 
@@ -112,8 +107,7 @@ public class Manual {
      * @return the path to the page, <tt>null</tt> if none is known.
      */
     public static String pathFor(ItemStack stack) {
-        if (API.manual != null)
-            return API.manual.pathFor(stack);
+        if (API.manual != null) return API.manual.pathFor(stack);
         return null;
     }
 
@@ -127,8 +121,7 @@ public class Manual {
      * @return the path to the page, <tt>null</tt> if none is known.
      */
     public static String pathFor(World world, int x, int y, int z) {
-        if (API.manual != null)
-            return API.manual.pathFor(world, x, y, z);
+        if (API.manual != null) return API.manual.pathFor(world, x, y, z);
         return null;
     }
 
@@ -139,8 +132,7 @@ public class Manual {
      * @return the content of the page, or <tt>null</tt> if none exists.
      */
     public static Iterable<String> contentFor(String path) {
-        if (API.manual != null)
-            return API.manual.contentFor(path);
+        if (API.manual != null) return API.manual.contentFor(path);
         return null;
     }
 
@@ -155,16 +147,14 @@ public class Manual {
      * @param player the player to open the manual for.
      */
     public static void openFor(EntityPlayer player) {
-        if (API.manual != null)
-            API.manual.openFor(player);
+        if (API.manual != null) API.manual.openFor(player);
     }
 
     /**
      * Reset the history of the manual.
      */
     public static void reset() {
-        if (API.manual != null)
-            API.manual.reset();
+        if (API.manual != null) API.manual.reset();
     }
 
     /**
@@ -173,12 +163,10 @@ public class Manual {
      * @param path the path to navigate to.
      */
     public static void navigate(String path) {
-        if (API.manual != null)
-            API.manual.navigate(path);
+        if (API.manual != null) API.manual.navigate(path);
     }
 
     // ----------------------------------------------------------------------- //
 
-    private Manual() {
-    }
+    private Manual() {}
 }

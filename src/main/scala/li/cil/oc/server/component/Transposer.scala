@@ -22,7 +22,7 @@ import scala.language.existentials
 
 object Transposer {
 
-  abstract class Common extends prefab.ManagedEnvironment with traits.WorldInventoryAnalytics with traits.WorldTankAnalytics with traits.InventoryTransfer with DeviceInfo {
+  abstract class Common extends prefab.ManagedEnvironment with traits.WorldInventoryAnalytics with traits.WorldTankAnalytics with traits.WorldFluidContainerAnalytics with traits.InventoryTransfer with traits.FluidContainerTransfer with DeviceInfo {
     override val node = api.Network.newNode(this, Visibility.Network).
       withComponent("transposer").
       withConnector().

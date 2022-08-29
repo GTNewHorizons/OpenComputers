@@ -20,7 +20,8 @@ public final class DriverLamp extends DriverSidedTileEntity {
     }
 
     @Override
-    public ManagedEnvironment createEnvironment(final World world, final int x, final int y, final int z, final ForgeDirection side) {
+    public ManagedEnvironment createEnvironment(
+            final World world, final int x, final int y, final int z, final ForgeDirection side) {
         return new Environment(world.getTileEntity(x, y, z));
     }
 
@@ -31,7 +32,7 @@ public final class DriverLamp extends DriverSidedTileEntity {
 
         @Callback(doc = "function(color:number):boolean --  Sets the color of the lamp to the given color.")
         public Object[] setColor(final Context context, final Arguments args) {
-            return new Object[]{Reflection.tryInvoke(tileEntity, "setColor", args.checkInteger(0))};
+            return new Object[] {Reflection.tryInvoke(tileEntity, "setColor", args.checkInteger(0))};
         }
     }
 }

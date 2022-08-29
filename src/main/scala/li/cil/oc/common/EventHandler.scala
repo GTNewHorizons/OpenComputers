@@ -196,9 +196,6 @@ object EventHandler {
         if (!LuaStateFactory.isAvailable && !LuaStateFactory.luajRequested) {
           player.addChatMessage(Localization.Chat.WarningLuaFallback)
         }
-        if (Recipes.hadErrors) {
-          player.addChatMessage(Localization.Chat.WarningRecipes)
-        }
         if (ClassTransformer.hadErrors) {
           player.addChatMessage(Localization.Chat.WarningClassTransformer)
         }
@@ -207,14 +204,6 @@ object EventHandler {
         }
         ServerPacketSender.sendPetVisibility(None, Some(player))
         ServerPacketSender.sendLootDisks(player)
-        // Do update check in local games and for OPs.
-        if (!Mods.VersionChecker.isAvailable && (!MinecraftServer.getServer.isDedicatedServer || MinecraftServer.getServer.getConfigurationManager.func_152596_g(player.getGameProfile))) {
-          Future {
-            UpdateCheck.info onSuccess {
-              case Some(release) => player.addChatMessage(Localization.Chat.InfoNewVersion(release.tag_name))
-            }
-          }
-        }
       case _ =>
     }
   }

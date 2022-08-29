@@ -100,7 +100,15 @@ public final class IMC {
      *                       with only two card slots will pass <tt>null</tt>
      *                       for the third component slot. Up to nine.
      */
-    public static void registerAssemblerTemplate(final String name, final String select, final String validate, final String assemble, final Class host, final int[] containerTiers, final int[] upgradeTiers, final Iterable<Pair<String, Integer>> componentSlots) {
+    public static void registerAssemblerTemplate(
+            final String name,
+            final String select,
+            final String validate,
+            final String assemble,
+            final Class host,
+            final int[] containerTiers,
+            final int[] upgradeTiers,
+            final Iterable<Pair<String, Integer>> componentSlots) {
         final NBTTagCompound nbt = new NBTTagCompound();
         if (name != null) {
             nbt.setString("name", name);
@@ -398,7 +406,8 @@ public final class IMC {
      * @param diskLabel     the label of the disk the program is on.
      * @param architectures the names of the architectures this entry applies to.
      */
-    public static void registerProgramDiskLabel(final String programName, final String diskLabel, final String... architectures) {
+    public static void registerProgramDiskLabel(
+            final String programName, final String diskLabel, final String... architectures) {
         final NBTTagCompound nbt = new NBTTagCompound();
         nbt.setString("program", programName);
         nbt.setString("label", diskLabel);
@@ -416,6 +425,5 @@ public final class IMC {
 
     private static final String MOD_ID = "OpenComputers";
 
-    private IMC() {
-    }
+    private IMC() {}
 }

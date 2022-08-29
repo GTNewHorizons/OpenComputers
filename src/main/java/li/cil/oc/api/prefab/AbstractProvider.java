@@ -38,8 +38,7 @@ public abstract class AbstractProvider implements BehaviorProvider {
      * @param behavior the behavior to persist.
      * @param nbt      the NBT tag to persist it to.
      */
-    protected void writeBehaviorToNBT(Behavior behavior, NBTTagCompound nbt) {
-    }
+    protected void writeBehaviorToNBT(Behavior behavior, NBTTagCompound nbt) {}
 
     /**
      * Called when loading a behavior from NBT.

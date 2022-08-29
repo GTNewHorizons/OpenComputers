@@ -5,8 +5,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 public final class Reflection {
-    private Reflection() {
-    }
+    private Reflection() {}
 
     public static Class<?> getClass(final String name) {
         try {
@@ -47,15 +46,16 @@ public final class Reflection {
                         final Class<?> have = argTypes[i];
                         final Class<?> given = args[i].getClass();
                         // Fail if not assignable and not assignable to primitive.
-                        if (!have.isAssignableFrom(given) && (!have.isPrimitive()
-                                || (!(byte.class.equals(have) && Byte.class.equals(given))
-                                && !(short.class.equals(have) && Short.class.equals(given))
-                                && !(int.class.equals(have) && Integer.class.equals(given))
-                                && !(long.class.equals(have) && Long.class.equals(given))
-                                && !(float.class.equals(have) && Float.class.equals(given))
-                                && !(double.class.equals(have) && Double.class.equals(given))
-                                && !(boolean.class.equals(have) && Boolean.class.equals(given))
-                                && !(char.class.equals(have) && Character.class.equals(given))))) {
+                        if (!have.isAssignableFrom(given)
+                                && (!have.isPrimitive()
+                                        || (!(byte.class.equals(have) && Byte.class.equals(given))
+                                                && !(short.class.equals(have) && Short.class.equals(given))
+                                                && !(int.class.equals(have) && Integer.class.equals(given))
+                                                && !(long.class.equals(have) && Long.class.equals(given))
+                                                && !(float.class.equals(have) && Float.class.equals(given))
+                                                && !(double.class.equals(have) && Double.class.equals(given))
+                                                && !(boolean.class.equals(have) && Boolean.class.equals(given))
+                                                && !(char.class.equals(have) && Character.class.equals(given))))) {
                             continue outer;
                         }
                     }

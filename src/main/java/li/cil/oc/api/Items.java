@@ -1,9 +1,8 @@
 package li.cil.oc.api;
 
+import java.util.concurrent.Callable;
 import li.cil.oc.api.detail.ItemInfo;
 import net.minecraft.item.ItemStack;
-
-import java.util.concurrent.Callable;
 
 /**
  * Access to item definitions for all blocks and items provided by
@@ -27,8 +26,7 @@ public final class Items {
      * <tt>null</tt> if there is no such item.
      */
     public static ItemInfo get(String name) {
-        if (API.items != null)
-            return API.items.get(name);
+        if (API.items != null) return API.items.get(name);
         return null;
     }
 
@@ -41,8 +39,7 @@ public final class Items {
      * if the stack is not a valid OpenComputers item or block.
      */
     public static ItemInfo get(ItemStack stack) {
-        if (API.items != null)
-            return API.items.get(stack);
+        if (API.items != null) return API.items.get(stack);
         return null;
     }
 
@@ -71,8 +68,7 @@ public final class Items {
      */
     @Deprecated
     public static ItemStack registerFloppy(String name, int color, Callable<li.cil.oc.api.fs.FileSystem> factory) {
-        if (API.items != null)
-            return API.items.registerFloppy(name, color, factory);
+        if (API.items != null) return API.items.registerFloppy(name, color, factory);
         return null;
     }
 
@@ -102,9 +98,9 @@ public final class Items {
      * @return an item stack representing the registered loot disk, to allow
      * adding a recipe for your loot disk, for example.
      */
-    public static ItemStack registerFloppy(String name, int color, Callable<li.cil.oc.api.fs.FileSystem> factory, boolean doRecipeCycling) {
-        if (API.items != null)
-            return API.items.registerFloppy(name, color, factory, doRecipeCycling);
+    public static ItemStack registerFloppy(
+            String name, int color, Callable<li.cil.oc.api.fs.FileSystem> factory, boolean doRecipeCycling) {
+        if (API.items != null) return API.items.registerFloppy(name, color, factory, doRecipeCycling);
         return null;
     }
 
@@ -125,13 +121,11 @@ public final class Items {
      * adding a recipe for your custom BIOS, for example.
      */
     public static ItemStack registerEEPROM(String name, byte[] code, byte[] data, boolean readonly) {
-        if (API.items != null)
-            return API.items.registerEEPROM(name, code, data, readonly);
+        if (API.items != null) return API.items.registerEEPROM(name, code, data, readonly);
         return null;
     }
 
     // ----------------------------------------------------------------------- //
 
-    private Items() {
-    }
+    private Items() {}
 }

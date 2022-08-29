@@ -44,8 +44,7 @@ public final class Network {
      * @param tileEntity the tile entity to initialize.
      */
     public static void joinOrCreateNetwork(final TileEntity tileEntity) {
-        if (API.network != null)
-            API.network.joinOrCreateNetwork(tileEntity);
+        if (API.network != null) API.network.joinOrCreateNetwork(tileEntity);
     }
 
     /**
@@ -59,8 +58,7 @@ public final class Network {
      * @throws IllegalArgumentException if the node already is in a network.
      */
     public static void joinNewNetwork(final Node node) {
-        if (API.network != null)
-            API.network.joinNewNetwork(node);
+        if (API.network != null) API.network.joinNewNetwork(node);
     }
 
     // ----------------------------------------------------------------------- //
@@ -79,8 +77,7 @@ public final class Network {
      * @param endpoint the endpoint to register with the network.
      */
     public static void joinWirelessNetwork(final WirelessEndpoint endpoint) {
-        if (API.network != null)
-            API.network.joinWirelessNetwork(endpoint);
+        if (API.network != null) API.network.joinWirelessNetwork(endpoint);
     }
 
     /**
@@ -95,8 +92,7 @@ public final class Network {
      * @param endpoint the endpoint for which to update the position.
      */
     public static void updateWirelessNetwork(final WirelessEndpoint endpoint) {
-        if (API.network != null)
-            API.network.updateWirelessNetwork(endpoint);
+        if (API.network != null) API.network.updateWirelessNetwork(endpoint);
     }
 
     /**
@@ -110,8 +106,7 @@ public final class Network {
      * @param endpoint the endpoint to remove from the wireless network.
      */
     public static void leaveWirelessNetwork(final WirelessEndpoint endpoint) {
-        if (API.network != null)
-            API.network.leaveWirelessNetwork(endpoint);
+        if (API.network != null) API.network.leaveWirelessNetwork(endpoint);
     }
 
     /**
@@ -126,8 +121,7 @@ public final class Network {
      * @param dimension the dimension with the wireless network to remove the endpoint from.
      */
     public static void leaveWirelessNetwork(final WirelessEndpoint endpoint, final int dimension) {
-        if (API.network != null)
-            API.network.leaveWirelessNetwork(endpoint, dimension);
+        if (API.network != null) API.network.leaveWirelessNetwork(endpoint, dimension);
     }
 
     /**
@@ -144,8 +138,7 @@ public final class Network {
      * @param packet   the packet to send.
      */
     public static void sendWirelessPacket(final WirelessEndpoint source, final double strength, final Packet packet) {
-        if (API.network != null)
-            API.network.sendWirelessPacket(source, strength, packet);
+        if (API.network != null) API.network.sendWirelessPacket(source, strength, packet);
     }
 
     // ----------------------------------------------------------------------- //
@@ -188,8 +181,7 @@ public final class Network {
      * @return a new node builder.
      */
     public static Builder.NodeBuilder newNode(final Environment host, final Visibility reachability) {
-        if (API.network != null)
-            return API.network.newNode(host, reachability);
+        if (API.network != null) return API.network.newNode(host, reachability);
         return null;
     }
 
@@ -209,8 +201,7 @@ public final class Network {
      * @return the new packet.
      */
     public static Packet newPacket(final String source, final String destination, final int port, final Object[] data) {
-        if (API.network != null)
-            return API.network.newPacket(source, destination, port, data);
+        if (API.network != null) return API.network.newPacket(source, destination, port, data);
         return null;
     }
 
@@ -221,13 +212,11 @@ public final class Network {
      * @return the loaded packet.
      */
     public static Packet newPacket(final NBTTagCompound nbt) {
-        if (API.network != null)
-            return API.network.newPacket(nbt);
+        if (API.network != null) return API.network.newPacket(nbt);
         return null;
     }
 
     // ----------------------------------------------------------------------- //
 
-    private Network() {
-    }
+    private Network() {}
 }

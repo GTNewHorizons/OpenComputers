@@ -1,6 +1,8 @@
 package li.cil.oc.common.asm.template;
 
 import com.google.common.base.Strings;
+import java.util.HashMap;
+import java.util.Map;
 import li.cil.oc.api.Network;
 import li.cil.oc.api.network.Environment;
 import li.cil.oc.api.network.Node;
@@ -10,17 +12,13 @@ import li.cil.oc.util.SideTracker;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 
-import java.util.HashMap;
-import java.util.Map;
-
 // This class contains actual implementations of methods injected into tile
 // entities marked as simple components using the SimpleComponent interface.
 // They are called from the template methods, to keep the injected methods
 // minimal, instruction wise, and avoid weird dependencies making the injection
 // unnecessarily complicated.
 public final class StaticSimpleEnvironment {
-    private StaticSimpleEnvironment() {
-    }
+    private StaticSimpleEnvironment() {}
 
     private static final Map<Environment, Node> nodes = new HashMap<Environment, Node>();
 
@@ -39,10 +37,11 @@ public final class StaticSimpleEnvironment {
                 node.remove();
             }
         } else if (!nodes.containsKey(self)) {
-            nodes.put(self, Network.
-                    newNode(self, Visibility.Network).
-                    withComponent(name).
-                    create());
+            nodes.put(
+                    self,
+                    Network.newNode(self, Visibility.Network)
+                            .withComponent(name)
+                            .create());
         }
         return nodes.get(self);
     }

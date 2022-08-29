@@ -15,8 +15,7 @@ public class AbstractValue implements Value {
     }
 
     @Override
-    public void unapply(Context context, Arguments arguments) {
-    }
+    public void unapply(Context context, Arguments arguments) {}
 
     @Override
     public Object[] call(Context context, Arguments arguments) {
@@ -24,14 +23,11 @@ public class AbstractValue implements Value {
     }
 
     @Override
-    public void dispose(Context context) {
-    }
+    public void dispose(Context context) {}
 
     @Override
-    public void load(NBTTagCompound nbt) {
-    }
+    public void load(NBTTagCompound nbt) {}
 
     @Override
-    public void save(NBTTagCompound nbt) {
-    }
+    public void save(NBTTagCompound nbt) {}
 }

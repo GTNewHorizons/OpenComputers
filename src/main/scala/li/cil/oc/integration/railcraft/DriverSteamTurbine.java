@@ -20,7 +20,8 @@ public final class DriverSteamTurbine extends DriverSidedTileEntity {
     }
 
     @Override
-    public ManagedEnvironment createEnvironment(final World world, final int x, final int y, final int z, final ForgeDirection side) {
+    public ManagedEnvironment createEnvironment(
+            final World world, final int x, final int y, final int z, final ForgeDirection side) {
         return new Environment((TileSteamTurbine) world.getTileEntity(x, y, z));
     }
 
@@ -41,7 +42,7 @@ public final class DriverSteamTurbine extends DriverSidedTileEntity {
 
         @Callback(doc = "function():number --  Returns the output of the steam turbine")
         public Object[] getTurbineOutput(final Context context, final Arguments args) {
-            return new Object[]{tileEntity.getOutput()};
+            return new Object[] {tileEntity.getOutput()};
         }
 
         @Callback(doc = "function():number -- Returns the durability of the rotor in percent.")
@@ -50,10 +51,10 @@ public final class DriverSteamTurbine extends DriverSidedTileEntity {
             if (inventory != null && inventory.getSizeInventory() > 0) {
                 final ItemStack itemStack = inventory.getStackInSlot(0);
                 if (itemStack != null) {
-                    return new Object[]{100 - (int) (itemStack.getItemDamage() * 100.0 / itemStack.getMaxDamage())};
+                    return new Object[] {100 - (int) (itemStack.getItemDamage() * 100.0 / itemStack.getMaxDamage())};
                 }
             }
-            return new Object[]{0};
+            return new Object[] {0};
         }
     }
 }

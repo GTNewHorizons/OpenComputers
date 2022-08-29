@@ -18,6 +18,5 @@ public final class Slot {
     public static final String Tablet = "tablet";
     public static final String Upgrade = "upgrade";
 
-    private Slot() {
-    }
+    private Slot() {}
 }

@@ -11,7 +11,7 @@ object DebugWhitelistCommand extends SimpleCommand("oc_debugWhitelist") {
   //  to do other whitelist manipulation - 2
 
   override def getRequiredPermissionLevel = 0
-  private def isOp(sender: ICommandSender) = getOpLevel(sender) >= 2
+  def isOp(sender: ICommandSender) = getOpLevel(sender) >= 2
 
   override def getCommandUsage(sender: ICommandSender): String =
     if (isOp(sender)) name + " [revoke|add|remove] <player> OR " + name + " [revoke|list]"

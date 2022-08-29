@@ -15,7 +15,8 @@ import thaumcraft.api.aspects.IAspectContainer;
 
 public class DriverAspectContainer extends DriverSidedTileEntity {
     @Override
-    public ManagedEnvironment createEnvironment(final World world, final int x, final int y, final int z, final ForgeDirection side) {
+    public ManagedEnvironment createEnvironment(
+            final World world, final int x, final int y, final int z, final ForgeDirection side) {
         return new Environment((IAspectContainer) world.getTileEntity(x, y, z));
     }
 
@@ -31,7 +32,7 @@ public class DriverAspectContainer extends DriverSidedTileEntity {
 
         @Callback(doc = "function():table -- Get the Aspects stored in the block")
         public Object[] getAspects(final Context context, final Arguments args) {
-            return new Object[]{tileEntity};
+            return new Object[] {tileEntity};
         }
 
         @Callback(doc = "function(aspect:string):number -- Get amount of specific aspect stored in this block")
@@ -39,7 +40,7 @@ public class DriverAspectContainer extends DriverSidedTileEntity {
             final Aspect aspect = Aspect.getAspect(args.checkString(0).toLowerCase());
             Preconditions.checkNotNull(aspect, "Invalid aspect name");
             final AspectList list = tileEntity.getAspects();
-            return new Object[]{list.getAmount(aspect)};
+            return new Object[] {list.getAmount(aspect)};
         }
     }
 }

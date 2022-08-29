@@ -17,7 +17,8 @@ public final class DriverFrequencyOwner extends DriverSidedTileEntity {
     }
 
     @Override
-    public ManagedEnvironment createEnvironment(final World world, final int x, final int y, final int z, final ForgeDirection side) {
+    public ManagedEnvironment createEnvironment(
+            final World world, final int x, final int y, final int z, final ForgeDirection side) {
         return new Environment((TileFrequencyOwner) world.getTileEntity(x, y, z));
     }
 
@@ -28,7 +29,7 @@ public final class DriverFrequencyOwner extends DriverSidedTileEntity {
 
         @Callback(doc = "function():number -- Get the currently set frequency.")
         public Object[] getFrequency(final Context context, final Arguments args) {
-            return new Object[]{tileEntity.freq};
+            return new Object[] {tileEntity.freq};
         }
 
         @Callback(doc = "function(value:number) -- Set the frequency. Who would have thought?!")
@@ -43,7 +44,7 @@ public final class DriverFrequencyOwner extends DriverSidedTileEntity {
 
         @Callback(doc = "function():string -- Get the name of the owner, which is usually a player's name or 'global'.")
         public Object[] getOwner(final Context context, final Arguments args) {
-            return new Object[]{tileEntity.owner};
+            return new Object[] {tileEntity.owner};
         }
     }
 }

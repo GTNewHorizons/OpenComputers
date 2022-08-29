@@ -1,7 +1,7 @@
 package li.cil.oc.api.machine;
 
-import li.cil.oc.api.network.EnvironmentHost;
 import li.cil.oc.api.network.Environment;
+import li.cil.oc.api.network.EnvironmentHost;
 import li.cil.oc.api.network.Node;
 import net.minecraft.item.ItemStack;
 
@@ -57,11 +57,10 @@ public interface MachineHost extends EnvironmentHost {
     void onMachineDisconnect(Node node);
 
     /** Helper method for printing the machine position in error messages and debug statements. */
-    default String machinePosition()
-    {
+    default String machinePosition() {
         if (world() != null && world().provider != null)
-            return String.format("(%g, %g, %g, %d)", xPosition(), yPosition(), zPosition(), world().provider.dimensionId);
-        else
-            return String.format("(%g, %g, %g)", xPosition(), yPosition(), zPosition());
+            return String.format(
+                    "(%g, %g, %g, %d)", xPosition(), yPosition(), zPosition(), world().provider.dimensionId);
+        else return String.format("(%g, %g, %g)", xPosition(), yPosition(), zPosition());
     }
 }

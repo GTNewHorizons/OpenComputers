@@ -7,6 +7,9 @@ import forestry.api.genetics.IAllele;
 import forestry.api.genetics.IAlleleSpecies;
 import forestry.api.genetics.IMutation;
 import forestry.api.genetics.ISpeciesRoot;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 import li.cil.oc.api.machine.Arguments;
 import li.cil.oc.api.machine.Callback;
 import li.cil.oc.api.machine.Context;
@@ -17,10 +20,6 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
-
 public class DriverBeeHouse extends DriverSidedTileEntity {
     @Override
     public Class<?> getTileEntityClass() {
@@ -28,7 +27,8 @@ public class DriverBeeHouse extends DriverSidedTileEntity {
     }
 
     @Override
-    public ManagedEnvironment createEnvironment(final World world, final int x, final int y, final int z, final ForgeDirection side) {
+    public ManagedEnvironment createEnvironment(
+            final World world, final int x, final int y, final int z, final ForgeDirection side) {
         return new Environment((IBeeHousing) world.getTileEntity(x, y, z));
     }
 
@@ -39,14 +39,14 @@ public class DriverBeeHouse extends DriverSidedTileEntity {
 
         @Callback(doc = "function():boolean -- Can the bees breed?")
         public Object[] canBreed(final Context context, final Arguments args) {
-            return new Object[]{tileEntity.getBeekeepingLogic().canWork()};
+            return new Object[] {tileEntity.getBeekeepingLogic().canWork()};
         }
 
         @Callback(doc = "function():table -- Get the drone")
         public Object[] getDrone(final Context context, final Arguments args) {
             final ItemStack drone = tileEntity.getBeeInventory().getDrone();
             if (drone != null) {
-                return new Object[]{AlleleManager.alleleRegistry.getIndividual(drone)};
+                return new Object[] {AlleleManager.alleleRegistry.getIndividual(drone)};
             }
             return null;
         }
@@ -55,7 +55,7 @@ public class DriverBeeHouse extends DriverSidedTileEntity {
         public Object[] getQueen(final Context context, final Arguments args) {
             final ItemStack queen = tileEntity.getBeeInventory().getQueen();
             if (queen != null) {
-                return new Object[]{AlleleManager.alleleRegistry.getIndividual(queen)};
+                return new Object[] {AlleleManager.alleleRegistry.getIndividual(queen)};
             }
             return null;
         }
@@ -82,8 +82,8 @@ public class DriverBeeHouse extends DriverSidedTileEntity {
                 }
 
                 mutationMap.put("chance", mutation.getBaseChance());
-                mutationMap.put("specialConditions", mutation
-                        .getSpecialConditions().toArray());
+                mutationMap.put(
+                        "specialConditions", mutation.getSpecialConditions().toArray());
 
                 final IAllele[] template = mutation.getTemplate();
                 if (template != null && template.length > 0) {
@@ -91,7 +91,7 @@ public class DriverBeeHouse extends DriverSidedTileEntity {
                 }
                 result.add(mutationMap);
             }
-            return new Object[]{result};
+            return new Object[] {result};
         }
 
         @Callback(doc = "function():table -- Get all known bees mutations")
@@ -115,7 +115,7 @@ public class DriverBeeHouse extends DriverSidedTileEntity {
 
                 result.add((IAlleleSpecies) allele);
             }
-            return new Object[]{result};
+            return new Object[] {result};
         }
 
         @Callback(doc = "function(beeName:string):table -- Get the parents for a particular mutation")
@@ -145,7 +145,7 @@ public class DriverBeeHouse extends DriverSidedTileEntity {
                     result.add(mutation);
                 }
             }
-            return new Object[]{result};
+            return new Object[] {result};
         }
     }
 }

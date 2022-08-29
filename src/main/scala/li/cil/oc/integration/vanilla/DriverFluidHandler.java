@@ -17,7 +17,8 @@ public final class DriverFluidHandler extends DriverSidedTileEntity {
     }
 
     @Override
-    public ManagedEnvironment createEnvironment(final World world, final int x, final int y, final int z, final ForgeDirection side) {
+    public ManagedEnvironment createEnvironment(
+            final World world, final int x, final int y, final int z, final ForgeDirection side) {
         return new Environment((IFluidHandler) world.getTileEntity(x, y, z));
     }
 
@@ -26,9 +27,12 @@ public final class DriverFluidHandler extends DriverSidedTileEntity {
             super(tileEntity, "fluid_handler");
         }
 
-        @Callback(doc = "function([side:number=6]):table -- Get some information about the tank accessible from the specified side.")
+        @Callback(
+                doc =
+                        "function([side:number=6]):table -- Get some information about the tank accessible from the specified side.")
         public Object[] getTankInfo(final Context context, final Arguments args) {
-            ForgeDirection side = args.count() > 0 ? ForgeDirection.getOrientation(args.checkInteger(0)) : ForgeDirection.UNKNOWN;
+            ForgeDirection side =
+                    args.count() > 0 ? ForgeDirection.getOrientation(args.checkInteger(0)) : ForgeDirection.UNKNOWN;
             return tileEntity.getTankInfo(side);
         }
     }

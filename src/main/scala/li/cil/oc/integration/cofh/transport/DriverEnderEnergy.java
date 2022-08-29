@@ -17,7 +17,8 @@ public final class DriverEnderEnergy extends DriverSidedTileEntity {
     }
 
     @Override
-    public ManagedEnvironment createEnvironment(final World world, final int x, final int y, final int z, final ForgeDirection side) {
+    public ManagedEnvironment createEnvironment(
+            final World world, final int x, final int y, final int z, final ForgeDirection side) {
         return new Environment((IEnderEnergyHandler) world.getTileEntity(x, y, z));
     }
 
@@ -28,27 +29,29 @@ public final class DriverEnderEnergy extends DriverSidedTileEntity {
 
         @Callback(doc = "function():boolean --  Returns whether the tile entity can receive energy.")
         public Object[] canReceiveEnergy(final Context context, final Arguments args) {
-            return new Object[]{tileEntity.canReceiveEnergy()};
+            return new Object[] {tileEntity.canReceiveEnergy()};
         }
 
         @Callback(doc = "function():boolean --  Returns whether the tile entity can send energy.")
         public Object[] canSendEnergy(final Context context, final Arguments args) {
-            return new Object[]{tileEntity.canSendEnergy()};
+            return new Object[] {tileEntity.canSendEnergy()};
         }
 
         @Callback(doc = "function():number --  Returns the frequency.")
         public Object[] getFrequency(final Context context, final Arguments args) {
-            return new Object[]{tileEntity.getFrequency()};
+            return new Object[] {tileEntity.getFrequency()};
         }
 
-        @Callback(doc = "function(frequency:number):boolean --  Sets the frequency to the given value. Returns whether the frequency change was successful")
+        @Callback(
+                doc =
+                        "function(frequency:number):boolean --  Sets the frequency to the given value. Returns whether the frequency change was successful")
         public Object[] setFrequency(final Context context, final Arguments args) {
-            return new Object[]{tileEntity.setFrequency(args.checkInteger(0))};
+            return new Object[] {tileEntity.setFrequency(args.checkInteger(0))};
         }
 
         @Callback(doc = "function():string --  Returns the name of the channel.")
         public Object[] getChannelString(final Context context, final Arguments args) {
-            return new Object[]{tileEntity.getChannelString()};
+            return new Object[] {tileEntity.getChannelString()};
         }
     }
 }

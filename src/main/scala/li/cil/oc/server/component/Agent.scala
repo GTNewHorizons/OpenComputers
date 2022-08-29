@@ -169,7 +169,7 @@ trait Agent extends traits.WorldControl with traits.InventoryControl with traits
     val facing = checkSideForAction(args, 0)
     val sides =
       if (args.isInteger(1)) {
-        Iterable(checkSideForFace(args, 1, facing))
+        Iterable(checkSideForUse(args, 1))
       }
       else {
         // Always try the direction we're looking first.
@@ -204,7 +204,7 @@ trait Agent extends traits.WorldControl with traits.InventoryControl with traits
     }
 
     for (side <- sides) {
-      val player = rotatedPlayer(facing, side)
+      val player = rotatedPlayer(facing, facing)
       player.setSneaking(sneaky)
 
       val (success, what) = Option(pick(player, Settings.get.useAndPlaceRange)) match {
@@ -212,8 +212,8 @@ trait Agent extends traits.WorldControl with traits.InventoryControl with traits
           triggerDelay()
           (true, "item_interacted")
         case Some(hit) if hit.typeOfHit == MovingObjectType.BLOCK =>
-          val (bx, by, bz, hx, hy, hz) = clickParamsFromHit(hit)
-          activationResult(player.activateBlockOrUseItem(bx, by, bz, hit.sideHit, hx, hy, hz, duration))
+          val (bx, by, bz, hx, hy, hz) = clickParamsForItemActivate(facing, side)
+          activationResult(player.activateBlockOrUseItem(bx, by, bz, side.ordinal, hx, hy, hz, duration))
         case _ =>
           (if (canPlaceInAir) {
             val (bx, by, bz, hx, hy, hz) = clickParamsForPlace(facing)
@@ -309,6 +309,7 @@ trait Agent extends traits.WorldControl with traits.InventoryControl with traits
   // ----------------------------------------------------------------------- //
 
   protected def checkSideForFace(args: Arguments, n: Int, facing: ForgeDirection) = agent.toGlobal(args.checkSideForFace(n, agent.toLocal(facing)))
+  protected def checkSideForUse(args: Arguments, n: Int) = args.checkSideAny(n)
 
   protected def pick(player: Player, range: Double) = {
     val origin = Vec3.createVectorHelper(
@@ -335,6 +336,14 @@ trait Agent extends traits.WorldControl with traits.InventoryControl with traits
       (hit.hitVec.xCoord - hit.blockX).toFloat,
       (hit.hitVec.yCoord - hit.blockY).toFloat,
       (hit.hitVec.zCoord - hit.blockZ).toFloat)
+  }
+
+  protected def clickParamsForItemActivate(facing: ForgeDirection, side: ForgeDirection) = {
+    val blockPos = position.offset(facing)
+    (blockPos.x, blockPos.y, blockPos.z,
+      0.5f + side.offsetX * 0.5f,
+      0.5f + side.offsetY * 0.5f,
+      0.5f + side.offsetZ * 0.5f)
   }
 
   protected def clickParamsForItemUse(facing: ForgeDirection, side: ForgeDirection) = {

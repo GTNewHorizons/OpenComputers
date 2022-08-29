@@ -1,7 +1,7 @@
 package li.cil.oc.api;
 
-import li.cil.oc.api.network.EnvironmentHost;
 import li.cil.oc.api.fs.Label;
+import li.cil.oc.api.network.EnvironmentHost;
 import li.cil.oc.api.network.ManagedEnvironment;
 
 /**
@@ -43,8 +43,7 @@ public final class FileSystem {
      * @return a file system wrapping the specified folder.
      */
     public static li.cil.oc.api.fs.FileSystem fromClass(final Class<?> clazz, final String domain, final String root) {
-        if (API.fileSystem != null)
-            return API.fileSystem.fromClass(clazz, domain, root);
+        if (API.fileSystem != null) return API.fileSystem.fromClass(clazz, domain, root);
         return null;
     }
 
@@ -71,9 +70,9 @@ public final class FileSystem {
      * @param buffered whether data should only be written to disk when saving.
      * @return a file system wrapping the specified folder.
      */
-    public static li.cil.oc.api.fs.FileSystem fromSaveDirectory(final String root, final long capacity, final boolean buffered) {
-        if (API.fileSystem != null)
-            return API.fileSystem.fromSaveDirectory(root, capacity, buffered);
+    public static li.cil.oc.api.fs.FileSystem fromSaveDirectory(
+            final String root, final long capacity, final boolean buffered) {
+        if (API.fileSystem != null) return API.fileSystem.fromSaveDirectory(root, capacity, buffered);
         return null;
     }
 
@@ -102,8 +101,7 @@ public final class FileSystem {
      * @return a file system residing in memory.
      */
     public static li.cil.oc.api.fs.FileSystem fromMemory(final long capacity) {
-        if (API.fileSystem != null)
-            return API.fileSystem.fromMemory(capacity);
+        if (API.fileSystem != null) return API.fileSystem.fromMemory(capacity);
         return null;
     }
 
@@ -120,8 +118,7 @@ public final class FileSystem {
      * @return a file system wrapping the specified mount.
      */
     public static li.cil.oc.api.fs.FileSystem fromComputerCraft(final Object mount) {
-        if (API.fileSystem != null)
-            return API.fileSystem.fromComputerCraft(mount);
+        if (API.fileSystem != null) return API.fileSystem.fromComputerCraft(mount);
         return null;
     }
 
@@ -133,8 +130,7 @@ public final class FileSystem {
      * @return the specified file system wrapped to be read-only.
      */
     public static li.cil.oc.api.fs.FileSystem asReadOnly(final li.cil.oc.api.fs.FileSystem fileSystem) {
-        if (API.fileSystem != null)
-            return API.fileSystem.asReadOnly(fileSystem);
+        if (API.fileSystem != null) return API.fileSystem.asReadOnly(fileSystem);
         return null;
     }
 
@@ -176,7 +172,12 @@ public final class FileSystem {
      * @param speed       the speed multiplier for this file system.
      * @return the network node wrapping the file system.
      */
-    public static ManagedEnvironment asManagedEnvironment(final li.cil.oc.api.fs.FileSystem fileSystem, final Label label, final EnvironmentHost host, final String accessSound, int speed) {
+    public static ManagedEnvironment asManagedEnvironment(
+            final li.cil.oc.api.fs.FileSystem fileSystem,
+            final Label label,
+            final EnvironmentHost host,
+            final String accessSound,
+            int speed) {
         if (API.fileSystem != null)
             return API.fileSystem.asManagedEnvironment(fileSystem, label, host, accessSound, speed);
         return null;
@@ -199,7 +200,12 @@ public final class FileSystem {
      * @param speed       the speed multiplier for this file system.
      * @return the network node wrapping the file system.
      */
-    public static ManagedEnvironment asManagedEnvironment(final li.cil.oc.api.fs.FileSystem fileSystem, final String label, final EnvironmentHost host, final String accessSound, int speed) {
+    public static ManagedEnvironment asManagedEnvironment(
+            final li.cil.oc.api.fs.FileSystem fileSystem,
+            final String label,
+            final EnvironmentHost host,
+            final String accessSound,
+            int speed) {
         if (API.fileSystem != null)
             return API.fileSystem.asManagedEnvironment(fileSystem, label, host, accessSound, speed);
         return null;
@@ -221,7 +227,11 @@ public final class FileSystem {
      *                    <tt>opencomputers:floppy_access</tt>.
      * @return the network node wrapping the file system.
      */
-    public static ManagedEnvironment asManagedEnvironment(final li.cil.oc.api.fs.FileSystem fileSystem, final Label label, final EnvironmentHost host, final String accessSound) {
+    public static ManagedEnvironment asManagedEnvironment(
+            final li.cil.oc.api.fs.FileSystem fileSystem,
+            final Label label,
+            final EnvironmentHost host,
+            final String accessSound) {
         return asManagedEnvironment(fileSystem, label, host, accessSound, 1);
     }
 
@@ -241,7 +251,11 @@ public final class FileSystem {
      *                    <tt>opencomputers:floppy_access</tt>.
      * @return the network node wrapping the file system.
      */
-    public static ManagedEnvironment asManagedEnvironment(final li.cil.oc.api.fs.FileSystem fileSystem, final String label, final EnvironmentHost host, final String accessSound) {
+    public static ManagedEnvironment asManagedEnvironment(
+            final li.cil.oc.api.fs.FileSystem fileSystem,
+            final String label,
+            final EnvironmentHost host,
+            final String accessSound) {
         return asManagedEnvironment(fileSystem, label, host, accessSound, 1);
     }
 
@@ -256,7 +270,8 @@ public final class FileSystem {
      * @param label      the label of the file system.
      * @return the network node wrapping the file system.
      */
-    public static ManagedEnvironment asManagedEnvironment(final li.cil.oc.api.fs.FileSystem fileSystem, final Label label) {
+    public static ManagedEnvironment asManagedEnvironment(
+            final li.cil.oc.api.fs.FileSystem fileSystem, final Label label) {
         return asManagedEnvironment(fileSystem, label, null, null, 1);
     }
 
@@ -271,7 +286,8 @@ public final class FileSystem {
      * @param label      the read-only label of the file system.
      * @return the network node wrapping the file system.
      */
-    public static ManagedEnvironment asManagedEnvironment(final li.cil.oc.api.fs.FileSystem fileSystem, final String label) {
+    public static ManagedEnvironment asManagedEnvironment(
+            final li.cil.oc.api.fs.FileSystem fileSystem, final String label) {
         return asManagedEnvironment(fileSystem, label, null, null, 1);
     }
 
@@ -292,6 +308,5 @@ public final class FileSystem {
 
     // ----------------------------------------------------------------------- //
 
-    private FileSystem() {
-    }
+    private FileSystem() {}
 }

@@ -28,7 +28,13 @@ public class ItemStackTabIconRenderer implements TabIconRenderer {
         GL11.glEnable(GL12.GL_RESCALE_NORMAL);
         RenderHelper.enableGUIStandardItemLighting();
         OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, 240, 240);
-        RenderItem.getInstance().renderItemAndEffectIntoGUI(Minecraft.getMinecraft().fontRenderer, Minecraft.getMinecraft().getTextureManager(), stack, 0, 0);
+        RenderItem.getInstance()
+                .renderItemAndEffectIntoGUI(
+                        Minecraft.getMinecraft().fontRenderer,
+                        Minecraft.getMinecraft().getTextureManager(),
+                        stack,
+                        0,
+                        0);
         RenderHelper.disableStandardItemLighting();
     }
 }

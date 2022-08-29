@@ -49,7 +49,8 @@ item.oc.ALU.name=Arithmetic Logic Unit (ALU)
 item.oc.Analyzer.name=Analyzer
 item.oc.APU0.name=Accelerated Processing Unit (APU) (Tier 2)
 item.oc.APU1.name=Accelerated Processing Unit (APU) (Tier 3)
-item.oc.APU2.name=Accelerated Processing Unit (APU) (Creative)
+# Deprecated and overwritten
+# item.oc.APU2.name=Accelerated Processing Unit (APU) (Creative)
 item.oc.ArrowKeys.name=Arrow Keys
 item.oc.ButtonGroup.name=Button Group
 item.oc.CardBase.name=Card Base
@@ -75,7 +76,8 @@ item.oc.DiskDriveMountable.name=Disk Drive
 item.oc.Drone.name=Drone
 item.oc.DroneCase0.name=Drone Case (Tier 1)
 item.oc.DroneCase1.name=Drone Case (Tier 2)
-item.oc.DroneCase3.name=Drone Case (Creative)
+# Deprecated and overwritten
+# item.oc.DroneCase3.name=Drone Case (Creative)
 item.oc.eeprom.name=EEPROM
 item.oc.FloppyDisk.name=Floppy Disk
 item.oc.GraphicsCard0.name=Graphics Card (Tier 1)
@@ -103,7 +105,8 @@ item.oc.Microchip1.name=Microchip (Tier 2)
 item.oc.Microchip2.name=Microchip (Tier 3)
 item.oc.MicrocontrollerCase0.name=Microcontroller Case (Tier 1)
 item.oc.MicrocontrollerCase1.name=Microcontroller Case (Tier 2)
-item.oc.MicrocontrollerCase3.name=Microcontroller Case (Creative)
+# Deprecated and overwritten
+# item.oc.MicrocontrollerCase3.name=Microcontroller Case (Creative)
 item.oc.Nanomachines.name=Nanomachines
 item.oc.NetworkCard.name=Network Card
 item.oc.NumPad.name=Numeric Keypad
@@ -115,11 +118,13 @@ item.oc.RedstoneCard1.name=Redstone Card (Tier 2)
 item.oc.Server0.name=Server (Tier 1)
 item.oc.Server1.name=Server (Tier 2)
 item.oc.Server2.name=Server (Tier 3)
-item.oc.Server3.name=Server (Creative)
+# Deprecated and overwritten
+# item.oc.Server3.name=Server (Creative)
 item.oc.Tablet.name=Tablet
 item.oc.TabletCase0.name=Tablet Case (Tier 1)
 item.oc.TabletCase1.name=Tablet Case (Tier 2)
-item.oc.TabletCase3.name=Tablet Case (Creative)
+# Deprecated and overwritten
+# item.oc.TabletCase3.name=Tablet Case (Creative)
 item.oc.Terminal.name=Remote Terminal
 item.oc.TerminalServer.name=Terminal Server
 item.oc.TexturePicker.name=Texture Picker
@@ -159,6 +164,15 @@ item.oc.WirelessNetworkCard0.name=Wireless Network Card (Tier 1)
 item.oc.WirelessNetworkCard1.name=Wireless Network Card (Tier 2)
 item.oc.WorldSensorCard.name=World Sensor Card
 item.oc.wrench.name=Scrench
+item.oc.APU2.name=Accelerated Processing Unit (APU) (Tier 3)
+item.oc.DroneCase3.name=Drone Case (Tier 3)
+item.oc.MicrocontrollerCase3.name=Microcontroller Case (Tier 3)
+item.oc.Server3.name=Server (Tier 4)
+item.oc.TabletCase3.name=Tablet Case (Tier 3)
+item.oc.UpgradeBeekeeper.name=Beekeeper Upgrade
+item.oc.UpgradeRITEG.name=RITEG Upgrade
+item.oc.UpgradeConfigurator.name=Configurator Upgrade
+item.oc.TpsCard.name=TPS card
 
 # Entities
 entity.oc.Drone.name=Drone
@@ -394,6 +408,8 @@ oc:tooltip.Waypoint=Provides a point of reference to devices with a navigation u
 oc:tooltip.WirelessNetworkCard=Allows wireless sending of network messages in addition to normal ones. You can adjust the §fsignal strength§7 to control how far messages are sent. Higher signal strength results in higher energy consumption.
 oc:tooltip.WorldSensorCard=Allows reading out information about the world, such as its gravity and whether it has a breathable atmosphere. Use results at own risk. The manufacturer takes no responsibility for bodily or material harm caused by decisions made upon the cards' outputs. We have lawyers. And money. Don't even try.
 oc:tooltip.Wrench=A hybrid of Screwdriver and Wrench, this tool is easy to learn, but hard to master.
+oc:tooltip.UpgradeRITEG=Pocket nuke for your microcontrollers and tablets. Generates energy at %s%% of the speed of a Stirling Engine.
+
 
 #Achievements
 achievement.oc.adapter=Plug In Baby

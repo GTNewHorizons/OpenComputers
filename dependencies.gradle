@@ -1,0 +1,122 @@
+// Add your dependencies here
+
+dependencies {
+    shadeCompile files("dependencies/OpenComputers-JNLua.jar")
+    shadeCompile files("dependencies/OpenComputers-LuaJ.jar")
+
+    compile("com.google.code.findbugs:jsr305:3.0.2")
+
+    compileOnly("com.github.GTNewHorizons:Applied-Energistics-2-Unofficial:rv3-beta-75-GTNH:dev") {
+        transitive = false
+    }
+    compileOnly("com.github.GTNewHorizons:EnderStorage:1.4.11:dev") {
+        transitive = false
+    }
+    compileOnly("com.github.GTNewHorizons:GT5-Unofficial:5.09.40.32:dev") {
+        transitive = false
+    }
+    compile("com.github.GTNewHorizons:ForestryMC:4.4.5:dev") {
+        transitive = false
+    }
+    compileOnly("com.github.GTNewHorizons:Railcraft:9.13.6:dev") {
+        transitive = false
+    }
+    compile("com.github.GTNewHorizons:NotEnoughItems:2.2.6-GTNH:dev") {
+        transitive = false
+    }
+    compileOnly("com.github.GTNewHorizons:ForgeMultipart:1.2.7:dev") {
+        transitive = false
+    }
+    compile("com.github.GTNewHorizons:CodeChickenLib:1.1.5.3:dev") {
+        transitive = false
+    }
+    compile("com.github.GTNewHorizons:CodeChickenCore:1.1.3:dev") {
+        transitive = false
+    }
+    compileOnly("com.github.GTNewHorizons:waila:1.5.18:dev") {
+        transitive = false
+    }
+    compileOnly("com.github.GTNewHorizons:Galacticraft:3.0.38-GTNH:dev") {
+        transitive = false
+    }
+    compileOnly("com.github.GTNewHorizons:TinkersMechworks:0.2.16.3:dev") {
+        transitive = false
+    }
+    compileOnly("com.github.GTNewHorizons:ProjectRed:4.7.4:dev") {
+        transitive = false
+    }
+    compileOnly("com.github.GTNewHorizons:BloodMagic:1.3.6:dev") {
+        transitive = false
+    }
+    compileOnly("com.github.GTNewHorizons:ThaumicEnergistics:1.3.16-GTNH:dev") {
+        transitive = false
+    }
+    compileOnly("com.github.GTNewHorizons:ExtraCells2:2.5.8:dev") {
+        transitive = false
+    }
+    compile("com.github.GTNewHorizons:EnderCore:0.2.9:dev")
+    compile("com.github.GTNewHorizons:EnderIO:2.3.1.35:dev") {
+        transitive = false
+    }
+    compileOnly("com.github.GTNewHorizons:Avaritiaddons:1.5.3-GTNH:dev") {
+        transitive = false
+    }
+    compileOnly("com.github.GTNewHorizons:gendustry:1.6.5.3-GTNH:dev") {
+        transitive = false
+    }
+    compileOnly("com.github.GTNewHorizons:WirelessRedstone-CBE:1.4.4:dev") {
+        transitive = false
+    }
+    compileOnly("com.github.GTNewHorizons:BuildCraft:7.1.26:dev") {
+        transitive = false
+    }
+    compileOnly("appeng:RotaryCraft:V5c:api") {
+        transitive = false
+    }
+    compileOnly("com.bluepowermod:BluePower:0.2.928:deobf") {
+        transitive = false
+    }
+    compileOnly("igwmod:IGW-Mod-1.7.10:1.1.3-18:userdev") {
+        transitive = false
+    }
+    compileOnly("li.cil.tis3d:TIS-3D:MC1.7.10-1.2.4.70:dev") {
+        transitive = false
+    }
+    compileOnly("dev.modwarriors.notenoughkeys:NotEnoughKeys:1.7.10-2.0.0b4:deobf-dev") {
+        transitive = false
+    }
+    compileOnly("qmunity:QmunityLib:0.1.105:deobf") {
+        transitive = false
+    }
+    compileOnly("thaumcraft:Thaumcraft:1.7.10-4.2.3.5:dev") {
+        transitive = false
+    }
+    compileOnly("curse.maven:mekanism-268560:2475797") {
+        transitive = false
+    }
+    compileOnly("net.industrial-craft:industrialcraft-2:2.2.828-experimental:dev") {
+        transitive = false
+    }
+    compileOnly("curse.maven:minefactory-reloaded-66672:2366150") {
+        transitive = false
+    }
+    compileOnly("curse.maven:computercraft-67504:2269339") {
+        transitive = false
+    }
+    compile("curse.maven:cofh-core-69162:2388751")
+    compileOnly("curse.maven:agricraft-225635:2284133") {
+        transitive = false
+    }
+    compileOnly("curse.maven:stargatetech-2-226769:2230351") {
+        transitive = false
+    }
+    compileOnly(deobf("https://immibis.com/mcmoddl/files/redlogic-59.1.13.jar"))
+    compileOnly files("dependencies/ic2classic-api.zip") //curseforge one does NOT work ...
+    compileOnly(deobf("https://github.com/purpleposeidon/fz_archive/raw/master/old/Factorization-1.7.10-0.8.108.jar"))
+    compileOnly("api:coloredlightscore:1")
+    compileOnly(deobf("http://immibis.com/mcmoddl/files/immibis-microblocks-59.1.2.jar"))
+
+    testCompile("org.mockito:mockito-all:1.10.19")
+    testCompile("org.scalactic:scalactic_2.11:2.2.6")
+    testCompile("org.scalatest:scalatest_2.11:2.2.6")
+}

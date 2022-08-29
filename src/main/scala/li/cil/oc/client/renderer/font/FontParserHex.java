@@ -14,6 +14,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.ByteBuffer;
+import li.cil.oc.OpenComputers;
+import li.cil.oc.Settings;
+import li.cil.oc.util.FontUtils;
+import net.minecraft.client.Minecraft;
+import net.minecraft.util.ResourceLocation;
+import org.lwjgl.BufferUtils;
 
 public class FontParserHex implements IGlyphProvider {
     private static final byte[] OPAQUE = {(byte) 255, (byte) 255, (byte) 255, (byte) 255};
@@ -24,7 +30,10 @@ public class FontParserHex implements IGlyphProvider {
     @Override
     public void initialize() {
         try {
-            final InputStream font = Minecraft.getMinecraft().getResourceManager().getResource(new ResourceLocation(Settings.resourceDomain(), "font.hex")).getInputStream();
+            final InputStream font = Minecraft.getMinecraft()
+                    .getResourceManager()
+                    .getResource(new ResourceLocation(Settings.resourceDomain(), "font.hex"))
+                    .getInputStream();
             try {
                 OpenComputers.log().info("Initializing unicode glyph provider.");
                 final BufferedReader input = new BufferedReader(new InputStreamReader(font));
@@ -51,7 +60,10 @@ public class FontParserHex implements IGlyphProvider {
                         }
                         glyphs.put(charCode, glyph);
                     } else if (Settings.get().logHexFontErrors()) {
-                        OpenComputers.log().warn(String.format("Size of glyph for code point U+%04X (%s) in font (%d) does not match expected width (%d), ignoring.", charCode, String.valueOf((char) charCode), glyphWidth, expectedWidth));
+                        OpenComputers.log()
+                                .warn(String.format(
+                                        "Size of glyph for code point U+%04X (%s) in font (%d) does not match expected width (%d), ignoring.",
+                                        charCode, String.valueOf((char) charCode), glyphWidth, expectedWidth));
                     }
                 }
                 OpenComputers.log().info("Loaded " + glyphCount + " glyphs.");

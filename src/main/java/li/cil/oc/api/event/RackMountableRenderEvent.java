@@ -71,7 +71,12 @@ public abstract class RackMountableRenderEvent extends Event {
          */
         private IIcon frontTextureOverride;
 
-        public Block(final Rack rack, final int mountable, final NBTTagCompound data, final ForgeDirection side, final RenderBlocks renderer) {
+        public Block(
+                final Rack rack,
+                final int mountable,
+                final NBTTagCompound data,
+                final ForgeDirection side,
+                final RenderBlocks renderer) {
             super(rack, mountable, data);
             this.side = side;
             this.renderer = renderer;
@@ -117,7 +122,8 @@ public abstract class RackMountableRenderEvent extends Event {
          */
         public final float v0, v1;
 
-        public TileEntity(final Rack rack, final int mountable, final NBTTagCompound data, final float v0, final float v1) {
+        public TileEntity(
+                final Rack rack, final int mountable, final NBTTagCompound data, final float v0, final float v1) {
             super(rack, mountable, data);
             this.v0 = v0;
             this.v1 = v1;

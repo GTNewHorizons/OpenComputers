@@ -19,7 +19,8 @@ public final class DriverReactorChamber extends DriverSidedTileEntity {
     }
 
     @Override
-    public ManagedEnvironment createEnvironment(final World world, final int x, final int y, final int z, final ForgeDirection side) {
+    public ManagedEnvironment createEnvironment(
+            final World world, final int x, final int y, final int z, final ForgeDirection side) {
         return new Environment((IReactorChamber) world.getTileEntity(x, y, z));
     }
 
@@ -42,9 +43,9 @@ public final class DriverReactorChamber extends DriverSidedTileEntity {
         public Object[] getHeat(final Context context, final Arguments args) {
             final IReactor reactor = tileEntity.getReactor();
             if (reactor != null) {
-                return new Object[]{reactor.getHeat()};
+                return new Object[] {reactor.getHeat()};
             } else {
-                return new Object[]{0};
+                return new Object[] {0};
             }
         }
 
@@ -52,34 +53,35 @@ public final class DriverReactorChamber extends DriverSidedTileEntity {
         public Object[] getMaxHeat(final Context context, final Arguments args) {
             final IReactor reactor = tileEntity.getReactor();
             if (reactor != null) {
-                return new Object[]{tileEntity.getReactor().getMaxHeat()};
+                return new Object[] {tileEntity.getReactor().getMaxHeat()};
             } else {
-                return new Object[]{0};
+                return new Object[] {0};
             }
         }
 
-        @Callback(doc = "function():number -- Get the reactor's energy output. Not multiplied with the base EU/t value.")
+        @Callback(
+                doc = "function():number -- Get the reactor's energy output. Not multiplied with the base EU/t value.")
         public Object[] getReactorEnergyOutput(final Context context, final Arguments args) {
             final IReactor reactor = tileEntity.getReactor();
             if (reactor != null) {
-                return new Object[]{tileEntity.getReactor().getReactorEnergyOutput()};
+                return new Object[] {tileEntity.getReactor().getReactorEnergyOutput()};
             } else {
-                return new Object[]{0};
+                return new Object[] {0};
             }
         }
 
         @Callback(doc = "function():number -- Get the reactor's base EU/t value.")
         public Object[] getReactorEUOutput(final Context context, final Arguments args) {
-            return new Object[]{tileEntity.getReactor().getReactorEUEnergyOutput()};
+            return new Object[] {tileEntity.getReactor().getReactorEUEnergyOutput()};
         }
 
         @Callback(doc = "function():boolean -- Get whether the reactor is active and supposed to produce energy.")
         public Object[] producesEnergy(final Context context, final Arguments args) {
             final IReactor reactor = tileEntity.getReactor();
             if (reactor != null) {
-                return new Object[]{tileEntity.getReactor().produceEnergy()};
+                return new Object[] {tileEntity.getReactor().produceEnergy()};
             } else {
-                return new Object[]{false};
+                return new Object[] {false};
             }
         }
     }

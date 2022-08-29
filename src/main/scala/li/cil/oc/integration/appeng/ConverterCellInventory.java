@@ -1,15 +1,14 @@
 package li.cil.oc.integration.appeng;
 
 import appeng.api.AEApi;
+import appeng.api.implementations.items.IStorageCell;
 import appeng.api.storage.ICellInventory;
 import appeng.api.storage.ICellInventoryHandler;
-import appeng.api.implementations.items.IStorageCell;
 import appeng.api.storage.IMEInventoryHandler;
 import appeng.api.storage.StorageChannel;
-import net.minecraft.item.ItemStack;
-import li.cil.oc.api.driver.Converter;
-
 import java.util.Map;
+import li.cil.oc.api.driver.Converter;
+import net.minecraft.item.ItemStack;
 
 public final class ConverterCellInventory implements Converter {
     @Override
@@ -22,24 +21,28 @@ public final class ConverterCellInventory implements Converter {
             output.put("remainingItemTypes", cell.getRemainingItemTypes());
 
             output.put("getTotalItemTypes", cell.getTotalItemTypes());
-            output.put("getAvailableItems", cell.getAvailableItems(AEApi.instance().storage().createItemList()));
+            output.put(
+                    "getAvailableItems",
+                    cell.getAvailableItems(AEApi.instance().storage().createItemList()));
 
             output.put("totalBytes", cell.getTotalBytes());
             output.put("freeBytes", cell.getFreeBytes());
             output.put("usedBytes", cell.getUsedBytes());
             output.put("unusedItemCount", cell.getUnusedItemCount());
             output.put("canHoldNewItem", cell.canHoldNewItem());
-            //output.put("getPreformattedItems",cell.getConfigInventory());
+            // output.put("getPreformattedItems",cell.getConfigInventory());
 
             output.put("fuzzyMode", cell.getFuzzyMode().toString());
             output.put("name", cell.getItemStack().getDisplayName());
         } else if (value instanceof ICellInventoryHandler) {
             convert(((ICellInventoryHandler) value).getCellInv(), output);
-        } else if ((value instanceof ItemStack) && (((ItemStack)value).getItem() instanceof IStorageCell)) {
-            IMEInventoryHandler<?> inventory = AEApi.instance().registries().cell().getCellInventory((ItemStack) value, null, StorageChannel.ITEMS);
+        } else if ((value instanceof ItemStack) && (((ItemStack) value).getItem() instanceof IStorageCell)) {
+            IMEInventoryHandler<?> inventory = AEApi.instance()
+                    .registries()
+                    .cell()
+                    .getCellInventory((ItemStack) value, null, StorageChannel.ITEMS);
             if (inventory instanceof ICellInventoryHandler)
                 convert(((ICellInventoryHandler) inventory).getCellInv(), output);
         }
-
     }
 }

@@ -15,7 +15,6 @@ import li.cil.oc.common.Tier
 import li.cil.oc.common.block.SimpleBlock
 import li.cil.oc.common.item
 import li.cil.oc.common.item.Delegator
-import li.cil.oc.common.item.UpgradeLeash
 import li.cil.oc.common.item.data.DroneData
 import li.cil.oc.common.item.data.HoverBootsData
 import li.cil.oc.common.item.data.MicrocontrollerData
@@ -487,7 +486,7 @@ object Items extends ItemAPI {
     // 1.4.3
     Recipes.addSubItem(new item.DroneCase(multi, Tier.One), Constants.ItemName.DroneCaseTier1, "oc:droneCase1")
     registerItem(new item.Drone(multi), Constants.ItemName.Drone)
-    Recipes.addSubItem(new UpgradeLeash(multi), Constants.ItemName.LeashUpgrade, "oc:leashUpgrade")
+    Recipes.addSubItem(new item.UpgradeLeash(multi), Constants.ItemName.LeashUpgrade, "oc:leashUpgrade")
     Recipes.addSubItem(new item.MicrocontrollerCase(multi, Tier.Two), Constants.ItemName.MicrocontrollerCaseTier2, "oc:microcontrollerCase2")
     Recipes.addSubItem(new item.DroneCase(multi, Tier.Two), Constants.ItemName.DroneCaseTier2, "oc:droneCase2")
     registerItem(new item.Present(multi), Constants.ItemName.Present)
@@ -550,6 +549,14 @@ object Items extends ItemAPI {
     // 1.7.2
     Recipes.addSubItem(new item.WirelessNetworkCard(multi, Tier.One), Constants.ItemName.WirelessNetworkCardTier1, "oc:wlanCard1")
     registerItem(new item.ComponentBus(multi, Tier.Four), Constants.ItemName.ComponentBusCreative)
+
+
+    // GTNH
+    Recipes.addSubItem(new item.UpgradeConfigurator(multi), Constants.ItemName.ConfiguratorUpgrade, "oc:configuratorUpgrade")
+
+    Recipes.addSubItem(new item.UpgradeRITEG(multi), Constants.ItemName.RITEGUpgrade, "oc:rtgUpgrade")
+
+    Recipes.addSubItem(new item.TpsCard(multi), Constants.ItemName.TpsCard, "oc:tpsCard")
 
     // Register aliases.
     for ((k, v) <- aliases) {

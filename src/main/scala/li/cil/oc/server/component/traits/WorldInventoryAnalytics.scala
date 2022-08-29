@@ -72,6 +72,24 @@ trait WorldInventoryAnalytics extends WorldAware with SideRestricted with Networ
     })
   }
 
+  @Callback(doc = """function(side:number, slot:number, label:string):boolean -- Change the display name of the stack in the inventory on the specified side of the device.""")
+  def setStackDisplayName(context: Context, args: Arguments): Array[AnyRef] = {
+    val facing = checkSideForAction(args, 0)
+    val label = args.checkString(2).trim()
+    withInventory(facing, inventory => {
+      val stack = inventory.getStackInSlot(args.checkSlot(inventory, 1))
+      if (stack != null && stack.stackSize > 0) {
+        if (label.nonEmpty) {
+          stack.setStackDisplayName(label)
+        } else if (stack.hasDisplayName()) {
+          stack.func_135074_t()
+        }
+        result(true)
+      }
+      else result(false)
+    })
+  }
+
   @Callback(doc = """function(side:number, slot:number):table -- Get a description of the stack in the inventory on the specified side of the device.""")
   def getStackInSlot(context: Context, args: Arguments): Array[AnyRef] = if (Settings.get.allowItemStackInspection) {
     val facing = checkSideForAction(args, 0)

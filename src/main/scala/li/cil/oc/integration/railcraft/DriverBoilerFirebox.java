@@ -13,7 +13,8 @@ import net.minecraftforge.common.util.ForgeDirection;
 
 public class DriverBoilerFirebox extends DriverSidedTileEntity {
     @Override
-    public ManagedEnvironment createEnvironment(final World world, final int x, final int y, final int z, final ForgeDirection side) {
+    public ManagedEnvironment createEnvironment(
+            final World world, final int x, final int y, final int z, final ForgeDirection side) {
         return new Environment((TileBoilerFirebox) world.getTileEntity(x, y, z));
     }
 
@@ -22,7 +23,8 @@ public class DriverBoilerFirebox extends DriverSidedTileEntity {
         return TileBoilerFirebox.class;
     }
 
-    public static final class Environment extends ManagedTileEntityEnvironment<TileBoilerFirebox> implements NamedBlock {
+    public static final class Environment extends ManagedTileEntityEnvironment<TileBoilerFirebox>
+            implements NamedBlock {
         public Environment(final TileBoilerFirebox tileEntity) {
             super(tileEntity, "boiler_firebox");
         }
@@ -39,17 +41,17 @@ public class DriverBoilerFirebox extends DriverSidedTileEntity {
 
         @Callback(doc = "function():boolean -- Get whether the boiler is active or not.")
         public Object[] isBurning(final Context context, final Arguments args) {
-            return new Object[]{tileEntity.isBurning()};
+            return new Object[] {tileEntity.isBurning()};
         }
 
         @Callback(doc = "function():number -- Get the temperature of the boiler.")
         public Object[] getTemperature(final Context context, final Arguments args) {
-            return new Object[]{tileEntity.getTemperature()};
+            return new Object[] {tileEntity.getTemperature()};
         }
 
         @Callback(doc = "function():number -- Get the maximum temperature of the boiler.")
         public Object[] getMaxHeat(final Context context, final Arguments args) {
-            return new Object[]{tileEntity.getMaxHeat()};
+            return new Object[] {tileEntity.getMaxHeat()};
         }
     }
 }

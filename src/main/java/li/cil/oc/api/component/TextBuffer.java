@@ -6,5 +6,4 @@ package li.cil.oc.api.component;
  * @deprecated Use li.cil.oc.api.internal.TextBuffer instead.
  */
 @Deprecated
-public interface TextBuffer extends li.cil.oc.api.internal.TextBuffer {
-}
+public interface TextBuffer extends li.cil.oc.api.internal.TextBuffer {}

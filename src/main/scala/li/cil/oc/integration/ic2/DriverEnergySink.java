@@ -17,7 +17,8 @@ public final class DriverEnergySink extends DriverSidedTileEntity {
     }
 
     @Override
-    public ManagedEnvironment createEnvironment(final World world, final int x, final int y, final int z, final ForgeDirection side) {
+    public ManagedEnvironment createEnvironment(
+            final World world, final int x, final int y, final int z, final ForgeDirection side) {
         return new Environment((IEnergySink) world.getTileEntity(x, y, z));
     }
 
@@ -28,7 +29,7 @@ public final class DriverEnergySink extends DriverSidedTileEntity {
 
         @Callback
         public Object[] getSinkTier(final Context context, final Arguments args) {
-            return new Object[]{tileEntity.getSinkTier()};
+            return new Object[] {tileEntity.getSinkTier()};
         }
     }
 }

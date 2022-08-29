@@ -7,6 +7,10 @@ import dan200.computercraft.api.lua.ILuaTask;
 import dan200.computercraft.api.lua.LuaException;
 import dan200.computercraft.api.peripheral.IComputerAccess;
 import dan200.computercraft.api.peripheral.IPeripheral;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 import li.cil.oc.OpenComputers;
 import li.cil.oc.Settings;
 import li.cil.oc.api.FileSystem;
@@ -21,11 +25,6 @@ import li.cil.oc.util.Reflection;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
-
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
 
 public final class DriverPeripheral implements li.cil.oc.api.driver.SidedBlock {
     private static Set<Class<?>> blacklist;
@@ -48,20 +47,21 @@ public final class DriverPeripheral implements li.cil.oc.api.driver.SidedBlock {
             }
         }
         for (Class<?> clazz : blacklist) {
-            if (clazz.isInstance(o))
-                return true;
+            if (clazz.isInstance(o)) return true;
         }
         return false;
     }
 
-    private IPeripheral findPeripheral(final World world, final int x, final int y, final int z, final ForgeDirection side) {
+    private IPeripheral findPeripheral(
+            final World world, final int x, final int y, final int z, final ForgeDirection side) {
         try {
             final IPeripheral p = dan200.computercraft.ComputerCraft.getPeripheralAt(world, x, y, z, side.ordinal());
             if (!isBlacklisted(p)) {
                 return p;
             }
         } catch (Exception e) {
-            OpenComputers.log().warn(String.format("Error accessing ComputerCraft peripheral @ (%d, %d, %d).", x, y, z), e);
+            OpenComputers.log()
+                    .warn(String.format("Error accessing ComputerCraft peripheral @ (%d, %d, %d).", x, y, z), e);
         }
         return null;
     }
@@ -81,11 +81,13 @@ public final class DriverPeripheral implements li.cil.oc.api.driver.SidedBlock {
     }
 
     @Override
-    public ManagedEnvironment createEnvironment(final World world, final int x, final int y, final int z, final ForgeDirection side) {
+    public ManagedEnvironment createEnvironment(
+            final World world, final int x, final int y, final int z, final ForgeDirection side) {
         return new Environment(findPeripheral(world, x, y, z, side));
     }
 
-    public static class Environment extends li.cil.oc.api.prefab.ManagedEnvironment implements li.cil.oc.api.network.ManagedPeripheral {
+    public static class Environment extends li.cil.oc.api.prefab.ManagedEnvironment
+            implements li.cil.oc.api.network.ManagedPeripheral {
         protected final IPeripheral peripheral;
 
         protected final CallableHelper helper;
@@ -178,7 +180,9 @@ public final class DriverPeripheral implements li.cil.oc.api.driver.SidedBlock {
                 if (fileSystems.containsKey(desiredLocation)) {
                     return null;
                 }
-                return mount(desiredLocation, FileSystem.asManagedEnvironment(FileSystem.fromComputerCraft(mount), driveName));
+                return mount(
+                        desiredLocation,
+                        FileSystem.asManagedEnvironment(FileSystem.fromComputerCraft(mount), driveName));
             }
 
             @Override
@@ -194,11 +198,15 @@ public final class DriverPeripheral implements li.cil.oc.api.driver.SidedBlock {
                 if (fileSystems.containsKey(desiredLocation)) {
                     return null;
                 }
-                return mount(desiredLocation, FileSystem.asManagedEnvironment(FileSystem.fromComputerCraft(mount), driveName));
+                return mount(
+                        desiredLocation,
+                        FileSystem.asManagedEnvironment(FileSystem.fromComputerCraft(mount), driveName));
             }
 
             private String mount(final String path, final li.cil.oc.api.network.ManagedEnvironment fileSystem) {
-                fileSystems.put(path, fileSystem); //TODO This is per peripheral/Environment. It would be far better with per computer
+                fileSystems.put(
+                        path, fileSystem); // TODO This is per peripheral/Environment. It would be far better with per
+                // computer
                 context.node().connect(fileSystem.node());
                 return path;
             }
@@ -231,11 +239,10 @@ public final class DriverPeripheral implements li.cil.oc.api.driver.SidedBlock {
          * Since we abstract away anything language specific, we cannot support the
          * Lua context specific operations ComputerCraft provides.
          */
-        public final static class UnsupportedLuaContext implements ILuaContext {
+        public static final class UnsupportedLuaContext implements ILuaContext {
             protected static final UnsupportedLuaContext Instance = new UnsupportedLuaContext();
 
-            private UnsupportedLuaContext() {
-            }
+            private UnsupportedLuaContext() {}
 
             public static UnsupportedLuaContext instance() {
                 return Instance;

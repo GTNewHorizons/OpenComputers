@@ -1,13 +1,12 @@
 package li.cil.oc.integration.computercraft;
 
 import dan200.computercraft.api.lua.ILuaObject;
+import java.util.Map;
 import li.cil.oc.api.driver.Converter;
 import li.cil.oc.api.machine.Arguments;
 import li.cil.oc.api.machine.Context;
 import li.cil.oc.api.network.ManagedPeripheral;
 import li.cil.oc.api.prefab.AbstractValue;
-
-import java.util.Map;
 
 public final class ConverterLuaObject implements Converter {
     @Override
@@ -35,8 +34,7 @@ public final class ConverterLuaObject implements Converter {
 
         @Override
         public String[] methods() {
-            if (value != null)
-                return value.getMethodNames();
+            if (value != null) return value.getMethodNames();
             return new String[0]; // Loaded userdata, missing context.
         }
 
@@ -47,7 +45,7 @@ public final class ConverterLuaObject implements Converter {
                 final Object[] argArray = helper.convertArguments(args);
                 return value.callMethod(DriverPeripheral.Environment.UnsupportedLuaContext.instance(), index, argArray);
             }
-            return new Object[]{null, "ComputerCraft userdata cannot be persisted"};
+            return new Object[] {null, "ComputerCraft userdata cannot be persisted"};
         }
     }
 }

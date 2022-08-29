@@ -26,5 +26,4 @@ import net.minecraft.inventory.IInventory;
  * via the API, i.e. without having to link against internal classes. This
  * also means that <em>you should not implement this</em>.
  */
-public interface Adapter extends Environment, IInventory {
-}
+public interface Adapter extends Environment, IInventory {}

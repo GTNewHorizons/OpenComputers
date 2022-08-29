@@ -3,9 +3,8 @@ package li.cil.oc.integration.forestry;
 import com.google.common.collect.Maps;
 import forestry.api.genetics.IAlleleSpecies;
 import forestry.api.genetics.IMutation;
-import li.cil.oc.api.driver.Converter;
-
 import java.util.Map;
+import li.cil.oc.api.driver.Converter;
 
 public class ConverterIAlleles implements Converter {
     @Override
@@ -34,8 +33,10 @@ public class ConverterIAlleles implements Converter {
         }
     }
 
-    private void convertAlleleSpecies(final IAlleleSpecies value, final Map<Object, Object> output) {
+    static void convertAlleleSpecies(final IAlleleSpecies value, final Map<Object, Object> output) {
         output.put("name", value.getName());
         output.put("uid", value.getUID());
+        output.put("humidity", value.getHumidity().name);
+        output.put("temperature", value.getTemperature().name);
     }
 }

@@ -109,6 +109,5 @@ public interface SimpleComponent {
      */
     @Retention(RetentionPolicy.RUNTIME)
     @Target(ElementType.TYPE)
-    @interface SkipInjection {
-    }
+    @interface SkipInjection {}
 }

@@ -16,8 +16,7 @@ public final class Injectable {
     /**
      * Not constructable.
      */
-    private Injectable() {
-    }
+    private Injectable() {}
 
     /**
      * Mark a list of interfaces as injectable.

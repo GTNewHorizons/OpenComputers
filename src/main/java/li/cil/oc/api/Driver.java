@@ -1,5 +1,7 @@
 package li.cil.oc.api;
 
+import java.util.Collection;
+import java.util.Set;
 import li.cil.oc.api.driver.Block;
 import li.cil.oc.api.driver.Converter;
 import li.cil.oc.api.driver.EnvironmentProvider;
@@ -12,9 +14,6 @@ import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
-
-import java.util.Collection;
-import java.util.Set;
 
 /**
  * This API allows registering new drivers with the mod.
@@ -49,8 +48,7 @@ public final class Driver {
      */
     @Deprecated // TODO Remove in OC 1.7
     public static void add(final Block driver) {
-        if (API.driver != null)
-            API.driver.add(driver);
+        if (API.driver != null) API.driver.add(driver);
     }
 
     /**
@@ -66,8 +64,7 @@ public final class Driver {
      * @param driver the driver to register.
      */
     public static void add(final SidedBlock driver) {
-        if (API.driver != null)
-            API.driver.add(driver);
+        if (API.driver != null) API.driver.add(driver);
     }
 
     /**
@@ -82,8 +79,7 @@ public final class Driver {
      * @param driver the driver to register.
      */
     public static void add(final Item driver) {
-        if (API.driver != null)
-            API.driver.add(driver);
+        if (API.driver != null) API.driver.add(driver);
     }
 
     /**
@@ -98,8 +94,7 @@ public final class Driver {
      * @param converter the converter to register.
      */
     public static void add(final Converter converter) {
-        if (API.driver != null)
-            API.driver.add(converter);
+        if (API.driver != null) API.driver.add(converter);
     }
 
     /**
@@ -113,8 +108,7 @@ public final class Driver {
      * @param provider the provider to register.
      */
     public static void add(final EnvironmentProvider provider) {
-        if (API.driver != null)
-            API.driver.add(provider);
+        if (API.driver != null) API.driver.add(provider);
     }
 
     /**
@@ -126,8 +120,7 @@ public final class Driver {
      * @param provider the provider to register.
      */
     public static void add(final InventoryProvider provider) {
-        if (API.driver != null)
-            API.driver.add(provider);
+        if (API.driver != null) API.driver.add(provider);
     }
 
     /**
@@ -149,8 +142,7 @@ public final class Driver {
      */
     @Deprecated // TODO Remove in OC 1.7
     public static Block driverFor(World world, int x, int y, int z) {
-        if (API.driver != null)
-            return API.driver.driverFor(world, x, y, z);
+        if (API.driver != null) return API.driver.driverFor(world, x, y, z);
         return null;
     }
 
@@ -170,8 +162,7 @@ public final class Driver {
      * @return a driver for the block, or <tt>null</tt> if there is none.
      */
     public static SidedBlock driverFor(World world, int x, int y, int z, ForgeDirection side) {
-        if (API.driver != null)
-            return API.driver.driverFor(world, x, y, z, side);
+        if (API.driver != null) return API.driver.driverFor(world, x, y, z, side);
         return null;
     }
 
@@ -187,8 +178,7 @@ public final class Driver {
      * @return a driver for the item, or <tt>null</tt> if there is none.
      */
     public static Item driverFor(ItemStack stack, Class<? extends EnvironmentHost> host) {
-        if (API.driver != null)
-            return API.driver.driverFor(stack, host);
+        if (API.driver != null) return API.driver.driverFor(stack, host);
         return null;
     }
 
@@ -206,8 +196,7 @@ public final class Driver {
      * @return a driver for the item, or <tt>null</tt> if there is none.
      */
     public static Item driverFor(ItemStack stack) {
-        if (API.driver != null)
-            return API.driver.driverFor(stack);
+        if (API.driver != null) return API.driver.driverFor(stack);
         return null;
     }
 
@@ -224,8 +213,7 @@ public final class Driver {
      */
     @Deprecated
     public static Class<?> environmentFor(ItemStack stack) {
-        if (API.driver != null)
-            return API.driver.environmentFor(stack);
+        if (API.driver != null) return API.driver.environmentFor(stack);
         return null;
     }
 
@@ -240,8 +228,7 @@ public final class Driver {
      * @return the type of environment associated with the stack, or an empty Set, or null if the API is not present.
      */
     public static Set<Class<?>> environmentsFor(ItemStack stack) {
-        if (API.driver != null)
-            return API.driver.environmentsFor(stack);
+        if (API.driver != null) return API.driver.environmentsFor(stack);
         return null;
     }
 
@@ -260,8 +247,7 @@ public final class Driver {
      * @return the inventory implementation interfacing the stack, or <tt>null</tt>.
      */
     public static IInventory inventoryFor(ItemStack stack, EntityPlayer player) {
-        if (API.driver != null)
-            return API.driver.inventoryFor(stack, player);
+        if (API.driver != null) return API.driver.inventoryFor(stack, player);
         return null;
     }
 
@@ -276,8 +262,7 @@ public final class Driver {
      * @return the list of all registered block drivers.
      */
     public static Collection<Block> blockDrivers() {
-        if (API.driver != null)
-            return API.driver.blockDrivers();
+        if (API.driver != null) return API.driver.blockDrivers();
         return null;
     }
 
@@ -292,13 +277,11 @@ public final class Driver {
      * @return the list of all registered item drivers.
      */
     public static Collection<Item> itemDrivers() {
-        if (API.driver != null)
-            return API.driver.itemDrivers();
+        if (API.driver != null) return API.driver.itemDrivers();
         return null;
     }
 
     // ----------------------------------------------------------------------- //
 
-    private Driver() {
-    }
+    private Driver() {}
 }

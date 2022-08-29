@@ -1,10 +1,9 @@
 package li.cil.oc.integration.mystcraft;
 
+import java.util.Map;
 import li.cil.oc.api.driver.Converter;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
-
-import java.util.Map;
 
 public class ConverterPage implements Converter {
     @Override

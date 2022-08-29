@@ -22,7 +22,8 @@ public final class DriverSecureTile extends DriverSidedTileEntity {
     }
 
     @Override
-    public ManagedEnvironment createEnvironment(final World world, final int x, final int y, final int z, final ForgeDirection side) {
+    public ManagedEnvironment createEnvironment(
+            final World world, final int x, final int y, final int z, final ForgeDirection side) {
         return new Environment((ISecurable) world.getTileEntity(x, y, z));
     }
 
@@ -31,19 +32,24 @@ public final class DriverSecureTile extends DriverSidedTileEntity {
             super(tileEntity, "secure_tile");
         }
 
-        @Callback(doc = "function(name:string):boolean --  Returns whether the player with the given name can access the component")
+        @Callback(
+                doc =
+                        "function(name:string):boolean --  Returns whether the player with the given name can access the component")
         public Object[] canPlayerAccess(final Context context, final Arguments args) {
-            return new Object[]{tileEntity.canPlayerAccess(MinecraftServer.getServer().getConfigurationManager().func_152612_a(args.checkString(0)))};
+            return new Object[] {
+                tileEntity.canPlayerAccess(
+                        MinecraftServer.getServer().getConfigurationManager().func_152612_a(args.checkString(0)))
+            };
         }
 
         @Callback(doc = "function():string --  Returns the type of the access.")
         public Object[] getAccess(final Context context, final Arguments args) {
-            return new Object[]{WordUtils.capitalize(tileEntity.getAccess().name())};
+            return new Object[] {WordUtils.capitalize(tileEntity.getAccess().name())};
         }
 
         @Callback(doc = "function():string --  Returns the name of the owner.")
         public Object[] getOwnerName(final Context context, final Arguments args) {
-            return new Object[]{tileEntity.getOwnerName()};
+            return new Object[] {tileEntity.getOwnerName()};
         }
     }
 }

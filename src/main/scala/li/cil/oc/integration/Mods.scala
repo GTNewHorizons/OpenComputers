@@ -19,6 +19,7 @@ object Mods {
 
   val AgriCraft = new SimpleMod(IDs.AgriCraft, version = "@[1.4.0,)")
   val AppliedEnergistics2 = new SimpleMod(IDs.AppliedEnergistics2, version = "@[rv1,)")
+  val AvaritiaAddons = new SimpleMod(IDs.AvaritiaAddons)
   val BattleGear2 = new SimpleMod(IDs.BattleGear2)
   val BetterRecords = new SimpleMod(IDs.BetterRecords)
   val BloodMagic = new SimpleMod(IDs.BloodMagic)
@@ -38,7 +39,7 @@ object Mods {
   val CraftingCosts = new SimpleMod(IDs.CraftingCosts)
   val DeepStorageUnit = new ClassBasedMod(IDs.DeepStorageUnit, "powercrystals.minefactoryreloaded.api.IDeepStorageUnit")
   val ElectricalAge = new SimpleMod(IDs.ElectricalAge)
-  val EnderIO = new SimpleMod(IDs.EnderIO, version = "@[2.2,2.3)")
+  val EnderIO = new SimpleMod(IDs.EnderIO, version = "@[2.2,)")
   val EnderStorage = new SimpleMod(IDs.EnderStorage)
   val ExtraCells = new SimpleMod(IDs.ExtraCells, version = "@[2.2.73,)")
   val Factorization = new SimpleMod(IDs.Factorization)
@@ -89,6 +90,7 @@ object Mods {
   val Proxies = Array(
     integration.agricraft.ModAgriCraft,
     integration.appeng.ModAppEng,
+    integration.avaritiaaddons.ModAvaritiaAddons,
     integration.betterrecords.ModBetterRecords,
     integration.bloodmagic.ModBloodMagic,
     integration.bluepower.ModBluePower,
@@ -127,7 +129,6 @@ object Mods {
     integration.tis3d.ModTIS3D,
     integration.tmechworks.ModTMechworks,
     integration.vanilla.ModVanilla,
-    integration.versionchecker.ModVersionChecker,
     integration.waila.ModWaila,
     integration.wrcbe.ModWRCBE,
     integration.wrsve.ModWRSVE,
@@ -168,6 +169,7 @@ object Mods {
   object IDs {
     final val AgriCraft = "AgriCraft"
     final val AppliedEnergistics2 = "appliedenergistics2"
+    final val AvaritiaAddons = "avaritiaddons"
     final val BattleGear2 = "battlegear2"
     final val BetterRecords = "betterrecords"
     final val BloodMagic = "AWWayofTime"

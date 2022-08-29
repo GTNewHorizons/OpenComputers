@@ -17,7 +17,8 @@ public final class DriverEnergyInfo extends DriverSidedTileEntity {
     }
 
     @Override
-    public ManagedEnvironment createEnvironment(final World world, final int x, final int y, final int z, final ForgeDirection side) {
+    public ManagedEnvironment createEnvironment(
+            final World world, final int x, final int y, final int z, final ForgeDirection side) {
         return new Environment((IEnergyInfo) world.getTileEntity(x, y, z));
     }
 
@@ -28,22 +29,22 @@ public final class DriverEnergyInfo extends DriverSidedTileEntity {
 
         @Callback(doc = "function():number --  Returns the amount of stored energy.")
         public Object[] getEnergy(final Context context, final Arguments args) {
-            return new Object[]{tileEntity.getInfoEnergyStored()};
+            return new Object[] {tileEntity.getInfoEnergyStored()};
         }
 
         @Callback(doc = "function():number --  Returns the energy per tick.")
         public Object[] getEnergyPerTick(final Context context, final Arguments args) {
-            return new Object[]{tileEntity.getInfoEnergyPerTick()};
+            return new Object[] {tileEntity.getInfoEnergyPerTick()};
         }
 
         @Callback(doc = "function():number --  Returns the maximum energy.")
         public Object[] getMaxEnergy(final Context context, final Arguments args) {
-            return new Object[]{tileEntity.getInfoMaxEnergyStored()};
+            return new Object[] {tileEntity.getInfoMaxEnergyStored()};
         }
 
         @Callback(doc = "function():number --  Returns the maximum energy per tick.")
         public Object[] getMaxEnergyPerTick(final Context context, final Arguments args) {
-            return new Object[]{tileEntity.getInfoMaxEnergyPerTick()};
+            return new Object[] {tileEntity.getInfoMaxEnergyPerTick()};
         }
     }
 }

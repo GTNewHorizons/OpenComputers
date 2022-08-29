@@ -18,7 +18,8 @@ public class DriverBloodAltar extends DriverSidedTileEntity {
     }
 
     @Override
-    public ManagedEnvironment createEnvironment(final World world, final int x, final int y, final int z, final ForgeDirection side) {
+    public ManagedEnvironment createEnvironment(
+            final World world, final int x, final int y, final int z, final ForgeDirection side) {
         return new Environment((IBloodAltar) world.getTileEntity(x, y, z));
     }
 
@@ -39,42 +40,47 @@ public class DriverBloodAltar extends DriverSidedTileEntity {
 
         @Callback(doc = "function():number -- Get the capacity.")
         public Object[] getCapacity(final Context context, final Arguments arguments) {
-            return new Object[]{tileEntity.getCapacity()};
+            return new Object[] {tileEntity.getCapacity()};
         }
 
         @Callback(doc = "function():number -- Get the amount of blood currently contained by this altar.")
         public Object[] getCurrentBlood(final Context context, final Arguments arguments) {
-            return new Object[]{tileEntity.getCurrentBlood()};
+            return new Object[] {tileEntity.getCurrentBlood()};
         }
 
         @Callback(doc = "function():number -- Get the current tier.")
         public Object[] getTier(final Context context, final Arguments arguments) {
-            return new Object[]{tileEntity.getTier()};
+            return new Object[] {tileEntity.getTier()};
         }
 
         @Callback(doc = "function():number -- Get the progress.")
         public Object[] getProgress(final Context context, final Arguments arguments) {
-            return new Object[]{tileEntity.getProgress()};
+            return new Object[] {tileEntity.getProgress()};
         }
 
         @Callback(doc = "function():number -- Get the sacrifice multiplier.")
         public Object[] getSacrificeMultiplier(final Context context, final Arguments arguments) {
-            return new Object[]{tileEntity.getCapacity()};
+            return new Object[] {tileEntity.getCapacity()};
         }
 
         @Callback(doc = "function():number -- Get the self sacrifice multiplier.")
         public Object[] getSelfSacrificeMultiplier(final Context context, final Arguments arguments) {
-            return new Object[]{tileEntity.getSelfSacrificeMultiplier()};
+            return new Object[] {tileEntity.getSelfSacrificeMultiplier()};
         }
 
         @Callback(doc = "function():number -- Get the orb multiplier.")
         public Object[] getOrbMultiplier(final Context context, final Arguments arguments) {
-            return new Object[]{tileEntity.getOrbMultiplier()};
+            return new Object[] {tileEntity.getOrbMultiplier()};
         }
 
         @Callback(doc = "function():number -- Get the dislocation multiplier.")
         public Object[] getDislocationMultiplier(final Context context, final Arguments arguments) {
-            return new Object[]{tileEntity.getDislocationMultiplier()};
+            return new Object[] {tileEntity.getDislocationMultiplier()};
+        }
+
+        @Callback(doc = "function():number -- Get IO buffer capacity.")
+        public Object[] getBufferCapacity(final Context context, final Arguments arguments) {
+            return new Object[] {tileEntity.getBufferCapacity()};
         }
     }
 }

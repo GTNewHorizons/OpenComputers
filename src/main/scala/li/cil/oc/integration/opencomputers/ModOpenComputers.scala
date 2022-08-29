@@ -136,6 +136,7 @@ object ModOpenComputers extends ModProxy {
     api.Driver.add(DriverRedstoneCard)
     api.Driver.add(DriverTablet)
     api.Driver.add(DriverWirelessNetworkCard)
+    api.Driver.add(DriverTpsCard)
 
     api.Driver.add(DriverContainerCard)
     api.Driver.add(DriverContainerFloppy)
@@ -164,6 +165,7 @@ object ModOpenComputers extends ModProxy {
     api.Driver.add(DriverUpgradeLeash)
     api.Driver.add(DriverUpgradeNavigation)
     api.Driver.add(DriverUpgradePiston)
+    api.Driver.add(DriverUpgradeRITEG)
     api.Driver.add(DriverUpgradeSign)
     api.Driver.add(DriverUpgradeSolarGenerator)
     api.Driver.add(DriverUpgradeTank)
@@ -171,6 +173,7 @@ object ModOpenComputers extends ModProxy {
     api.Driver.add(DriverUpgradeTractorBeam)
     api.Driver.add(DriverUpgradeTrading)
     api.Driver.add(DriverUpgradeMF)
+    api.Driver.add(DriverUpgradeConfigurator)
 
     api.Driver.add(DriverAPU.Provider)
     api.Driver.add(DriverDataCard.Provider)
@@ -182,6 +185,8 @@ object ModOpenComputers extends ModProxy {
     api.Driver.add(DriverNetworkCard.Provider)
     api.Driver.add(DriverRedstoneCard.Provider)
     api.Driver.add(DriverWirelessNetworkCard.Provider)
+    api.Driver.add(DriverUpgradeDatabase.Provider)
+    api.Driver.add(DriverTpsCard.Provider)
 
     api.Driver.add(DriverGeolyzer.Provider)
     api.Driver.add(DriverMotionSensor.Provider)
@@ -205,6 +210,7 @@ object ModOpenComputers extends ModProxy {
 
     api.Driver.add(InventoryProviderDatabase)
     api.Driver.add(InventoryProviderServer)
+    api.Driver.add(DriverUpgradeConfigurator.Provider)
 
     blacklistHost(classOf[internal.Adapter],
       Constants.BlockName.Geolyzer,
@@ -231,7 +237,10 @@ object ModOpenComputers extends ModProxy {
       Constants.ItemName.TankUpgrade,
       Constants.ItemName.TractorBeamUpgrade,
       Constants.ItemName.LeashUpgrade,
-      Constants.ItemName.TradingUpgrade)
+      Constants.ItemName.TradingUpgrade,
+      Constants.ItemName.BeekeeperUpgrade,
+      Constants.ItemName.RITEGUpgrade
+    )
     blacklistHost(classOf[internal.Drone],
       Constants.BlockName.Keyboard,
       Constants.BlockName.ScreenTier1,
@@ -248,7 +257,10 @@ object ModOpenComputers extends ModProxy {
       Constants.ItemName.AngelUpgrade,
       Constants.ItemName.CraftingUpgrade,
       Constants.ItemName.HoverUpgradeTier1,
-      Constants.ItemName.HoverUpgradeTier2)
+      Constants.ItemName.HoverUpgradeTier2,
+      Constants.ItemName.BeekeeperUpgrade,
+      Constants.ItemName.RITEGUpgrade
+    )
     blacklistHost(classOf[internal.Microcontroller],
       Constants.BlockName.Keyboard,
       Constants.BlockName.ScreenTier1,
@@ -275,12 +287,15 @@ object ModOpenComputers extends ModProxy {
       Constants.ItemName.TankControllerUpgrade,
       Constants.ItemName.TractorBeamUpgrade,
       Constants.ItemName.LeashUpgrade,
-      Constants.ItemName.TradingUpgrade)
+      Constants.ItemName.TradingUpgrade,
+      Constants.ItemName.BeekeeperUpgrade)
     blacklistHost(classOf[internal.Robot],
       Constants.BlockName.Transposer,
       Constants.BlockName.CarpetedCapacitor,
       Constants.ItemName.Analyzer,
-      Constants.ItemName.LeashUpgrade)
+      Constants.ItemName.LeashUpgrade,
+      Constants.ItemName.RITEGUpgrade
+    )
     blacklistHost(classOf[internal.Tablet],
       Constants.BlockName.ScreenTier1,
       Constants.BlockName.Transposer,
@@ -302,7 +317,10 @@ object ModOpenComputers extends ModProxy {
       Constants.ItemName.TankUpgrade,
       Constants.ItemName.TankControllerUpgrade,
       Constants.ItemName.LeashUpgrade,
-      Constants.ItemName.TradingUpgrade)
+      Constants.ItemName.TradingUpgrade,
+      Constants.ItemName.BeekeeperUpgrade,
+      Constants.ItemName.ConfiguratorUpgrade
+    )
 
     if (!WirelessRedstone.isAvailable) {
       blacklistHost(classOf[internal.Drone], Constants.ItemName.RedstoneCardTier2)

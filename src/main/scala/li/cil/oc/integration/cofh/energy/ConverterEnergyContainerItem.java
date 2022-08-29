@@ -1,11 +1,10 @@
 package li.cil.oc.integration.cofh.energy;
 
 import cofh.api.energy.IEnergyContainerItem;
+import java.util.Map;
 import li.cil.oc.api.driver.Converter;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-
-import java.util.Map;
 
 public final class ConverterEnergyContainerItem implements Converter {
     @Override

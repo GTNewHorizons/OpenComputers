@@ -17,7 +17,8 @@ public final class DriverFluidTank extends DriverSidedTileEntity {
     }
 
     @Override
-    public ManagedEnvironment createEnvironment(final World world, final int x, final int y, final int z, final ForgeDirection side) {
+    public ManagedEnvironment createEnvironment(
+            final World world, final int x, final int y, final int z, final ForgeDirection side) {
         return new Environment((IFluidTank) world.getTileEntity(x, y, z));
     }
 
@@ -28,7 +29,7 @@ public final class DriverFluidTank extends DriverSidedTileEntity {
 
         @Callback(doc = "function():table -- Get some information about this tank.")
         public Object[] getInfo(final Context context, final Arguments args) {
-            return new Object[]{tileEntity.getInfo()};
+            return new Object[] {tileEntity.getInfo()};
         }
     }
 }

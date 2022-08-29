@@ -17,7 +17,8 @@ public final class DriverEnergyContainer extends DriverSidedTileEntity {
     }
 
     @Override
-    public ManagedEnvironment createEnvironment(final World world, final int x, final int y, final int z, final ForgeDirection side) {
+    public ManagedEnvironment createEnvironment(
+            final World world, final int x, final int y, final int z, final ForgeDirection side) {
         return new Environment((IBasicEnergyContainer) world.getTileEntity(x, y, z));
     }
 
@@ -28,47 +29,52 @@ public final class DriverEnergyContainer extends DriverSidedTileEntity {
 
         @Callback(doc = "function():number --  Returns the amount of electricity contained in this Block, in EU units!")
         public Object[] getStoredEU(final Context context, final Arguments args) {
-            return new Object[]{tileEntity.getStoredEU()};
+            return new Object[] {tileEntity.getStoredEU()};
         }
 
-        @Callback(doc = "function():number --  Returns the amount of electricity containable in this Block, in EU units!")
+        @Callback(
+                doc = "function():number --  Returns the amount of electricity containable in this Block, in EU units!")
         public Object[] getEUCapacity(final Context context, final Arguments args) {
-            return new Object[]{tileEntity.getEUCapacity()};
+            return new Object[] {tileEntity.getEUCapacity()};
         }
 
         @Callback(doc = "function():number --  Returns the amount of Steam containable in this Block, in EU units!")
         public Object[] getSteamCapacity(final Context context, final Arguments args) {
-            return new Object[]{tileEntity.getSteamCapacity()};
+            return new Object[] {tileEntity.getSteamCapacity()};
         }
 
         @Callback(doc = "function():number --  Returns the amount of Steam contained in this Block, in EU units!")
         public Object[] getStoredSteam(final Context context, final Arguments args) {
-            return new Object[]{tileEntity.getStoredSteam()};
+            return new Object[] {tileEntity.getStoredSteam()};
         }
 
         @Callback(doc = "function():number --  Gets the Output in EU/p.")
         public Object[] getOutputVoltage(final Context context, final Arguments args) {
-            return new Object[]{tileEntity.getOutputVoltage()};
+            return new Object[] {tileEntity.getOutputVoltage()};
         }
 
         @Callback(doc = "function():number -- Gets the amount of Energy Packets per tick.")
         public Object[] getOutputAmperage(final Context context, final Arguments args) {
-            return new Object[]{tileEntity.getOutputAmperage()};
+            return new Object[] {tileEntity.getOutputAmperage()};
         }
 
         @Callback(doc = "function():number -- Gets the maximum Input in EU/p.")
         public Object[] getInputVoltage(final Context context, final Arguments args) {
-            return new Object[]{tileEntity.getInputVoltage()};
+            return new Object[] {tileEntity.getInputVoltage()};
         }
 
-        @Callback(doc = "function():number -- Returns the amount of Electricity, accepted by this Block the last 5 ticks as Average.")
+        @Callback(
+                doc =
+                        "function():number -- Returns the amount of Electricity, accepted by this Block the last 5 ticks as Average.")
         public Object[] getAverageElectricInput(final Context context, final Arguments args) {
-            return new Object[]{tileEntity.getAverageElectricInput()};
+            return new Object[] {tileEntity.getAverageElectricInput()};
         }
 
-        @Callback(doc = "function():number -- Returns the amount of Electricity, outputted by this Block the last 5 ticks as Average.")
+        @Callback(
+                doc =
+                        "function():number -- Returns the amount of Electricity, outputted by this Block the last 5 ticks as Average.")
         public Object[] getAverageElectricOutput(final Context context, final Arguments args) {
-            return new Object[]{tileEntity.getAverageElectricOutput()};
+            return new Object[] {tileEntity.getAverageElectricOutput()};
         }
     }
 }

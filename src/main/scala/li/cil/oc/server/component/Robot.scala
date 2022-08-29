@@ -47,6 +47,7 @@ class Robot(val agent: tileentity.Robot) extends prefab.ManagedEnvironment with 
   // ----------------------------------------------------------------------- //
 
   override protected def checkSideForAction(args: Arguments, n: Int) = agent.toGlobal(args.checkSideForAction(n))
+  override protected def checkSideForUse(args: Arguments, n: Int) = agent.toGlobal(args.checkSideAny(n))
 
   override def onWorldInteraction(context: Context, duration: Double): Unit = {
     super.onWorldInteraction(context, duration)

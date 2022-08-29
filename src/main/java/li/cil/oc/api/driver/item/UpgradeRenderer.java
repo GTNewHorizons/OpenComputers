@@ -1,10 +1,9 @@
 package li.cil.oc.api.driver.item;
 
+import java.util.Set;
 import li.cil.oc.api.event.RobotRenderEvent;
 import li.cil.oc.api.internal.Robot;
 import net.minecraft.item.ItemStack;
-
-import java.util.Set;
 
 /**
  * This interface can be implemented by items to allow custom rendering of
@@ -87,7 +86,6 @@ public interface UpgradeRenderer {
         public static final String BottomBack = "bottom_back";
         public static final String BottomFront = "bottom_front";
 
-        private MountPointName() {
-        }
+        private MountPointName() {}
     }
 }

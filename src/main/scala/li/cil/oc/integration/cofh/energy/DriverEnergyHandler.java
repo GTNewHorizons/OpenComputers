@@ -17,7 +17,8 @@ public final class DriverEnergyHandler extends DriverSidedTileEntity {
     }
 
     @Override
-    public ManagedEnvironment createEnvironment(final World world, final int x, final int y, final int z, final ForgeDirection side) {
+    public ManagedEnvironment createEnvironment(
+            final World world, final int x, final int y, final int z, final ForgeDirection side) {
         return new Environment((IEnergyHandler) world.getTileEntity(x, y, z));
     }
 
@@ -26,16 +27,22 @@ public final class DriverEnergyHandler extends DriverSidedTileEntity {
             super(tileEntity, "energy_handler");
         }
 
-        @Callback(doc = "function([direction:number=6]):number --  Returns the amount of stored energy for the given side.")
+        @Callback(
+                doc =
+                        "function([direction:number=6]):number --  Returns the amount of stored energy for the given side.")
         public Object[] getEnergyStored(final Context context, final Arguments args) {
-            final ForgeDirection side = args.count() > 0 ? ForgeDirection.getOrientation(args.checkInteger(0)) : ForgeDirection.UNKNOWN;
-            return new Object[]{tileEntity.getEnergyStored(side)};
+            final ForgeDirection side =
+                    args.count() > 0 ? ForgeDirection.getOrientation(args.checkInteger(0)) : ForgeDirection.UNKNOWN;
+            return new Object[] {tileEntity.getEnergyStored(side)};
         }
 
-        @Callback(doc = "function([direction:number=6]):number --  Returns the maximum amount of stored energy for the given side.")
+        @Callback(
+                doc =
+                        "function([direction:number=6]):number --  Returns the maximum amount of stored energy for the given side.")
         public Object[] getMaxEnergyStored(final Context context, final Arguments args) {
-            final ForgeDirection side = args.count() > 0 ? ForgeDirection.getOrientation(args.checkInteger(0)) : ForgeDirection.UNKNOWN;
-            return new Object[]{tileEntity.getMaxEnergyStored(side)};
+            final ForgeDirection side =
+                    args.count() > 0 ? ForgeDirection.getOrientation(args.checkInteger(0)) : ForgeDirection.UNKNOWN;
+            return new Object[] {tileEntity.getMaxEnergyStored(side)};
         }
     }
 }

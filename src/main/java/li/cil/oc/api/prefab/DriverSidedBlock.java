@@ -43,7 +43,9 @@ public abstract class DriverSidedBlock implements li.cil.oc.api.driver.SidedBloc
                 final ItemBlock item = (ItemBlock) stack.getItem();
                 final Block supportedBlock = item.field_150939_a;
                 final int supportedMetadata = item.getMetadata(stack.getItemDamage());
-                if (referenceBlock == supportedBlock && (referenceMetadata == supportedMetadata || stack.getItemDamage() == OreDictionary.WILDCARD_VALUE)) {
+                if (referenceBlock == supportedBlock
+                        && (referenceMetadata == supportedMetadata
+                                || stack.getItemDamage() == OreDictionary.WILDCARD_VALUE)) {
                     return true;
                 }
             }

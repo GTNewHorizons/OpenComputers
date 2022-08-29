@@ -1,15 +1,14 @@
 package li.cil.oc.api.prefab;
 
 import com.google.common.base.Charsets;
-import li.cil.oc.api.manual.ContentProvider;
-import net.minecraft.client.Minecraft;
-import net.minecraft.util.ResourceLocation;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import li.cil.oc.api.manual.ContentProvider;
+import net.minecraft.client.Minecraft;
+import net.minecraft.util.ResourceLocation;
 
 /**
  * Basic implementation of a content provider based on Minecraft's resource
@@ -40,10 +39,14 @@ public class ResourceContentProvider implements ContentProvider {
 
     @Override
     public Iterable<String> getContent(String path) {
-        final ResourceLocation location = new ResourceLocation(resourceDomain, basePath + (path.startsWith("/") ? path.substring(1) : path));
+        final ResourceLocation location =
+                new ResourceLocation(resourceDomain, basePath + (path.startsWith("/") ? path.substring(1) : path));
         InputStream is = null;
         try {
-            is = Minecraft.getMinecraft().getResourceManager().getResource(location).getInputStream();
+            is = Minecraft.getMinecraft()
+                    .getResourceManager()
+                    .getResource(location)
+                    .getInputStream();
             final BufferedReader reader = new BufferedReader(new InputStreamReader(is, Charsets.UTF_8));
             final ArrayList<String> lines = new ArrayList<String>();
             String line;

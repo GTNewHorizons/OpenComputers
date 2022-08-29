@@ -15,27 +15,15 @@ import forestry.api.arboriculture.IAlleleLeafEffect;
 import forestry.api.arboriculture.IAlleleTreeSpecies;
 import forestry.api.arboriculture.ITree;
 import forestry.api.arboriculture.ITreeGenome;
-import forestry.api.genetics.IAllele;
-import forestry.api.genetics.IAlleleArea;
-import forestry.api.genetics.IAlleleBoolean;
-import forestry.api.genetics.IAlleleFloat;
-import forestry.api.genetics.IAlleleFlowers;
-import forestry.api.genetics.IAlleleInteger;
-import forestry.api.genetics.IAllelePlantType;
-import forestry.api.genetics.IAlleleTolerance;
-import forestry.api.genetics.IChromosome;
-import forestry.api.genetics.IChromosomeType;
-import forestry.api.genetics.IGenome;
-import forestry.api.genetics.IIndividual;
-import forestry.api.genetics.IIndividualLiving;
+import forestry.api.genetics.*;
 import forestry.api.lepidopterology.EnumButterflyChromosome;
 import forestry.api.lepidopterology.IAlleleButterflyEffect;
 import forestry.api.lepidopterology.IAlleleButterflySpecies;
 import forestry.api.lepidopterology.IButterfly;
 import forestry.api.lepidopterology.IButterflyGenome;
-import li.cil.oc.api.driver.Converter;
-
+import java.util.HashMap;
 import java.util.Map;
+import li.cil.oc.api.driver.Converter;
 
 /*
  * Partially copied from:
@@ -73,41 +61,17 @@ public class ConverterIIndividual implements Converter {
 
     private static final Map<Class<? extends IAllele>, IAlleleConverter<?>> converters =
             ImmutableMap.<Class<? extends IAllele>, IAlleleConverter<?>>builder()
-                    .put(IAlleleFloat.class, new IAlleleConverter<IAlleleFloat>() {
-                        @Override
-                        public Object convert(IAlleleFloat allele) {
-                            return allele.getValue();
-                        }
-                    })
-                    .put(IAlleleInteger.class, new IAlleleConverter<IAlleleInteger>() {
-                        @Override
-                        public Object convert(IAlleleInteger allele) {
-                            return allele.getValue();
-                        }
-                    })
-                    .put(IAlleleBoolean.class, new IAlleleConverter<IAlleleBoolean>() {
-                        @Override
-                        public Object convert(IAlleleBoolean allele) {
-                            return allele.getValue();
-                        }
-                    })
-                    .put(IAlleleArea.class, new IAlleleConverter<IAlleleArea>() {
-                        @Override
-                        public Object convert(IAlleleArea allele) {
-                            return allele.getValue();
-                        }
-                    })
-                    .put(IAllelePlantType.class, new IAlleleConverter<IAllelePlantType>() {
-                        @Override
-                        public Object convert(IAllelePlantType allele) {
-                            return allele.getPlantTypes();
-                        }
-                    })
-                    .put(IAlleleGrowth.class, new IAlleleConverter<IAlleleGrowth>() {
-                        @Override
-                        public Object convert(IAlleleGrowth allele) {
-                            return allele.getProvider().getInfo();
-                        }
+                    .put(IAlleleFloat.class, (IAlleleConverter<IAlleleFloat>) IAlleleFloat::getValue)
+                    .put(IAlleleInteger.class, (IAlleleConverter<IAlleleInteger>) IAlleleInteger::getValue)
+                    .put(IAlleleBoolean.class, (IAlleleConverter<IAlleleBoolean>) IAlleleBoolean::getValue)
+                    .put(IAlleleArea.class, (IAlleleConverter<IAlleleArea>) IAlleleArea::getValue)
+                    .put(IAllelePlantType.class, (IAlleleConverter<IAllelePlantType>) IAllelePlantType::getPlantTypes)
+                    .put(IAlleleGrowth.class, (IAlleleConverter<IAlleleGrowth>)
+                            allele -> allele.getProvider().getInfo())
+                    .put(IAlleleBeeSpecies.class, (IAlleleConverter<IAlleleBeeSpecies>) allele -> {
+                        Map<Object, Object> output = new HashMap<>();
+                        ConverterIAlleles.convertAlleleSpecies(allele, output);
+                        return output;
                     })
                     .build();
 
@@ -160,12 +124,17 @@ public class ConverterIIndividual implements Converter {
             result.put("speed", convertAllele(access, IAlleleFloat.class, EnumBeeChromosome.SPEED));
             result.put("lifespan", convertAllele(access, IAlleleInteger.class, EnumBeeChromosome.LIFESPAN));
             result.put("fertility", convertAllele(access, IAlleleInteger.class, EnumBeeChromosome.FERTILITY));
-            result.put("temperatureTolerance", convertAllele(access, IAlleleTolerance.class, EnumBeeChromosome.TEMPERATURE_TOLERANCE));
+            result.put(
+                    "temperatureTolerance",
+                    convertAllele(access, IAlleleTolerance.class, EnumBeeChromosome.TEMPERATURE_TOLERANCE));
             result.put("nocturnal", convertAllele(access, IAlleleBoolean.class, EnumBeeChromosome.NOCTURNAL));
-            result.put("humidityTolerance", convertAllele(access, IAlleleTolerance.class, EnumBeeChromosome.HUMIDITY_TOLERANCE));
+            result.put(
+                    "humidityTolerance",
+                    convertAllele(access, IAlleleTolerance.class, EnumBeeChromosome.HUMIDITY_TOLERANCE));
             result.put("tolerantFlyer", convertAllele(access, IAlleleBoolean.class, EnumBeeChromosome.TOLERANT_FLYER));
             result.put("caveDwelling", convertAllele(access, IAlleleBoolean.class, EnumBeeChromosome.CAVE_DWELLING));
-            result.put("flowerProvider", convertAllele(access, IAlleleFlowers.class, EnumBeeChromosome.FLOWER_PROVIDER));
+            result.put(
+                    "flowerProvider", convertAllele(access, IAlleleFlowers.class, EnumBeeChromosome.FLOWER_PROVIDER));
             result.put("flowering", convertAllele(access, IAlleleInteger.class, EnumBeeChromosome.FLOWERING));
             result.put("effect", convertAllele(access, IAlleleBeeEffect.class, EnumBeeChromosome.EFFECT));
             result.put("territory", convertAllele(access, IAlleleArea.class, EnumBeeChromosome.TERRITORY));
@@ -180,18 +149,27 @@ public class ConverterIIndividual implements Converter {
 
         @Override
         protected void addAlleleInfo(GenomeAccess access, Map<String, Object> result) {
-            result.put("species", convertAllele(access, IAlleleButterflySpecies.class, EnumButterflyChromosome.SPECIES));
+            result.put(
+                    "species", convertAllele(access, IAlleleButterflySpecies.class, EnumButterflyChromosome.SPECIES));
             result.put("size", convertAllele(access, IAlleleFloat.class, EnumButterflyChromosome.SIZE));
             result.put("speed", convertAllele(access, IAlleleFloat.class, EnumButterflyChromosome.SPEED));
             result.put("lifespan", convertAllele(access, IAlleleInteger.class, EnumButterflyChromosome.LIFESPAN));
             result.put("metabolism", convertAllele(access, IAlleleInteger.class, EnumButterflyChromosome.METABOLISM));
             result.put("fertility", convertAllele(access, IAlleleInteger.class, EnumButterflyChromosome.FERTILITY));
-            result.put("temperatureTolerance", convertAllele(access, IAlleleTolerance.class, EnumButterflyChromosome.TEMPERATURE_TOLERANCE));
-            result.put("humidityTolerance", convertAllele(access, IAlleleTolerance.class, EnumButterflyChromosome.HUMIDITY_TOLERANCE));
+            result.put(
+                    "temperatureTolerance",
+                    convertAllele(access, IAlleleTolerance.class, EnumButterflyChromosome.TEMPERATURE_TOLERANCE));
+            result.put(
+                    "humidityTolerance",
+                    convertAllele(access, IAlleleTolerance.class, EnumButterflyChromosome.HUMIDITY_TOLERANCE));
             result.put("nocturnal", convertAllele(access, IAlleleBoolean.class, EnumButterflyChromosome.NOCTURNAL));
-            result.put("tolerantFlyer", convertAllele(access, IAlleleBoolean.class, EnumButterflyChromosome.TOLERANT_FLYER));
+            result.put(
+                    "tolerantFlyer",
+                    convertAllele(access, IAlleleBoolean.class, EnumButterflyChromosome.TOLERANT_FLYER));
             result.put("fireResist", convertAllele(access, IAlleleBoolean.class, EnumButterflyChromosome.FIRE_RESIST));
-            result.put("flowerProvider", convertAllele(access, IAlleleFlowers.class, EnumButterflyChromosome.FLOWER_PROVIDER));
+            result.put(
+                    "flowerProvider",
+                    convertAllele(access, IAlleleFlowers.class, EnumButterflyChromosome.FLOWER_PROVIDER));
             result.put("effect", convertAllele(access, IAlleleButterflyEffect.class, EnumButterflyChromosome.EFFECT));
             result.put("territory", convertAllele(access, IAlleleArea.class, EnumButterflyChromosome.TERRITORY));
         }

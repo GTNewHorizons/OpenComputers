@@ -19,7 +19,8 @@ public class DriverMasterRitualStone extends DriverSidedTileEntity {
     }
 
     @Override
-    public ManagedEnvironment createEnvironment(final World world, final int x, final int y, final int z, final ForgeDirection side) {
+    public ManagedEnvironment createEnvironment(
+            final World world, final int x, final int y, final int z, final ForgeDirection side) {
         return new Environment((IMasterRitualStone) world.getTileEntity(x, y, z));
     }
 
@@ -40,31 +41,31 @@ public class DriverMasterRitualStone extends DriverSidedTileEntity {
 
         @Callback(doc = "function():string -- Get the name of the player owning this master ritual stone.")
         public Object[] getOwner(final Context context, final Arguments arguments) {
-            return new Object[]{tileEntity.getOwner()};
+            return new Object[] {tileEntity.getOwner()};
         }
 
         @Callback(doc = "function():string -- Get the current ritual.")
         public Object[] getCurrentRitual(final Context context, final Arguments arguments) {
             if (tileEntity instanceof TEMasterStone) {
                 TEMasterStone masterStone = (TEMasterStone) tileEntity;
-                return new Object[]{masterStone.getCurrentRitual()};
+                return new Object[] {masterStone.getCurrentRitual()};
             }
-            return new Object[]{"internal error"};
+            return new Object[] {"internal error"};
         }
 
         @Callback(doc = "function():number -- Get the remaining cooldown.")
         public Object[] getCooldown(final Context context, final Arguments arguments) {
-            return new Object[]{tileEntity.getCooldown()};
+            return new Object[] {tileEntity.getCooldown()};
         }
 
         @Callback(doc = "function():number -- Get the running time.")
         public Object[] getRunningTime(final Context context, final Arguments arguments) {
-            return new Object[]{tileEntity.getRunningTime()};
+            return new Object[] {tileEntity.getRunningTime()};
         }
 
         @Callback(doc = "function():boolean -- Get whether the tanks are empty.")
         public Object[] areTanksEmpty(final Context context, final Arguments arguments) {
-            return new Object[]{tileEntity.areTanksEmpty()};
+            return new Object[] {tileEntity.areTanksEmpty()};
         }
     }
 }
