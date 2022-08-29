@@ -52,15 +52,15 @@ trait NetworkControl[AETile >: Null <: TileEntity with IGridProxyable with IActi
   def node: Node
 
   private def allItems: Iterable[IAEItemStack] = tile.getProxy.getStorage.getItemInventory.getStorageList
-  private def allCraftables: Iterable[IAEItemStack] = allItems.collect{ case aeItem if aeItem.isCraftable => aeCraftItem(aeItem) }
+  private def allCraftables: Iterable[IAEItemStack] = allItems.collect{ case aeItem if aeItem.isCraftable => aeCraftItem(aeItem, tile) }
 
-  private def convert(aeItem: IAEItemStack): java.util.HashMap[String, AnyRef] = {
+  private def convert(aeItem: IAEItemStack, tile: TileEntity with IGridProxyable): java.util.HashMap[String, AnyRef] = {
     def hashConvert(value: java.util.HashMap[_, _]) = {
       val hash = new java.util.HashMap[String, AnyRef]
       value.collect{ case (k:String, v:AnyRef) => hash += k -> v }
       hash
     }
-    val potentialItem = aePotentialItem(aeItem)
+    val potentialItem = aePotentialItem(aeItem, tile)
     val result = Registry.convert(Array[AnyRef](potentialItem.getItemStack))
       .collect { case hash: java.util.HashMap[_,_] => hashConvert(hash) }
     if (result.length > 0) {
