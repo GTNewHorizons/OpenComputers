@@ -1,7 +1,6 @@
 package li.cil.oc.integration.cofh.tileentity;
 
 import cofh.api.tileentity.ISecurable;
-import com.mojang.authlib.GameProfile;
 import li.cil.oc.api.machine.Arguments;
 import li.cil.oc.api.machine.Callback;
 import li.cil.oc.api.machine.Context;
@@ -10,8 +9,6 @@ import li.cil.oc.api.prefab.DriverSidedTileEntity;
 import li.cil.oc.integration.ManagedTileEntityEnvironment;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.World;
-import net.minecraftforge.common.util.FakePlayer;
-import net.minecraftforge.common.util.FakePlayerFactory;
 import net.minecraftforge.common.util.ForgeDirection;
 import org.apache.commons.lang3.text.WordUtils;
 

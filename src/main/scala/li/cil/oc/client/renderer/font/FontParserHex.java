@@ -2,13 +2,6 @@ package li.cil.oc.client.renderer.font;
 
 import gnu.trove.map.TIntObjectMap;
 import gnu.trove.map.hash.TIntObjectHashMap;
-import li.cil.oc.OpenComputers;
-import li.cil.oc.Settings;
-import li.cil.oc.util.FontUtils;
-import net.minecraft.client.Minecraft;
-import net.minecraft.util.ResourceLocation;
-import org.lwjgl.BufferUtils;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -43,7 +36,9 @@ public class FontParserHex implements IGlyphProvider {
                     final String[] info = line.split(":");
                     final int charCode = Integer.parseInt(info[0], 16);
                     if (charCode < 0 || charCode >= FontUtils.codepoint_limit()) {
-                        OpenComputers.log().warn(String.format("Unicode font contained unexpected glyph: U+%04X, ignoring", charCode));
+                        OpenComputers.log()
+                                .warn(String.format(
+                                        "Unicode font contained unexpected glyph: U+%04X, ignoring", charCode));
                         continue; // Out of bounds.
                     }
                     final int expectedWidth = FontUtils.wcwidth(charCode);
@@ -81,11 +76,9 @@ public class FontParserHex implements IGlyphProvider {
 
     @Override
     public ByteBuffer getGlyph(int charCode) {
-        if (!glyphs.containsKey(charCode))
-            return null;
+        if (!glyphs.containsKey(charCode)) return null;
         final byte[] glyph = glyphs.get(charCode);
-        if (glyph == null || glyph.length <= 0)
-            return null;
+        if (glyph == null || glyph.length <= 0) return null;
         final ByteBuffer buffer = BufferUtils.createByteBuffer(glyph.length * getGlyphWidth() * 4);
         for (byte aGlyph : glyph) {
             int c = ((int) aGlyph) & 0xFF;
