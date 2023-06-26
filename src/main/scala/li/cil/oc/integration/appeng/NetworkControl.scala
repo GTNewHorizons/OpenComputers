@@ -1,7 +1,6 @@
 package li.cil.oc.integration.appeng
 
 import java.lang
-
 import appeng.api.AEApi
 import appeng.api.config.Actionable
 import appeng.api.networking.IGridNode
@@ -9,7 +8,7 @@ import appeng.api.networking.crafting.{CraftingItemList, ICraftingLink, ICraftin
 import appeng.api.networking.security.{BaseActionSource, IActionHost, MachineSource}
 import appeng.api.networking.storage.IBaseMonitor
 import appeng.api.storage.IMEMonitorHandlerReceiver
-import appeng.api.storage.data.{IAEItemStack, IItemList}
+import appeng.api.storage.data.{IAEFluidStack, IAEItemStack, IItemList}
 import appeng.api.util.AECableType
 import appeng.me.cluster.implementations.CraftingCPUCluster
 import appeng.me.helpers.IGridProxyable
@@ -24,6 +23,7 @@ import li.cil.oc.api.network.Node
 import li.cil.oc.api.prefab.AbstractValue
 import li.cil.oc.common.EventHandler
 import li.cil.oc.integration.Mods
+import li.cil.oc.integration.ae2fc.Ae2FcUtil
 import li.cil.oc.integration.appeng.NetworkControl._
 import li.cil.oc.integration.ec.ECUtil
 import li.cil.oc.server.driver.Registry
@@ -119,11 +119,14 @@ trait NetworkControl[AETile >: Null <: TileEntity with IGridProxyable with IActi
     })
   }
 
+  private def isFluidVisible(stack: IAEFluidStack) =
+    if (Mods.ExtraCells.isAvailable) ECUtil.canSeeFluidInNetwork(stack)
+    else if (Mods.Ae2Fc.isAvailable) Ae2FcUtil.canSeeFluidInNetwork(stack)
+    else true
+
   @Callback(doc = "function():table -- Get a list of the stored fluids in the network.")
   def getFluidsInNetwork(context: Context, args: Arguments): Array[AnyRef] =
-    result(tile.getProxy.getStorage.getFluidInventory.getStorageList.filter(stack =>
-      !Mods.ExtraCells.isAvailable || ECUtil.canSeeFluidInNetwork(stack)).
-      map(_.getFluidStack).toArray)
+    result(tile.getProxy.getStorage.getFluidInventory.getStorageList.filter(isFluidVisible).map(fs => convert(fs, tile)).toArray)
 
   @Callback(doc = "function():number -- Get the average power injection into the network.")
   def getAvgPowerInjection(context: Context, args: Arguments): Array[AnyRef] =
@@ -472,12 +475,13 @@ object NetworkControl {
       aeCraftItem(aeItem, tile)
   }
 
+  def hashConvert(value: java.util.HashMap[_, _]) = {
+    val hash = new java.util.HashMap[String, AnyRef]
+    value.collect { case (k: String, v: AnyRef) => hash += k -> v }
+    hash
+  }
+
   def convert(aeItem: IAEItemStack, tile: TileEntity with IGridProxyable): java.util.HashMap[String, AnyRef] = {
-    def hashConvert(value: java.util.HashMap[_, _]) = {
-      val hash = new java.util.HashMap[String, AnyRef]
-      value.collect{ case (k:String, v:AnyRef) => hash += k -> v }
-      hash
-    }
     val potentialItem = aePotentialItem(aeItem, tile)
     val result = Registry.convert(Array[AnyRef](potentialItem.getItemStack))
       .collect { case hash: java.util.HashMap[_,_] => hashConvert(hash) }
@@ -486,6 +490,18 @@ object NetworkControl {
       // it would have been nice to put these fields in a registry convert
       // but the potential ae item needs the tile and position data
       hash.update("size", Long.box(aeItem.getStackSize))
+      hash.update("isCraftable", Boolean.box(aeItem.isCraftable))
+      return hash
+    }
+    null
+  }
+
+  def convert(aeItem: IAEFluidStack, tile: TileEntity with IGridProxyable): java.util.HashMap[String, AnyRef] = {
+    val result = Registry.convert(Array[AnyRef](aeItem.getFluidStack))
+      .collect { case hash: java.util.HashMap[_, _] => hashConvert(hash) }
+    if (result.length > 0) {
+      val hash = result(0)
+      hash.update("amount", Long.box(aeItem.getStackSize))
       hash.update("isCraftable", Boolean.box(aeItem.isCraftable))
       return hash
     }

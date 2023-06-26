@@ -15,7 +15,7 @@ object EventHandlerGregTech {
     val world = e.host.world
     world.getTileEntity(e.x, e.y, e.z) match {
       case tile : IGregTechTileEntity =>
-        e.data += "facing" -> ForgeDirection.getOrientation(tile.getFrontFacing).name()
+        e.data += "facing" -> tile.getFrontFacing.name
         e.data += "sensorInformation" -> tile.getInfoData()
       case _ =>
     }

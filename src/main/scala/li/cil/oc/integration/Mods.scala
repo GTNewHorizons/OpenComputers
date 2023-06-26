@@ -17,6 +17,7 @@ object Mods {
 
   def All = knownMods.clone()
 
+  val Ae2Fc = new SimpleMod(IDs.Ae2Fc)
   val AgriCraft = new SimpleMod(IDs.AgriCraft, version = "@[1.4.0,)")
   val AppliedEnergistics2 = new SimpleMod(IDs.AppliedEnergistics2, version = "@[rv1,)")
   val AvaritiaAddons = new SimpleMod(IDs.AvaritiaAddons)
@@ -89,6 +90,7 @@ object Mods {
 
   val Proxies = Array(
     integration.agricraft.ModAgriCraft,
+    integration.ae2fc.ModAe2fc,
     integration.appeng.ModAppEng,
     integration.avaritiaaddons.ModAvaritiaAddons,
     integration.betterrecords.ModBetterRecords,
@@ -168,6 +170,7 @@ object Mods {
 
   object IDs {
     final val AgriCraft = "AgriCraft"
+    final val Ae2Fc = "ae2fc"
     final val AppliedEnergistics2 = "appliedenergistics2"
     final val AvaritiaAddons = "avaritiaddons"
     final val BattleGear2 = "battlegear2"
