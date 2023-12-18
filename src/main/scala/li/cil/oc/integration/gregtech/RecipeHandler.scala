@@ -1,9 +1,10 @@
 package li.cil.oc.integration.gregtech
 
 import java.util
-
 import com.typesafe.config.Config
 import com.typesafe.config.ConfigValue
+import gregtech.api.enums.GT_Values
+import gregtech.api.recipe.RecipeMaps
 import li.cil.oc.common.recipe.Recipes
 import li.cil.oc.common.recipe.Recipes.RecipeException
 import net.minecraft.item.ItemStack
@@ -18,7 +19,6 @@ object RecipeHandler {
     Recipes.registerRecipeHandler("gt_bender", addGTBenderRecipe)
     Recipes.registerRecipeHandler("gt_canner", addGTCannerRecipe)
     Recipes.registerRecipeHandler("gt_chemical", addGTChemicalRecipe)
-    Recipes.registerRecipeHandler("gt_cnc", addGTCNCRecipe)
     Recipes.registerRecipeHandler("gt_cutter", addGTCutterRecipe)
     Recipes.registerRecipeHandler("gt_fluidCanner", addGTFluidCannerRecipe)
     Recipes.registerRecipeHandler("gt_formingPress", addGTFormingPressRecipe)
@@ -32,11 +32,13 @@ object RecipeHandler {
     secondaryInputs match {
       case Some(value) =>
         for (primaryInput <- primaryInputs; secondaryInput <- value) {
-          gregtech.api.GregTech_API.sRecipeAdder.addAlloySmelterRecipe(primaryInput, secondaryInput, output, duration, eu)
+          GT_Values.RA.stdBuilder().itemInputs(primaryInput, secondaryInput).itemOutputs(output).duration(duration)
+            .eut(eu).addTo(RecipeMaps.alloySmelterRecipes)
         }
       case _ =>
         for (primaryInput <- primaryInputs) {
-          gregtech.api.GregTech_API.sRecipeAdder.addAlloySmelterRecipe(primaryInput, null, output, duration, eu)
+          GT_Values.RA.stdBuilder().itemInputs(primaryInput).itemOutputs(output).duration(duration)
+            .eut(eu).addTo(RecipeMaps.alloySmelterRecipes)
         }
     }
   }
@@ -46,11 +48,23 @@ object RecipeHandler {
     secondaryInputs match {
       case Some(value) =>
         for (primaryInput <- primaryInputs; secondaryInput <- value) {
-          gregtech.api.GregTech_API.sRecipeAdder.addAssemblerRecipe(primaryInput, secondaryInput, fluidInput.orNull, output, duration, eu)
+          var recipe = GT_Values.RA.stdBuilder().itemInputs(primaryInput, secondaryInput)
+          fluidInput match {
+            case Some(fluidStack) =>
+              recipe = recipe.fluidInputs(fluidStack)
+            case _ =>
+          }
+          recipe.itemOutputs(output).duration(duration).eut(eu).addTo(RecipeMaps.assemblerRecipes)
         }
       case _ =>
         for (primaryInput <- primaryInputs) {
-          gregtech.api.GregTech_API.sRecipeAdder.addAssemblerRecipe(primaryInput, null, fluidInput.orNull, output, duration, eu)
+          var recipe = GT_Values.RA.stdBuilder().itemInputs(primaryInput)
+          fluidInput match {
+            case Some(fluidStack) =>
+              recipe = recipe.fluidInputs(fluidStack)
+            case _ =>
+          }
+          recipe.itemOutputs(output).duration(duration).eut(eu).addTo(RecipeMaps.assemblerRecipes)
         }
     }
   }
@@ -58,70 +72,111 @@ object RecipeHandler {
   def addGTBenderRecipe(output: ItemStack, recipe: Config) {
     val (primaryInputs, _, _, _, _, eu, duration) = parseRecipe(output, recipe)
     for (primaryInput <- primaryInputs) {
-      gregtech.api.GregTech_API.sRecipeAdder.addBenderRecipe(primaryInput, output, duration, eu)
+      GT_Values.RA.stdBuilder().itemInputs(primaryInput).itemOutputs(output).duration(duration).eut(eu)
+        .addTo(RecipeMaps.benderRecipes)
     }
   }
 
   def addGTCannerRecipe(output: ItemStack, recipe: Config) {
     val (primaryInputs, secondaryInputs, _, _, secondaryOutputs, eu, duration) = parseRecipe(output, recipe)
-    val secondaryOutput = secondaryOutputs.headOption.orNull
+    val secondaryOutput = secondaryOutputs.headOption
     secondaryInputs match {
       case Some(value) =>
         for (primaryInput <- primaryInputs; secondaryInput <- value) {
-          gregtech.api.GregTech_API.sRecipeAdder.addCannerRecipe(primaryInput, secondaryInput, output, secondaryOutput, duration, eu)
+          var recipe = GT_Values.RA.stdBuilder().itemInputs(primaryInput, secondaryInput)
+          secondaryOutput match {
+            case Some(itemStack) =>
+              recipe = recipe.itemOutputs(output, itemStack)
+            case _ =>
+              recipe = recipe.itemOutputs(output)
+          }
+          recipe.duration(duration).eut(eu).addTo(RecipeMaps.cannerRecipes)
         }
       case None =>
         for (primaryInput <- primaryInputs) {
-          gregtech.api.GregTech_API.sRecipeAdder.addCannerRecipe(primaryInput, null, output, secondaryOutput, duration, eu)
+          var recipe = GT_Values.RA.stdBuilder().itemInputs(primaryInput)
+          secondaryOutput match {
+            case Some(itemStack) =>
+              recipe = recipe.itemOutputs(output, itemStack)
+            case _ =>
+              recipe = recipe.itemOutputs(output)
+          }
+          recipe.duration(duration).eut(eu).addTo(RecipeMaps.cannerRecipes)
         }
     }
   }
 
   def addGTChemicalRecipe(output: ItemStack, recipe: Config) {
-    val (primaryInputs, secondaryInputs, fluidInput, fluidOutput, _, _, duration) = parseRecipe(output, recipe)
+    val (primaryInputs, secondaryInputs, fluidInput, fluidOutput, _, eu, duration) = parseRecipe(output, recipe)
     secondaryInputs match {
       case Some(value) =>
-        for (primaryInput <- primaryInputs; secondaryOutput <- value) {
-          gregtech.api.GregTech_API.sRecipeAdder.addChemicalRecipe(primaryInput, secondaryOutput, fluidInput.orNull, fluidOutput.orNull, output, duration)
+        for (primaryInput <- primaryInputs; secondaryInput <- value) {
+          var recipe = GT_Values.RA.stdBuilder().itemInputs(primaryInput, secondaryInput)
+          fluidInput match {
+            case Some(fluidStack) =>
+              recipe = recipe.fluidInputs(fluidStack)
+            case _ =>
+          }
+          fluidOutput match {
+            case Some(fluidStack) =>
+              recipe = recipe.fluidOutputs(fluidStack)
+            case _ =>
+          }
+          recipe.itemOutputs(output).duration(duration).eut(eu).addTo(RecipeMaps.chemicalReactorRecipes)
         }
       case _ =>
         for (primaryInput <- primaryInputs) {
-          gregtech.api.GregTech_API.sRecipeAdder.addChemicalRecipe(primaryInput, null, fluidInput.orNull, fluidOutput.orNull, output, duration)
+          var recipe = GT_Values.RA.stdBuilder().itemInputs(primaryInput)
+          fluidInput match {
+            case Some(fluidStack) =>
+              recipe = recipe.fluidInputs(fluidStack)
+            case _ =>
+          }
+          fluidOutput match {
+            case Some(fluidStack) =>
+              recipe = recipe.fluidOutputs(fluidStack)
+            case _ =>
+          }
+          recipe.itemOutputs(output).duration(duration).eut(eu).addTo(RecipeMaps.chemicalReactorRecipes)
         }
-    }
-  }
-
-  def addGTCNCRecipe(output: ItemStack, recipe: Config) {
-    val (primaryInputs, _, _, _, _, eu, duration) = parseRecipe(output, recipe)
-    for (primaryInput <- primaryInputs) {
-      gregtech.api.GregTech_API.sRecipeAdder.addCNCRecipe(primaryInput, output, duration, eu)
     }
   }
 
   def addGTCutterRecipe(output: ItemStack, recipe: Config) {
     val (primaryInputs, _, fluidInput, _, secondaryOutputs, eu, duration) = parseRecipe(output, recipe)
-    val secondaryOutput = secondaryOutputs.headOption.orNull
-    fluidInput match {
-      case Some(fluid) =>
-        for (primaryInput <- primaryInputs) {
-          gregtech.api.GregTech_API.sRecipeAdder.addCutterRecipe(primaryInput, fluid, output, secondaryOutput, duration, eu)
-        }
-      case _ =>
-        for (primaryInput <- primaryInputs) {
-          gregtech.api.GregTech_API.sRecipeAdder.addCutterRecipe(primaryInput, output, secondaryOutput, duration, eu)
-        }
+    val secondaryOutput = secondaryOutputs.headOption
+    for (primaryInput <- primaryInputs) {
+      var recipe = GT_Values.RA.stdBuilder().itemInputs(primaryInput)
+      fluidInput match {
+        case Some(fluidStack) =>
+          recipe = recipe.fluidInputs(fluidStack)
+        case _ =>
+      }
+      secondaryOutput match {
+        case Some(itemStack) =>
+          recipe = recipe.itemOutputs(output, itemStack)
+        case _ =>
+          recipe = recipe.itemOutputs(output)
+      }
+      recipe.duration(duration).eut(eu).addTo(RecipeMaps.cutterRecipes)
     }
   }
 
   def addGTFluidCannerRecipe(output: ItemStack, recipe: Config) {
-    val (primaryInputs, secondaryInputs, fluidInput, fluidOutput, _, _, _) = parseRecipe(output, recipe)
-    secondaryInputs match {
-      case Some(value) =>
-        for (primaryInput <- primaryInputs; secondaryOutput <- value) {
-          gregtech.api.GregTech_API.sRecipeAdder.addFluidCannerRecipe(primaryInput, output, fluidInput.orNull, fluidOutput.orNull)
-        }
-      //all values required
-      case _ =>
+    val (primaryInputs, _, fluidInput, fluidOutput, _, eu, duration) = parseRecipe(output, recipe)
+    for (primaryInput <- primaryInputs) {
+      var recipe = GT_Values.RA.stdBuilder().itemInputs(primaryInput)
+      fluidInput match {
+        case Some(fluidStack) =>
+          recipe = recipe.fluidInputs(fluidStack)
+        case _ =>
+      }
+      fluidOutput match {
+        case Some(fluidStack) =>
+          recipe = recipe.fluidOutputs(fluidStack)
+        case _ =>
+      }
+      recipe.itemOutputs(output).duration(duration).eut(eu).addTo(RecipeMaps.fluidCannerRecipes)
     }
   }
 
@@ -130,7 +185,8 @@ object RecipeHandler {
     secondaryInputs match {
       case Some(value) =>
         for (primaryInput <- primaryInputs; secondaryInput <- value) {
-          gregtech.api.GregTech_API.sRecipeAdder.addFormingPressRecipe(primaryInput, secondaryInput, output, duration, eu)
+          GT_Values.RA.stdBuilder().itemInputs(primaryInput, secondaryInput).itemOutputs(output).duration(duration)
+            .eut(eu).addTo(RecipeMaps.formingPressRecipes)
         }
       //all values required
       case _ =>
@@ -139,9 +195,16 @@ object RecipeHandler {
 
   def addGTLatheRecipe(output: ItemStack, recipe: Config) {
     val (primaryInputs, _, _, _, secondaryOutputs, eu, duration) = parseRecipe(output, recipe)
-    val secondaryOutput = secondaryOutputs.headOption.orNull
+    val secondaryOutput = secondaryOutputs.headOption
     for (primaryInput <- primaryInputs) {
-      gregtech.api.GregTech_API.sRecipeAdder.addLatheRecipe(primaryInput, output, secondaryOutput, duration, eu)
+      var recipe = GT_Values.RA.stdBuilder().itemInputs(primaryInput)
+      secondaryOutput match {
+        case Some(itemStack) =>
+          recipe = recipe.itemOutputs(output, itemStack)
+        case _ =>
+          recipe = recipe.itemOutputs(output)
+      }
+      recipe.duration(duration).eut(eu).addTo(RecipeMaps.latheRecipes)
     }
   }
 
@@ -150,7 +213,8 @@ object RecipeHandler {
     secondaryInputs match {
       case Some(value) =>
         for (primaryInput <- primaryInputs; secondaryInput <- value) {
-          gregtech.api.GregTech_API.sRecipeAdder.addLaserEngraverRecipe(primaryInput, secondaryInput, output, duration, eu)
+          GT_Values.RA.stdBuilder().itemInputs(primaryInput, secondaryInput).itemOutputs(output).duration(duration)
+            .eut(eu).addTo(RecipeMaps.laserEngraverRecipes)
         }
       case _ =>
     }
@@ -159,7 +223,8 @@ object RecipeHandler {
   def addGTWireMillRecipe(output: ItemStack, recipe: Config) {
     val (primaryInputs, _, _, _, _, eu, duration) = parseRecipe(output, recipe)
     for (primaryInput <- primaryInputs) {
-      gregtech.api.GregTech_API.sRecipeAdder.addWiremillRecipe(primaryInput, output, duration, eu)
+      GT_Values.RA.stdBuilder().itemInputs(primaryInput).itemOutputs(output).duration(duration).eut(eu)
+        .addTo(RecipeMaps.wiremillRecipes)
     }
   }
 
