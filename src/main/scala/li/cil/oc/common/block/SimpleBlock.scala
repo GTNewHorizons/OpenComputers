@@ -230,11 +230,13 @@ class SimpleBlock(material: Material = Material.iron) extends Block(material) {
 
   final override def canConnectRedstone(world: IBlockAccess, x: Int, y: Int, z: Int, side: Int) =
     canConnectRedstone(world, x, y, z, side match {
+      case -2 => ForgeDirection.DOWN
       case -1 => ForgeDirection.UP
       case 0 => ForgeDirection.NORTH
       case 1 => ForgeDirection.EAST
       case 2 => ForgeDirection.SOUTH
       case 3 => ForgeDirection.WEST
+      case _ => ForgeDirection.UNKNOWN
     })
 
   def canConnectRedstone(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) = false
