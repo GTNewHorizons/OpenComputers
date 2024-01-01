@@ -7,16 +7,16 @@ dependencies {
 
     compile("com.google.code.findbugs:jsr305:3.0.2")
 
-    compileOnly("com.github.GTNewHorizons:Applied-Energistics-2-Unofficial:rv3-beta-300-GTNH:dev") {
+    compileOnly("com.github.GTNewHorizons:Applied-Energistics-2-Unofficial:rv3-beta-306-GTNH:dev") {
         transitive = false
     }
     compileOnly("com.github.GTNewHorizons:EnderStorage:1.4.12:dev") {
         transitive = false
     }
-    compileOnly("com.github.GTNewHorizons:GT5-Unofficial:5.09.45.00:dev") {
+    compileOnly("com.github.GTNewHorizons:GT5-Unofficial:5.09.45.15:dev") {
         transitive = false
     }
-    compile("com.github.GTNewHorizons:ForestryMC:4.7.0:dev") {
+    compile("com.github.GTNewHorizons:ForestryMC:4.8.1:dev") {
         transitive = false
     }
     compileOnly("com.github.GTNewHorizons:Railcraft:9.15.3:dev") {
@@ -25,7 +25,7 @@ dependencies {
     compile("com.github.GTNewHorizons:NotEnoughItems:2.4.13-GTNH:dev") {
         transitive = false
     }
-    compileOnly("com.github.GTNewHorizons:ForgeMultipart:1.4.1:dev") {
+    compileOnly("com.github.GTNewHorizons:ForgeMultipart:1.4.3:dev") {
         transitive = false
     }
     compile("com.github.GTNewHorizons:CodeChickenLib:1.1.10:dev") {
@@ -37,29 +37,29 @@ dependencies {
     compileOnly("com.github.GTNewHorizons:waila:1.6.5:dev") {
         transitive = false
     }
-    compileOnly("com.github.GTNewHorizons:Galacticraft:3.0.74-GTNH:dev") {
+    compileOnly("com.github.GTNewHorizons:Galacticraft:3.1.1-GTNH:dev") {
         transitive = false
     }
     compileOnly("com.github.GTNewHorizons:TinkersMechworks:0.3.0:dev") {
         transitive = false
     }
-    compileOnly("com.github.GTNewHorizons:ProjectRed:4.8.0-GTNH:dev") {
+    compileOnly("com.github.GTNewHorizons:ProjectRed:4.9.1-GTNH:dev") {
         transitive = false
     }
     compileOnly("com.github.GTNewHorizons:BloodMagic:1.4.3:dev") {
         transitive = false
     }
-    compileOnly("com.github.GTNewHorizons:ThaumicEnergistics:1.5.4-GTNH:dev") {
+    compileOnly("com.github.GTNewHorizons:ThaumicEnergistics:1.6.1-GTNH:dev") {
         transitive = false
     }
     compileOnly("com.github.GTNewHorizons:ExtraCells2:2.5.34:dev") {
         transitive = false
     }
-    compileOnly('com.github.GTNewHorizons:AE2FluidCraft-Rework:1.1.73-gtnh:dev') { 
+    compileOnly('com.github.GTNewHorizons:AE2FluidCraft-Rework:1.2.6-gtnh:dev') { 
         transitive = false 
     }
-    compile("com.github.GTNewHorizons:EnderCore:0.2.18:dev")
-    compile("com.github.GTNewHorizons:EnderIO:2.5.8:dev") {
+    compile("com.github.GTNewHorizons:EnderCore:0.2.19:dev")
+    compile("com.github.GTNewHorizons:EnderIO:2.6.2:dev") {
         transitive = false
     }
     compileOnly("com.github.GTNewHorizons:Avaritiaddons:1.6.0-GTNH:dev") {
