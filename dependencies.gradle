@@ -7,7 +7,7 @@ dependencies {
 
     compile("com.google.code.findbugs:jsr305:3.0.2")
 
-    compileOnly("com.github.GTNewHorizons:Applied-Energistics-2-Unofficial:rv3-beta-307-GTNH:dev") {
+    compileOnly("com.github.GTNewHorizons:Applied-Energistics-2-Unofficial:rv3-beta-306-GTNH:dev") {
         transitive = false
     }
     compileOnly("com.github.GTNewHorizons:EnderStorage:1.4.12:dev") {
@@ -16,7 +16,7 @@ dependencies {
     compileOnly("com.github.GTNewHorizons:GT5-Unofficial:5.09.45.23:dev") {
         transitive = false
     }
-    compile("com.github.GTNewHorizons:ForestryMC:4.8.1:dev") {
+    compile("com.github.GTNewHorizons:ForestryMC:4.8.0:dev") {
         transitive = false
     }
     compileOnly("com.github.GTNewHorizons:Railcraft:9.15.3:dev") {
@@ -25,7 +25,7 @@ dependencies {
     compile("com.github.GTNewHorizons:NotEnoughItems:2.5.3-GTNH:dev") {
         transitive = false
     }
-    compileOnly("com.github.GTNewHorizons:ForgeMultipart:1.4.5:dev") {
+    compileOnly("com.github.GTNewHorizons:ForgeMultipart:1.4.6:dev") {
         transitive = false
     }
     compile("com.github.GTNewHorizons:CodeChickenLib:1.2.0:dev") {
@@ -43,7 +43,7 @@ dependencies {
     compileOnly("com.github.GTNewHorizons:TinkersMechworks:0.3.0:dev") {
         transitive = false
     }
-    compileOnly("com.github.GTNewHorizons:ProjectRed:4.9.1-GTNH:dev") {
+    compileOnly("com.github.GTNewHorizons:ProjectRed:4.9.0-GTNH:dev") {
         transitive = false
     }
     compileOnly("com.github.GTNewHorizons:BloodMagic:1.4.3:dev") {
@@ -58,7 +58,7 @@ dependencies {
     compileOnly('com.github.GTNewHorizons:AE2FluidCraft-Rework:1.2.8-gtnh:dev') { 
         transitive = false 
     }
-    compile("com.github.GTNewHorizons:EnderIO:2.6.2:dev") {
+    compile("com.github.GTNewHorizons:EnderIO:2.6.1:dev") {
     compile("com.github.GTNewHorizons:EnderCore:0.3.0:dev")
         transitive = false
     }
