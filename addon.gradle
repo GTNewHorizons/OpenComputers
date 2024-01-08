@@ -1,5 +1,18 @@
+import org.apache.tools.ant.filters.ReplaceTokens
+
 tasks.withType(ScalaCompile) {
     scalaCompileOptions.forkOptions.with {
         memoryMaximumSize = '4g'
+    }
+}
+tasks.named("processResources", ProcessResources).configure {
+    it.inputs.file('src/main/resources/application.conf')
+    it.inputs.property('version', project.version)
+    doLast {
+        copy {
+            from 'src/main/resources/application.conf'
+            into 'build/resources/main'
+            filter(ReplaceTokens, tokens: [version: project.version])
+        }
     }
 }
