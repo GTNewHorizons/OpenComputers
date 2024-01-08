@@ -6,13 +6,7 @@ tasks.withType(ScalaCompile) {
     }
 }
 tasks.named("processResources", ProcessResources).configure {
-    it.inputs.file('src/main/resources/application.conf')
-    it.inputs.property('version', project.version)
-    doLast {
-        copy {
-            from 'src/main/resources/application.conf'
-            into 'build/resources/main'
+    filesMatching("application.conf") {
             filter(ReplaceTokens, tokens: [version: project.version])
-        }
     }
 }
