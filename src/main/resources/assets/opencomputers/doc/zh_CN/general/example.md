@@ -53,17 +53,17 @@ wrap testing
 * 12345678901234567890.1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890
 - `123456789012345678901234567890.12345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890`
 
-this is a test for an![](oredict:oc:cpu1)an inline image kakakakalalsd 123 as
+this is a test for an!(oredict:oc:cpu1)an inline image kakakakalalsd 123 as
 
-this is a test for an![](oredict:oc:cpu1)
+this is a test for an!(oredict:oc:cpu1)
 an image with a break after it
 
 this is a test for an
-![](oredict:oc:cpu1)
+!(oredict:oc:cpu1)
 an image between two lines
 
 this is a test for an
 
-![](oredict:oc:cpu1)
+!(oredict:oc:cpu1)
 
 an image between two blank lines
