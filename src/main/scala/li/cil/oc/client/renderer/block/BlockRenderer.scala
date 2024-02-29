@@ -1,10 +1,10 @@
 package li.cil.oc.client.renderer.block
 
+import com.gtnewhorizons.angelica.api.ThreadSafeISBRH
 import cpw.mods.fml.client.registry.ISimpleBlockRenderingHandler
 import li.cil.oc.Settings
 import li.cil.oc.client.renderer.tileentity.RobotRenderer
 import li.cil.oc.common
-import li.cil.oc.util.RenderState
 import net.minecraft.block.Block
 import net.minecraft.client.renderer.RenderBlocks
 import net.minecraft.client.renderer.Tessellator
@@ -13,58 +13,53 @@ import net.minecraft.world.IBlockAccess
 import net.minecraftforge.common.util.ForgeDirection
 import org.lwjgl.opengl.GL11
 
+@ThreadSafeISBRH(perThread = false)
 object BlockRenderer extends ISimpleBlockRenderingHandler {
   def getRenderId = Settings.blockRenderId
 
   override def shouldRender3DInInventory(modelID: Int) = true
 
   override def renderInventoryBlock(block: Block, metadata: Int, modelID: Int, realRenderer: RenderBlocks) {
-    RenderState.checkError(getClass.getName + ".renderInventoryBlock: entering (aka: wasntme)")
 
     val renderer = patchedRenderer(realRenderer, block)
+    val tessellator = Tessellator.instance
     GL11.glPushMatrix()
     block match {
       case _: common.block.Assembler =>
         GL11.glTranslatef(-0.5f, -0.5f, -0.5f)
-        Tessellator.instance.startDrawingQuads()
+        tessellator.startDrawingQuads()
         Assembler.render(block, metadata, renderer)
-        Tessellator.instance.draw()
+        tessellator.draw()
 
-        RenderState.checkError(getClass.getName + ".renderInventoryBlock: assembler")
       case _: common.block.Hologram =>
         GL11.glTranslatef(-0.5f, -0.5f, -0.5f)
-        Tessellator.instance.startDrawingQuads()
+        tessellator.startDrawingQuads()
         Hologram.render(block, metadata, renderer)
-        Tessellator.instance.draw()
+        tessellator.draw()
 
-        RenderState.checkError(getClass.getName + ".renderInventoryBlock: hologram")
       case _: common.block.Printer =>
         GL11.glTranslatef(-0.5f, -0.5f, -0.5f)
-        Tessellator.instance.startDrawingQuads()
+        tessellator.startDrawingQuads()
         Printer.render(block, metadata, renderer)
-        Tessellator.instance.draw()
+        tessellator.draw()
 
-        RenderState.checkError(getClass.getName + ".renderInventoryBlock: printer")
       case _@(_: common.block.RobotProxy | _: common.block.RobotAfterimage) =>
         GL11.glScalef(1.5f, 1.5f, 1.5f)
         GL11.glTranslatef(-0.5f, -0.4f, -0.5f)
         RobotRenderer.renderChassis()
 
-        RenderState.checkError(getClass.getName + ".renderInventoryBlock: robot")
       case _: common.block.NetSplitter =>
         GL11.glTranslatef(-0.5f, -0.5f, -0.5f)
-        Tessellator.instance.startDrawingQuads()
+        tessellator.startDrawingQuads()
         NetSplitter.render(block, metadata, renderer)
-        Tessellator.instance.draw()
+        tessellator.draw()
 
-        RenderState.checkError(getClass.getName + ".renderInventoryBlock: splitter")
       case _: common.block.Transposer =>
         GL11.glTranslatef(-0.5f, -0.5f, -0.5f)
-        Tessellator.instance.startDrawingQuads()
+        tessellator.startDrawingQuads()
         Transposer.render(block, metadata, renderer)
-        Tessellator.instance.draw()
+        tessellator.draw()
 
-        RenderState.checkError(getClass.getName + ".renderInventoryBlock: transposer")
       case _ =>
         block match {
           case simple: common.block.SimpleBlock =>
@@ -74,85 +69,62 @@ object BlockRenderer extends ISimpleBlockRenderingHandler {
         }
         renderer.setRenderBoundsFromBlock(block)
         GL11.glTranslatef(-0.5f, -0.5f, -0.5f)
-        Tessellator.instance.startDrawingQuads()
+        tessellator.startDrawingQuads()
         renderFaceYNeg(block, metadata, renderer)
         renderFaceYPos(block, metadata, renderer)
         renderFaceZNeg(block, metadata, renderer)
         renderFaceZPos(block, metadata, renderer)
         renderFaceXNeg(block, metadata, renderer)
         renderFaceXPos(block, metadata, renderer)
-        Tessellator.instance.draw()
+        tessellator.draw()
 
-        RenderState.checkError(getClass.getName + ".renderInventoryBlock: standard block")
     }
     GL11.glPopMatrix()
 
-    RenderState.checkError(getClass.getName + ".renderInventoryBlock: leaving")
   }
 
   override def renderWorldBlock(world: IBlockAccess, x: Int, y: Int, z: Int, block: Block, modelId: Int, realRenderer: RenderBlocks) = {
-    RenderState.checkError(getClass.getName + ".renderWorldBlock: entering (aka: wasntme)")
 
     val renderer = patchedRenderer(realRenderer, block)
     world.getTileEntity(x, y, z) match {
       case assembler: common.tileentity.Assembler =>
         Assembler.render(assembler.block, assembler.getBlockMetadata, x, y, z, renderer)
 
-        RenderState.checkError(getClass.getName + ".renderWorldBlock: assembler")
-
         true
       case _: common.tileentity.Cable =>
         Cable.render(world, x, y, z, block, renderer)
-
-        RenderState.checkError(getClass.getName + ".renderWorldBlock: cable")
 
         true
       case hologram: common.tileentity.Hologram =>
         Hologram.render(hologram.block, hologram.getBlockMetadata, x, y, z, renderer)
 
-        RenderState.checkError(getClass.getName + ".renderWorldBlock: hologram")
-
         true
       case keyboard: common.tileentity.Keyboard =>
         val result = Keyboard.render(keyboard, x, y, z, block, renderer)
-
-        RenderState.checkError(getClass.getName + ".renderWorldBlock: keyboard")
 
         result
       case print: common.tileentity.Print =>
         Print.render(print.data, print.state, print.facing, x, y, z, block, renderer)
 
-        RenderState.checkError(getClass.getName + ".renderWorldBlock: print")
-
         true
       case _: common.tileentity.Printer =>
         Printer.render(block, x, y, z, renderer)
-
-        RenderState.checkError(getClass.getName + ".renderWorldBlock: printer")
 
         true
       case rack: common.tileentity.Rack =>
         Rack.render(rack, x, y, z, block.asInstanceOf[common.block.Rack], renderer)
 
-        RenderState.checkError(getClass.getName + ".renderWorldBlock: rack")
-
         true
       case splitter: common.tileentity.NetSplitter =>
         NetSplitter.render(ForgeDirection.VALID_DIRECTIONS.map(splitter.isSideOpen), block, x, y, z, renderer)
-
-        RenderState.checkError(getClass.getName + ".renderWorldBlock: splitter")
 
         true
       case _: common.tileentity.Transposer =>
         Transposer.render(block, x, y, z, renderer)
 
-        RenderState.checkError(getClass.getName + ".renderWorldBlock: transposer")
-
         true
       case _ =>
         val result = renderer.renderStandardBlock(block, x, y, z)
-
-        RenderState.checkError(getClass.getName + ".renderWorldBlock: standard block")
 
         result
     }
