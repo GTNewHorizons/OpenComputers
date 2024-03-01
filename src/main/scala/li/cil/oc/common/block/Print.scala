@@ -6,6 +6,9 @@ import java.util.Random
 import com.google.common.base.Strings
 import cpw.mods.fml.relauncher.Side
 import cpw.mods.fml.relauncher.SideOnly
+import li.cil.oc.api.Items
+import li.cil.oc.Constants
+
 import li.cil.oc.Localization
 import li.cil.oc.Settings
 import li.cil.oc.common.item.data.PrintData
@@ -30,7 +33,7 @@ import net.minecraftforge.common.util.ForgeDirection
 import scala.collection.convert.WrapAsJava._
 import scala.reflect.ClassTag
 
-class Print(protected implicit val tileTag: ClassTag[tileentity.Print]) extends RedstoneAware with traits.SpecialBlock with traits.CustomDrops[tileentity.Print] {
+class Print(protected implicit val tileTag: ClassTag[tileentity.Print]) extends RedstoneAware with traits.SpecialBlock with traits.CustomDrops[tileentity.Print] with scala.Cloneable {
   setLightOpacity(0)
   setHardness(1)
   setCreativeTab(null)
@@ -43,6 +46,21 @@ class Print(protected implicit val tileTag: ClassTag[tileentity.Print]) extends 
   var textureOverride: Option[IIcon] = None
   // Again, used in model rendering, used to know whether we can potentially skip rendering sides.
   var isSingleShape = false
+
+  override def clone(): Print = {
+    val clone = super.clone().asInstanceOf[Print]
+    clone.colorMultiplierOverride = colorMultiplierOverride
+    clone.textureOverride = textureOverride
+    clone.isSingleShape = isSingleShape
+    clone
+  }
+
+  lazy val printBlockThreadLocal = new ThreadLocal[Print]() {
+    override def initialValue: Print = Items.get(Constants.BlockName.Print).block().asInstanceOf[Print].clone()
+  }
+
+  def getPrintBlock: Print = printBlockThreadLocal.get()
+
 
   @SideOnly(Side.CLIENT)
   override def getIcon(world: IBlockAccess, x: Int, y: Int, z: Int, globalSide: ForgeDirection, localSide: ForgeDirection): IIcon =

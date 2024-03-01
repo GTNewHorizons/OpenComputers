@@ -102,7 +102,7 @@ class PrintPart(val original: Option[tileentity.Print] = None) extends SimpleBlo
 
   // ----------------------------------------------------------------------- //
 
-  override def simpleBlock = Items.get(Constants.BlockName.Print).block().asInstanceOf[Print]
+  override def simpleBlock = Items.get(Constants.BlockName.Print).block().asInstanceOf[Print].getPrintBlock
 
   def getType = Settings.namespace + Constants.BlockName.Print
 
