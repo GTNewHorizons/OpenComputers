@@ -137,34 +137,38 @@ object BlockRenderer extends ISimpleBlockRenderingHandler {
       block.isInstanceOf[common.block.NetSplitter] ||
       block.isInstanceOf[common.block.Transposer]
 
+  val patchedRenderBlocksThreadLocal = new ThreadLocal[PatchedRenderBlocks]() {
+    override def initialValue = new PatchedRenderBlocks()
+  }
   // The texture flip this works around only seems to occur for blocks with custom block renderers?
   def patchedRenderer(renderer: RenderBlocks, block: Block) =
     if (needsFlipping(block)) {
-      PatchedRenderBlocks.blockAccess = renderer.blockAccess
-      PatchedRenderBlocks.overrideBlockTexture = renderer.overrideBlockTexture
-      PatchedRenderBlocks.flipTexture = renderer.flipTexture
-      PatchedRenderBlocks.renderAllFaces = renderer.renderAllFaces
-      PatchedRenderBlocks.useInventoryTint = renderer.useInventoryTint
-      PatchedRenderBlocks.renderFromInside = renderer.renderFromInside
-      PatchedRenderBlocks.renderMinX = renderer.renderMinX
-      PatchedRenderBlocks.renderMaxX = renderer.renderMaxX
-      PatchedRenderBlocks.renderMinY = renderer.renderMinY
-      PatchedRenderBlocks.renderMaxY = renderer.renderMaxY
-      PatchedRenderBlocks.renderMinZ = renderer.renderMinZ
-      PatchedRenderBlocks.renderMaxZ = renderer.renderMaxZ
-      PatchedRenderBlocks.lockBlockBounds = renderer.lockBlockBounds
-      PatchedRenderBlocks.partialRenderBounds = renderer.partialRenderBounds
-      PatchedRenderBlocks.uvRotateEast = renderer.uvRotateEast
-      PatchedRenderBlocks.uvRotateWest = renderer.uvRotateWest
-      PatchedRenderBlocks.uvRotateSouth = renderer.uvRotateSouth
-      PatchedRenderBlocks.uvRotateNorth = renderer.uvRotateNorth
-      PatchedRenderBlocks.uvRotateTop = renderer.uvRotateTop
-      PatchedRenderBlocks.uvRotateBottom = renderer.uvRotateBottom
-      PatchedRenderBlocks
+      val patchedRenderBlocks = patchedRenderBlocksThreadLocal.get()
+      patchedRenderBlocks.blockAccess = renderer.blockAccess
+      patchedRenderBlocks.overrideBlockTexture = renderer.overrideBlockTexture
+      patchedRenderBlocks.flipTexture = renderer.flipTexture
+      patchedRenderBlocks.renderAllFaces = renderer.renderAllFaces
+      patchedRenderBlocks.useInventoryTint = renderer.useInventoryTint
+      patchedRenderBlocks.renderFromInside = renderer.renderFromInside
+      patchedRenderBlocks.renderMinX = renderer.renderMinX
+      patchedRenderBlocks.renderMaxX = renderer.renderMaxX
+      patchedRenderBlocks.renderMinY = renderer.renderMinY
+      patchedRenderBlocks.renderMaxY = renderer.renderMaxY
+      patchedRenderBlocks.renderMinZ = renderer.renderMinZ
+      patchedRenderBlocks.renderMaxZ = renderer.renderMaxZ
+      patchedRenderBlocks.lockBlockBounds = renderer.lockBlockBounds
+      patchedRenderBlocks.partialRenderBounds = renderer.partialRenderBounds
+      patchedRenderBlocks.uvRotateEast = renderer.uvRotateEast
+      patchedRenderBlocks.uvRotateWest = renderer.uvRotateWest
+      patchedRenderBlocks.uvRotateSouth = renderer.uvRotateSouth
+      patchedRenderBlocks.uvRotateNorth = renderer.uvRotateNorth
+      patchedRenderBlocks.uvRotateTop = renderer.uvRotateTop
+      patchedRenderBlocks.uvRotateBottom = renderer.uvRotateBottom
+      patchedRenderBlocks
     }
     else renderer
 
-  object PatchedRenderBlocks extends RenderBlocks {
+  class PatchedRenderBlocks extends RenderBlocks {
     override def renderFaceXPos(block: Block, x: Double, y: Double, z: Double, texture: IIcon) {
       flipTexture = !flipTexture
       super.renderFaceXPos(block, x, y, z, texture)
