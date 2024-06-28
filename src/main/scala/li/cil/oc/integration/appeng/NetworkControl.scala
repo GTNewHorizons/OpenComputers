@@ -31,6 +31,7 @@ import li.cil.oc.util.DatabaseAccess
 import li.cil.oc.util.ExtendedArguments._
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.ResultWrapper._
+import net.minecraft.item.Item
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.tileentity.TileEntity
 import net.minecraftforge.common.DimensionManager
@@ -89,6 +90,24 @@ trait NetworkControl[AETile >: Null <: TileEntity with IGridProxyable with IActi
     result(allItems
       .map(item => convert(item, tile))
       .filter(hash => matches(hash, filter))
+      .toArray)
+  }
+
+  @Callback(doc = "function(filter:table):table -- Get a list of the stored items in the network matching the filter. Filter is an Array of Item IDs")
+  def getItemsInNetworkById(context: Context, args: Arguments): Array[AnyRef] = {
+    val table = args.checkTable(0)
+
+    val itemFilterSet = mutable.LinkedHashSet.empty[Item]
+    for (i <- 0 until table.size()) {
+      table.get(i + 1) match {
+        case itemNumberId: Number => itemFilterSet += Item.itemRegistry.getObjectById(itemNumberId.intValue()).asInstanceOf[Item]
+        case itemStringId: String => itemFilterSet += Item.itemRegistry.getObject(itemStringId).asInstanceOf[Item]
+        case other: Any => throw new IllegalArgumentException(s"bad argument in filter table at index ${i + 1} (number or string expected)")
+      }
+    }
+    result(allItems
+      .filter(item => itemFilterSet.contains(item.getItem))
+      .map(item => convert(item, tile))
       .toArray)
   }
 
