@@ -1,5 +1,6 @@
 package li.cil.oc.client
 
+import cpw.mods.fml.relauncher.{Side, SideOnly}
 import li.cil.oc.Settings
 import net.minecraft.client.renderer.texture.TextureManager
 import net.minecraft.util.IIcon
@@ -130,6 +131,7 @@ object Textures {
     var iconOn: IIcon = _
   }
 
+  @SideOnly(Side.CLIENT)
   def init(tm: TextureManager) {
     tm.bindTexture(fontAntiAliased)
     tm.bindTexture(fontAliased)
