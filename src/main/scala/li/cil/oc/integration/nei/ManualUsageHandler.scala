@@ -40,9 +40,10 @@ class ManualUsageHandler(path: Option[String]) extends IUsageHandler {
   override def numRecipes = if (path.isDefined) 1 else 0
 
   override def drawForeground(recipe: Int): Unit = if (path.isDefined) Minecraft.getMinecraft.currentScreen match {
-    case container: GuiContainer =>
+    case container: GuiRecipe[_] =>
       val pos = GuiDraw.getMousePosition
-      button.drawButton(Minecraft.getMinecraft, pos.x - container.guiLeft - 5, pos.y - container.guiTop - 16)
+      val offset = container.getRecipePosition(recipe)
+      button.drawButton(Minecraft.getMinecraft, pos.x - container.guiLeft - offset.x, pos.y - container.guiTop - offset.y)
     case _ =>
   }
 
@@ -69,10 +70,11 @@ class ManualUsageHandler(path: Option[String]) extends IUsageHandler {
   override def keyTyped(gui: GuiRecipe[_], char: Char, code: Int, recipe: Int): Boolean = false
 
   override def mouseClicked(container: GuiRecipe[_], btn: Int, recipe: Int): Boolean = path.isDefined && (container match {
-    case container: GuiContainer =>
+    case container: GuiRecipe[_] =>
       val pos = GuiDraw.getMousePosition
+      val offset = container.getRecipePosition(recipe)
       val mc = Minecraft.getMinecraft
-      if (button.mousePressed(mc, pos.x - container.guiLeft - 5, pos.y - container.guiTop - 16)) {
+      if (button.mousePressed(mc, pos.x - container.guiLeft - offset.x, pos.y - container.guiTop - offset.y)) {
         mc.thePlayer.closeScreen()
         api.Manual.openFor(mc.thePlayer)
         path.foreach(api.Manual.navigate)
