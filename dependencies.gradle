@@ -7,29 +7,29 @@ dependencies {
 
     compile("com.google.code.findbugs:jsr305:3.0.2")
 
-    compileOnly("com.github.GTNewHorizons:Applied-Energistics-2-Unofficial:rv3-beta-473-GTNH:dev") {transitive = false }
+    compileOnly("com.github.GTNewHorizons:Applied-Energistics-2-Unofficial:rv3-beta-479-GTNH:dev") {transitive = false }
     compileOnly("com.github.GTNewHorizons:EnderStorage:1.6.4:dev") {transitive = false }
-    compileOnly("com.github.GTNewHorizons:GT5-Unofficial:5.09.50.61:dev") {transitive = false }
-    compile("com.github.GTNewHorizons:ForestryMC:4.9.16:dev") {transitive = false }
-    compileOnly("com.github.GTNewHorizons:Railcraft:9.15.14:dev") {transitive = false }
-    compile("com.github.GTNewHorizons:NotEnoughItems:2.6.44-GTNH:dev") {transitive = false }
+    compileOnly("com.github.GTNewHorizons:GT5-Unofficial:5.09.50.107:dev") {transitive = false }
+    compile("com.github.GTNewHorizons:ForestryMC:4.9.19:dev") {transitive = false }
+    compileOnly("com.github.GTNewHorizons:Railcraft:9.15.15:dev") {transitive = false }
+    compile("com.github.GTNewHorizons:NotEnoughItems:2.6.51-GTNH:dev") {transitive = false }
     compileOnly("com.github.GTNewHorizons:ForgeMultipart:1.5.0:dev") {transitive = false }
     compile("com.github.GTNewHorizons:CodeChickenLib:1.3.0:dev") {transitive = false }
-    compile("com.github.GTNewHorizons:CodeChickenCore:1.3.9:dev") {transitive = false }
-    compileOnly("com.github.GTNewHorizons:waila:1.8.1:dev") {transitive = false }
-    compileOnly("com.github.GTNewHorizons:Galacticraft:3.2.5-GTNH:dev") {transitive = false }
+    compile("com.github.GTNewHorizons:CodeChickenCore:1.3.10:dev") {transitive = false }
+    compileOnly("com.github.GTNewHorizons:waila:1.8.2:dev") {transitive = false }
+    compileOnly("com.github.GTNewHorizons:Galacticraft:3.2.8-GTNH:dev") {transitive = false }
     compileOnly("com.github.GTNewHorizons:TinkersMechworks:0.3.1:dev") {transitive = false }
     compileOnly("com.github.GTNewHorizons:ProjectRed:4.10.5-GTNH:dev") {transitive = false }
-    compileOnly("com.github.GTNewHorizons:BloodMagic:1.6.7:dev") {transitive = false }
+    compileOnly("com.github.GTNewHorizons:BloodMagic:1.6.9:dev") {transitive = false }
     compileOnly("com.github.GTNewHorizons:ThaumicEnergistics:1.6.27-GTNH:dev") {transitive = false }
     compileOnly("com.github.GTNewHorizons:ExtraCells2:2.5.35:dev") {transitive = false }
-    compileOnly('com.github.GTNewHorizons:AE2FluidCraft-Rework:1.3.45-gtnh:dev') {transitive = false }
-    compile("com.github.GTNewHorizons:EnderIO:2.8.20:dev") {
+    compileOnly('com.github.GTNewHorizons:AE2FluidCraft-Rework:1.3.51-gtnh:dev') {transitive = false }
+    compile("com.github.GTNewHorizons:EnderIO:2.8.22:dev") {
         compile("com.github.GTNewHorizons:EnderCore:0.4.6:dev")
         transitive = false
     }
     compileOnly("com.github.GTNewHorizons:Avaritiaddons:1.8.4-GTNH:dev") {transitive = false }
-    compileOnly("com.github.GTNewHorizons:gendustry:1.8.2-GTNH:dev") {transitive = false }
+    compileOnly("com.github.GTNewHorizons:gendustry:1.8.3-GTNH:dev") {transitive = false }
     compileOnly("com.github.GTNewHorizons:WirelessRedstone-CBE:1.6.1:dev") {transitive = false }
     compileOnly("com.github.GTNewHorizons:BuildCraft:7.1.39:dev") {transitive = false }
     compileOnly("appeng:RotaryCraft:V5c:api") {transitive = false }
@@ -47,7 +47,7 @@ dependencies {
     compileOnly("curse.maven:agricraft-225635:2284133") {transitive = false }
     compileOnly("curse.maven:stargatetech-2-226769:2230351") {transitive = false }
 
-    compileOnlyApi("com.github.GTNewHorizons:Angelica:1.0.0-beta18:api") { transitive = false }
+    compileOnlyApi("com.github.GTNewHorizons:Angelica:1.0.0-beta26:api") { transitive = false }
 
     compileOnly(deobf("https://immibis.com/mcmoddl/files/redlogic-59.1.13.jar"))
     compileOnly files("dependencies/ic2classic-api.zip") //curseforge one does NOT work ...
@@ -63,6 +63,6 @@ dependencies {
     testCompile "org.scalactic:scalactic_2.11:2.2.6"
     testCompile "org.scalatest:scalatest_2.11:2.2.6"
 
-    compileOnly("com.github.GTNewHorizons:ModularUI:1.2.12:dev") {transitive = false}
-    compileOnly("com.github.GTNewHorizons:StructureLib:1.3.5:dev") {transitive = false}
+    compileOnly("com.github.GTNewHorizons:ModularUI:1.2.17:dev") {transitive = false}
+    compileOnly("com.github.GTNewHorizons:StructureLib:1.4.0:dev") {transitive = false}
 }
