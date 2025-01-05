@@ -38,6 +38,10 @@ abstract class PacketHandler {
       if (stream != null) {
         stream.close()
       }
+      // #3703 - neither 1.7.10 nor 1.12.2 release the packet ByteBuf by themselves
+      if (data != null && data.refCnt() > 0) {
+        data.release();
+      }
     }
 
     // Avoid AFK kicks by marking players as non-idle when they send packets.
