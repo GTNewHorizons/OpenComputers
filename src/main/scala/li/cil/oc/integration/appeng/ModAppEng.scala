@@ -5,11 +5,11 @@ import cpw.mods.fml.common.registry.GameRegistry
 import li.cil.oc.{Constants, api}
 import li.cil.oc.api.Driver
 import li.cil.oc.common.Tier
-import li.cil.oc.common.init.Items.registerItem
 import li.cil.oc.common.recipe.Recipes.addSubItem
 import li.cil.oc.common.tileentity.Print
 import li.cil.oc.integration.ModProxy
 import li.cil.oc.integration.Mods
+import li.cil.oc.integration.ae2fc.ConverterFluidCellInventory
 
 object ModAppEng extends ModProxy {
   override def getMod = Mods.AppliedEnergistics2
@@ -28,6 +28,7 @@ object ModAppEng extends ModProxy {
     Driver.add(DriverUpgradeAE)
 
     Driver.add(new ConverterCellInventory)
+    Driver.add(new ConverterFluidCellInventory)
     Driver.add(new ConverterPattern)
 
     Driver.add(DriverController.Provider)

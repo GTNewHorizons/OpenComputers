@@ -7,29 +7,29 @@ dependencies {
 
     compile("com.google.code.findbugs:jsr305:3.0.2")
 
-    compileOnly("com.github.GTNewHorizons:Applied-Energistics-2-Unofficial:rv3-beta-518-GTNH:dev") {transitive = false }
+    compileOnly("com.github.GTNewHorizons:Applied-Energistics-2-Unofficial:rv3-beta-533-GTNH:dev") {transitive = false }
     compileOnly("com.github.GTNewHorizons:EnderStorage:1.7.0:dev") {transitive = false }
-    compileOnly("com.github.GTNewHorizons:GT5-Unofficial:5.09.51.63:dev") {transitive = false }
+    compileOnly("com.github.GTNewHorizons:GT5-Unofficial:5.09.51.101:dev") {transitive = false }
     compile("com.github.GTNewHorizons:ForestryMC:4.10.1:dev") {transitive = false }
-    compileOnly("com.github.GTNewHorizons:Railcraft:9.16.2:dev") {transitive = false }
-    compile("com.github.GTNewHorizons:NotEnoughItems:2.7.18-GTNH:dev") {transitive = false }
-    compileOnly("com.github.GTNewHorizons:ForgeMultipart:1.6.0:dev") {transitive = false }
+    compileOnly("com.github.GTNewHorizons:Railcraft:9.16.3:dev") {transitive = false }
+    compile("com.github.GTNewHorizons:NotEnoughItems:2.7.27-GTNH:dev") {transitive = false }
+    compileOnly("com.github.GTNewHorizons:ForgeMultipart:1.6.2:dev") {transitive = false }
     compile("com.github.GTNewHorizons:CodeChickenLib:1.3.0:dev") {transitive = false }
     compile("com.github.GTNewHorizons:CodeChickenCore:1.4.1:dev") {transitive = false }
     compileOnly("com.github.GTNewHorizons:waila:1.8.2:dev") {transitive = false }
-    compileOnly("com.github.GTNewHorizons:Galacticraft:3.3.1-GTNH:dev") {transitive = false }
+    compileOnly("com.github.GTNewHorizons:Galacticraft:3.3.4-GTNH:dev") {transitive = false }
     compileOnly("com.github.GTNewHorizons:TinkersMechworks:0.4.0:dev") {transitive = false }
     compileOnly("com.github.GTNewHorizons:ProjectRed:4.11.0-GTNH:dev") {transitive = false }
-    compileOnly("com.github.GTNewHorizons:BloodMagic:1.7.0:dev") {transitive = false }
-    compileOnly("com.github.GTNewHorizons:ThaumicEnergistics:1.7.4-GTNH:dev") {transitive = false }
+    compileOnly("com.github.GTNewHorizons:BloodMagic:1.7.5:dev") {transitive = false }
+    compileOnly("com.github.GTNewHorizons:ThaumicEnergistics:1.7.5-GTNH:dev") {transitive = false }
     compileOnly("com.github.GTNewHorizons:ExtraCells2:2.5.35:dev") {transitive = false }
-    compileOnly('com.github.GTNewHorizons:AE2FluidCraft-Rework:1.4.16-gtnh:dev') {transitive = false }
+    compileOnly('com.github.GTNewHorizons:AE2FluidCraft-Rework:1.4.28-gtnh:dev') {transitive = false }
     compile("com.github.GTNewHorizons:EnderIO:2.9.2:dev") {
         compile("com.github.GTNewHorizons:EnderCore:0.4.6:dev")
         transitive = false
     }
     compileOnly("com.github.GTNewHorizons:Avaritiaddons:1.8.4-GTNH:dev") {transitive = false }
-    compileOnly("com.github.GTNewHorizons:gendustry:1.9.0-GTNH:dev") {transitive = false }
+    compileOnly("com.github.GTNewHorizons:gendustry:1.9.1-GTNH:dev") {transitive = false }
     compileOnly("com.github.GTNewHorizons:WirelessRedstone-CBE:1.7.0:dev") {transitive = false }
     compileOnly("com.github.GTNewHorizons:BuildCraft:7.1.42:dev") {transitive = false }
     compileOnly("appeng:RotaryCraft:V5c:api") {transitive = false }
@@ -47,7 +47,7 @@ dependencies {
     compileOnly("curse.maven:agricraft-225635:2284133") {transitive = false }
     compileOnly("curse.maven:stargatetech-2-226769:2230351") {transitive = false }
 
-    compileOnlyApi("com.github.GTNewHorizons:Angelica:1.0.0-beta28:api") { transitive = false }
+    compileOnlyApi("com.github.GTNewHorizons:Angelica:1.0.0-beta30:api") { transitive = false }
 
     compileOnly(deobf("https://immibis.com/mcmoddl/files/redlogic-59.1.13.jar"))
     compileOnly files("dependencies/ic2classic-api.zip") //curseforge one does NOT work ...
