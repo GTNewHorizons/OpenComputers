@@ -47,7 +47,7 @@ object Mods {
   val Forestry = new SimpleMod(IDs.Forestry, version = "@[4.0,)")
   val ForgeMultipart = new SimpleMod(IDs.ForgeMultipart)
   val Galacticraft = new SimpleMod(IDs.Galacticraft)
-  val GregTech = new ClassBasedMod(IDs.GregTech, "gregtech.api.GregTech_API")
+  val GregTech = new ClassBasedMod(IDs.GregTech, "gregtech.api.GregTechAPI")
   val IndustrialCraft2 = new SimpleMod(IDs.IndustrialCraft2)
   val IndustrialCraft2Classic = new SimpleMod(IDs.IndustrialCraft2Classic)
   val IngameWiki = new SimpleMod(IDs.IngameWiki, version = "@[1.1.3,)")
