@@ -1,5 +1,6 @@
 package li.cil.oc.integration.gregtech;
 
+import com.gtnewhorizon.gtnhlib.capability.Capabilities;
 import gregtech.api.interfaces.tileentity.IBasicEnergyContainer;
 import li.cil.oc.api.machine.Arguments;
 import li.cil.oc.api.machine.Callback;
@@ -19,7 +20,7 @@ public final class DriverEnergyContainer extends DriverSidedTileEntity {
     @Override
     public ManagedEnvironment createEnvironment(
             final World world, final int x, final int y, final int z, final ForgeDirection side) {
-        return new Environment((IBasicEnergyContainer) world.getTileEntity(x, y, z));
+        return new Environment(Capabilities.getCapability(world.getTileEntity(x, y, z), IBasicEnergyContainer.class, side));
     }
 
     public static final class Environment extends ManagedTileEntityEnvironment<IBasicEnergyContainer> {

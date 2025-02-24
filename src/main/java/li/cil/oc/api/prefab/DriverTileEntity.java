@@ -1,5 +1,6 @@
 package li.cil.oc.api.prefab;
 
+import li.cil.oc.util.CapabilityUtil;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.World;
 
@@ -19,6 +20,6 @@ public abstract class DriverTileEntity implements li.cil.oc.api.driver.Block {
             return false;
         }
         final TileEntity tileEntity = world.getTileEntity(x, y, z);
-        return tileEntity != null && filter.isAssignableFrom(tileEntity.getClass());
+        return CapabilityUtil.hasCapability(tileEntity, filter);
     }
 }
