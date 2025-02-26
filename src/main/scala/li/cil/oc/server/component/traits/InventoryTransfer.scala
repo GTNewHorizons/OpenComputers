@@ -1,6 +1,5 @@
 package li.cil.oc.server.component.traits
 
-import li.cil.oc.Settings
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
@@ -12,6 +11,8 @@ import li.cil.oc.util.InventoryUtils
 trait InventoryTransfer extends traits.WorldAware with traits.SideRestricted {
   // Return None on success, else Some("failure reason")
   def onTransferContents(): Option[String]
+
+  def fluidTransferRate(): Int;
 
   @Callback(doc = """function(sourceSide:number, sinkSide:number[, count:number[, sourceSlot:number[, sinkSlot:number]]]):number -- Transfer some items between two inventories.""")
   def transferItem(context: Context, args: Arguments): Array[AnyRef] = {
@@ -54,9 +55,19 @@ trait InventoryTransfer extends traits.WorldAware with traits.SideRestricted {
       case Some(reason) =>
         result(Unit, reason)
       case _ =>
+        val fluidTransferRate = this.fluidTransferRate()
+        if (fluidTransferRate == 0) {
+          return result(Unit, "device has fluid transfer rate of 0")
+        }
         val moved = FluidUtils.transferBetweenFluidHandlersAt(sourcePos, sourceSide.getOpposite, sinkPos, sinkSide.getOpposite, count, sourceTank)
-        if (moved > 0) context.pause(moved / Settings.get.transposerFluidTransferRate) // Allow up to 16 buckets per second.
+        val delay = moved.toDouble / fluidTransferRate.toDouble - 0.05
+        if (delay > 0) context.pause(delay)
         result(moved > 0, moved)
     }
+  }
+
+  @Callback(doc = """function():number -- Returns the fluid transfer rate in liters per second.""")
+  def getFluidTransferRate(context: Context, args: Arguments): Array[AnyRef] = {
+    result(fluidTransferRate())
   }
 }

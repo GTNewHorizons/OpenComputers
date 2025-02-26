@@ -1,7 +1,6 @@
 package li.cil.oc.common.init
 
 import java.util.concurrent.Callable
-
 import cpw.mods.fml.common.registry.GameRegistry
 import li.cil.oc.Constants
 import li.cil.oc.OpenComputers
@@ -15,11 +14,7 @@ import li.cil.oc.common.Tier
 import li.cil.oc.common.block.SimpleBlock
 import li.cil.oc.common.item
 import li.cil.oc.common.item.Delegator
-import li.cil.oc.common.item.data.DroneData
-import li.cil.oc.common.item.data.HoverBootsData
-import li.cil.oc.common.item.data.MicrocontrollerData
-import li.cil.oc.common.item.data.RobotData
-import li.cil.oc.common.item.data.TabletData
+import li.cil.oc.common.item.data.{DroneData, HoverBootsData, MicrocontrollerData, RobotData, TabletData, TransposerData}
 import li.cil.oc.common.item.traits.Delegate
 import li.cil.oc.common.item.traits.SimpleItem
 import li.cil.oc.common.recipe.Recipes
@@ -225,6 +220,7 @@ object Items extends ItemAPI {
 
     data.createItemStack()
   }
+
 
   def createConfiguredRobot() = {
     val data = new RobotData()

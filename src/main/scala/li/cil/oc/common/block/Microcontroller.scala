@@ -38,7 +38,7 @@ class Microcontroller(protected implicit val tileTag: ClassTag[tileentity.Microc
 
   // ----------------------------------------------------------------------- //
 
-  override def getPickBlock(target: MovingObjectPosition, world: World, x: Int, y: Int, z: Int) =
+  override def getPickBlock(target: MovingObjectPosition, world: World, x: Int, y: Int, z: Int, entityPlayer: EntityPlayer) =
     world.getTileEntity(x, y, z) match {
       case mcu: tileentity.Microcontroller => mcu.info.copyItemStack()
       case _ => null

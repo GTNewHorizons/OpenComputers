@@ -54,12 +54,34 @@ object Transposer {
       if (result.isEmpty) ServerPacketSender.sendTransposerActivity(host)
       result
     }
+
+    override def fluidTransferRate(): Int = host.info.fluidTransferRate
   }
 
   class Upgrade(val host: EnvironmentHost) extends Common {
     node.setVisibility(Visibility.Neighbors)
 
     override def position = BlockPosition(host)
+
+    override def fluidTransferRate(): Int = {
+      host match {
+        case microcontroller: tileentity.Microcontroller =>
+          microcontroller
+            .info
+            .components
+            .find(_.isItemEqual(api.Items.get(Constants.BlockName.Transposer).createItemStack(1)))
+            .map(_.getTagCompound.getInteger(Settings.namespace + "fluidTransferRate"))
+            .getOrElse(0)
+        case robot: tileentity.Robot =>
+          robot
+            .info
+            .components
+            .find(_.isItemEqual(api.Items.get(Constants.BlockName.Transposer).createItemStack(1)))
+            .map(_.getTagCompound.getInteger(Settings.namespace + "fluidTransferRate"))
+            .getOrElse(0)
+        case _ => 0
+      }
+    }
   }
 
 }
