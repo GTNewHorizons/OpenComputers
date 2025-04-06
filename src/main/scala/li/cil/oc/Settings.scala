@@ -500,6 +500,9 @@ class Settings(val config: Config) {
   def internetAccessAllowed(): Boolean = {
     internetAccessConfigured() && !internetFilteringRulesInvalid()
   }
+
+  // >= 1.8.8
+  val httpUserAgent = config.getString("internet.httpUserAgent")
 }
 
 object Settings {
