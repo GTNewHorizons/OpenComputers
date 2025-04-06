@@ -81,6 +81,8 @@ function process.load(path, env, init, name)
         function(msg)
           io.stderr:write("process library exception handler crashed: ", tostring(msg))
         end)
+
+      result[2] = 128
     end
 
     -- onError opens a file, you can't open a file without a process, we close the process last
