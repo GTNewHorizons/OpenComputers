@@ -515,6 +515,7 @@ object InternetCard {
             http.setDoInput(true)
             http.setDoOutput(post.isDefined)
             http.setRequestMethod(if (method.isDefined) method.get else if (post.isDefined) "POST" else "GET")
+            http.setRequestProperty("User-Agent", Settings.get.httpUserAgent.replace("$version", OpenComputers.Version))
             headers.foreach(Function.tupled(http.setRequestProperty))
             if (post.isDefined) {
               http.setReadTimeout(Settings.get.httpTimeout)
