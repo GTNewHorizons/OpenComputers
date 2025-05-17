@@ -80,13 +80,29 @@ class UpgradeAE(val host: EnvironmentHost, val tier: Int) extends ManagedEnviron
     if (grid == null) return false
     stack.getItemDamage match {
       case 0 =>
-        grid
-          .getMachines(
+        val gridBlock = gridNode.getGridBlock
+        if (gridBlock == null) return false
+        val loc = gridBlock.getLocation
+        if (loc == null) return false
+        for (
+          node <- grid.getMachines(
             AEApi.instance.definitions.blocks.wireless.maybeEntity.get
               .asInstanceOf[Class[_ <: IGridHost]]
           )
-          .iterator
-          .hasNext
+        ) {
+          val accessPoint: IWirelessAccessPoint =
+            node.getMachine.asInstanceOf[IWirelessAccessPoint]
+          val distance: WorldCoord = accessPoint.getLocation.subtract(
+            agent.xPosition.toInt,
+            agent.yPosition.toInt,
+            agent.zPosition.toInt
+          )
+          val squaredDistance: Int =
+            distance.x * distance.x + distance.y * distance.y + distance.z * distance.z
+          val range = accessPoint.getRange / 2
+          if (squaredDistance <= range * range) return true
+        }
+        false
       case 1 =>
         val gridBlock = gridNode.getGridBlock
         if (gridBlock == null) return false
@@ -112,29 +128,13 @@ class UpgradeAE(val host: EnvironmentHost, val tier: Int) extends ManagedEnviron
         }
         false
       case _ =>
-        val gridBlock = gridNode.getGridBlock
-        if (gridBlock == null) return false
-        val loc = gridBlock.getLocation
-        if (loc == null) return false
-        for (
-          node <- grid.getMachines(
+        grid
+          .getMachines(
             AEApi.instance.definitions.blocks.wireless.maybeEntity.get
               .asInstanceOf[Class[_ <: IGridHost]]
           )
-        ) {
-          val accessPoint: IWirelessAccessPoint =
-            node.getMachine.asInstanceOf[IWirelessAccessPoint]
-          val distance: WorldCoord = accessPoint.getLocation.subtract(
-            agent.xPosition.toInt,
-            agent.yPosition.toInt,
-            agent.zPosition.toInt
-          )
-          val squaredDistance: Int =
-            distance.x * distance.x + distance.y * distance.y + distance.z * distance.z
-          val range = accessPoint.getRange / 2
-          if (squaredDistance <= range * range) return true
-        }
-        false
+          .iterator
+          .hasNext
     }
   }
 
