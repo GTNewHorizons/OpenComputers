@@ -47,8 +47,8 @@ dependencies {
     compileOnly("thaumcraft:Thaumcraft:1.7.10-4.2.3.5:dev") {transitive = false}
     compileOnly("qmunity:QmunityLib:0.1.105:deobf") {transitive = false}
     compileOnly(deobf("https://github.com/purpleposeidon/fz_archive/raw/master/old/Factorization-1.7.10-0.8.108.jar"))
-    compileOnly(deobf("https://immibis.com/mcmoddl/files/immibis-microblocks-59.1.2.jar"))
-    compileOnly(deobf("https://immibis.com/mcmoddl/files/redlogic-59.1.13.jar"))
+    compileOnly("maven.modrinth:immibis-microblocks:59.1.2")
+    compileOnly("maven.modrinth:redlogic:59.1.13")
     compileOnly(files("dependencies/ic2classic-api.zip")) // curseforge one does NOT work ...
 
     testImplementation("org.mockito:mockito-all:1.10.19")
