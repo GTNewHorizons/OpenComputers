@@ -15,6 +15,8 @@ end
 local function printRom()
   local eeprom = component.eeprom
   io.write(eeprom.get())
+
+  return nil
 end
 
 local function readRom()
@@ -37,6 +39,8 @@ local function readRom()
   if not options.q then
     io.write("All done!\nThe label is '" .. eeprom.getLabel() .. "'.\n")
   end
+
+  return nil
 end
 
 local function writeRom()
@@ -60,7 +64,10 @@ local function writeRom()
     io.write("Please do NOT power down or restart your computer during this operation!\n")
   end
 
-  eeprom.set(bios)
+  local result, reason = eeprom.set(bios)
+  if reason then
+    return nil, reason
+  end
 
   local label = args[2]
   if not options.q and not label then
@@ -68,7 +75,11 @@ local function writeRom()
     label = io.read()
   end
   if label and #label > 0 then
-    eeprom.setLabel(label)
+    local result, reason = eeprom.setLabel(label)
+    if reason then
+      return nil, reason
+    end
+
     if not options.q then
       io.write("Set label to '" .. eeprom.getLabel() .. "'.\n")
     end
@@ -77,12 +88,19 @@ local function writeRom()
   if not options.q then
     io.write("All done! You can remove the EEPROM and re-insert the previous one now.\n")
   end
+
+  return nil
 end
 
+local result, reason
 if options.l then
-  printRom()
+  result, reason = printRom()
 elseif options.r then
-  readRom()
+  result, reason = readRom()
 else
-  writeRom()
+  result, reason = writeRom()
+end
+if reason then
+  io.stderr:write(reason..'\n')
+  return 1
 end
