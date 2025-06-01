@@ -81,8 +81,8 @@ class Rack(playerInventory: InventoryPlayer, val rack: tileentity.Rack) extends 
   def sideName(side: ForgeDirection) = side match {
     case ForgeDirection.UP => Localization.Rack.Top
     case ForgeDirection.DOWN => Localization.Rack.Bottom
-    case ForgeDirection.EAST => Localization.Rack.Left
-    case ForgeDirection.WEST => Localization.Rack.Right
+    case ForgeDirection.WEST => Localization.Rack.Left
+    case ForgeDirection.EAST => Localization.Rack.Right
     case ForgeDirection.NORTH => Localization.Rack.Back
     case _ => Localization.Rack.None
   }
