@@ -67,10 +67,11 @@ class OSAPI(owner: NativeLuaArchitecture) extends NativeLuaAPI(owner) {
       if (lua.isNoneOrNil(1)) {
         // Game time is in ticks, so that each day has 24000 ticks, meaning
         // one hour is game time divided by one thousand. Also, Minecraft
-        // starts days at 6 o'clock, versus the 1 o'clock of timestamps so we
-        // add those five hours. Thus:
-        // timestamp = (time + 5000) * 60[kh] * 60[km] / 1000[s]
-        lua.pushNumber(((machine.worldTime + 5000) * 60 * 60) / 1000.0)
+        // starts days at 6 o'clock; os.time() reflects UTC while os.date()
+        // reflects the local time zone, but Minecraft has no concept of
+        // time zones, so this detail can be ignored. Thus:
+        // timestamp = (time + 6000) * 60[kh] * 60[km] / 1000[s]
+        lua.pushNumber(((machine.worldTime + 6000) * 60 * 60) / 1000.0)
       }
       else {
         def getField(key: String, d: Int) = {
