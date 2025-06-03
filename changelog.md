@@ -1,10 +1,11 @@
 ## Fixes/improvements
 
-* [#3769] Add default user agent configuration option; change OpenComputers' default user agent to "opencomputers/$version".
-* [#3759] Add V1 and V2 to the robot name list. (AutumnalModding)
-* [#3727] Fix more regressions related to OpenOS error handling. (jasonS05, kcinnajlol)
-* Fix client-side memory leak on anything RedstoneAware (Glease)
+* [#3621] Fix `os.time()` being off by one hour
+* [#3682] Add error handling to the `flash` OpenOS program
+* [#3764] Fix left and right names being swapped in the Rack GUI
+* [#3779] Fix `os.sleep(0)` causing `too long without yielding` (Ocawesome101)
+* (1.12) [#3774] Fix Jukebox driver (kebufu)
 
 ## List of contributors
 
-asie, AutumnalModding, Glease, jasonS05, kcinnajlol
+asie, kebufu, Ocawesome101

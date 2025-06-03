@@ -81,8 +81,8 @@ class Rack(playerInventory: InventoryPlayer, val rack: tileentity.Rack) extends 
   def sideName(side: ForgeDirection) = side match {
     case ForgeDirection.UP => Localization.Rack.Top
     case ForgeDirection.DOWN => Localization.Rack.Bottom
-    case ForgeDirection.EAST => Localization.Rack.Left
     case ForgeDirection.WEST => Localization.Rack.Right
+    case ForgeDirection.EAST => Localization.Rack.Left
     case ForgeDirection.NORTH => Localization.Rack.Back
     case _ => Localization.Rack.None
   }
@@ -248,6 +248,13 @@ class Rack(playerInventory: InventoryPlayer, val rack: tileentity.Rack) extends 
       fontRendererObj.drawString(
         Localization.localizeImmediately(sideName(busToSide(bus))),
         x, y, 0x404040)
+    }
+
+    if (mouseX >= guiLeft + 122 && mouseY >= guiTop + 20 && mouseX < guiLeft + 158 && mouseY < guiTop + 20 + 5 * 11) {
+      val tooltip = new java.util.ArrayList[String]
+      tooltip.addAll(asJavaCollection(Localization.Rack.OrientationTooltip.lines.toIterable))
+      copiedDrawHoveringText(tooltip, mouseX - guiLeft, mouseY - guiTop, fontRendererObj)
+
     }
 
     if (relayButton.func_146115_a) {
