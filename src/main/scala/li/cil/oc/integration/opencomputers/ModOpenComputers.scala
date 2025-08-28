@@ -409,8 +409,10 @@ object ModOpenComputers extends ModProxy {
   }
 
   private def blacklistHost(host: Class[_], itemNames: String*) {
-    for (itemName <- itemNames) {
-      api.IMC.blacklistHost(itemName, host, api.Items.get(itemName).createItemStack(1))
+    for (itemName <- itemNames) api.Items.get(itemName) match {
+      case null => null
+      case itemInfo: ItemInfo => api.IMC.blacklistHost(itemName, host, itemInfo.createItemStack(1))
+      case _ => null
     }
   }
 
