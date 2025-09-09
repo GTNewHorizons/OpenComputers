@@ -13,17 +13,17 @@ class TransposerData(itemName: String = Constants.BlockName.Transposer) extends 
 
   var fluidTransferRate: Int = Settings.get.transposerFluidTransferRate
 
-  override def load(nbt: NBTTagCompound) {
+  def load(nbt: NBTTagCompound): Unit = {
     if (nbt.hasKey(FLUID_TRANSFER_RATE)) {
       fluidTransferRate = nbt.getInteger(FLUID_TRANSFER_RATE)
     }
   }
 
-  override def save(nbt: NBTTagCompound) {
+  def save(nbt: NBTTagCompound): Unit = {
     nbt.setInteger(FLUID_TRANSFER_RATE, fluidTransferRate)
   }
 
-  def copyItemStack() = {
+  def copyItemStack(): ItemStack = {
     val stack = createItemStack()
     val newInfo = new TransposerData(stack)
     newInfo.save(stack)
