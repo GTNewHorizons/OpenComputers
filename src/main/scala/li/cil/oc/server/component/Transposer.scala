@@ -1,7 +1,6 @@
 package li.cil.oc.server.component
 
 import java.util
-
 import li.cil.oc.Constants
 import li.cil.oc.api.driver.DeviceInfo.DeviceAttribute
 import li.cil.oc.api.driver.DeviceInfo.DeviceClass
@@ -12,6 +11,8 @@ import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.api.network.Visibility
 import li.cil.oc.api.prefab
+import li.cil.oc.common.block.Transposer
+import li.cil.oc.common.item.data.TransposerData.FLUID_TRANSFER_RATE
 import li.cil.oc.common.tileentity
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.BlockPosition
@@ -69,16 +70,12 @@ object Transposer {
           microcontroller
             .info
             .components
-            .find(_.isItemEqual(api.Items.get(Constants.BlockName.Transposer).createItemStack(1)))
-            .map(_.getTagCompound.getInteger(Settings.namespace + "fluidTransferRate"))
-            .getOrElse(0)
-        case robot: tileentity.Robot =>
-          robot
-            .info
-            .components
-            .find(_.isItemEqual(api.Items.get(Constants.BlockName.Transposer).createItemStack(1)))
-            .map(_.getTagCompound.getInteger(Settings.namespace + "fluidTransferRate"))
-            .getOrElse(0)
+            .find(_.isItemEqual(new Transposer().createItemStack()))
+            .filter(_.hasTagCompound)
+            .map(_.getTagCompound)
+            .filter(_.hasKey(FLUID_TRANSFER_RATE))
+            .map(_.getInteger(FLUID_TRANSFER_RATE))
+            .getOrElse(Settings.get.transposerFluidTransferRate)
         case _ => 0
       }
     }
