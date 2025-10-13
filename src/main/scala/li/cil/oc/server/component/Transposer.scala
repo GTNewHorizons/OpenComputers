@@ -10,8 +10,7 @@ import li.cil.oc.api.driver.DeviceInfo
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.api.network.Visibility
-import li.cil.oc.api.prefab
-import li.cil.oc.common.block.Transposer
+import li.cil.oc.api.{Items, prefab}
 import li.cil.oc.common.item.data.TransposerData.FLUID_TRANSFER_RATE
 import li.cil.oc.common.tileentity
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
@@ -70,7 +69,7 @@ object Transposer {
           microcontroller
             .info
             .components
-            .find(_.isItemEqual(new Transposer().createItemStack()))
+            .find(_.isItemEqual(Items.get(Constants.BlockName.Transposer).createItemStack(1)))
             .filter(_.hasTagCompound)
             .map(_.getTagCompound)
             .filter(_.hasKey(FLUID_TRANSFER_RATE))
