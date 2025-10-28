@@ -61,9 +61,6 @@ class InternetFilteringRule(val ruleString: String) {
                   val ipAddress = InetAddresses.forString(ipStringParts(0))
                   predicates += ((inetAddress: InetAddress, _: String) => ipAddress.equals(inetAddress))
                 }
-                predicates += ((inetAddress: InetAddress, _: String) => {
-                  inetAddress.isAnyLocalAddress || inetAddress.isLoopbackAddress || inetAddress.isLinkLocalAddress || inetAddress.isSiteLocalAddress
-                })
               case "all" =>
             }
           })
