@@ -5,31 +5,31 @@ dependencies {
     shadowImplementation name: 'OC-JNLua', version: '20230530.0', ext: 'jar'
     shadowImplementation name: 'OC-JNLua-Natives', version: '20220928.1', ext: 'jar'
 
-    compileOnly("com.github.GTNewHorizons:AE2FluidCraft-Rework:1.5.6-gtnh:dev") {transitive = false}
+    compileOnly("com.github.GTNewHorizons:AE2FluidCraft-Rework:1.5.8-gtnh:dev") {transitive = false}
     compileOnly("com.github.GTNewHorizons:Angelica:1.0.0-beta62:api") {transitive = false}
-    compileOnly("com.github.GTNewHorizons:Applied-Energistics-2-Unofficial:rv3-beta-717-GTNH:dev") {transitive = false}
+    compileOnly("com.github.GTNewHorizons:Applied-Energistics-2-Unofficial:rv3-beta-723-GTNH:dev") {transitive = false}
     compileOnly("com.github.GTNewHorizons:Avaritiaddons:1.9.1-GTNH:dev") {transitive = false}
     compileOnly("com.github.GTNewHorizons:BloodMagic:1.8.5:dev") {transitive = false}
     compileOnly("com.github.GTNewHorizons:BuildCraft:7.1.45:dev") {transitive = false}
     compileOnly("com.github.GTNewHorizons:CodeChickenCore:1.4.7:dev") {transitive = false}
     compileOnly("com.github.GTNewHorizons:EnderCore:0.5.0:dev") {transitive = false}
-    compileOnly("com.github.GTNewHorizons:EnderIO:2.10.2:dev") {transitive = false}
+    compileOnly("com.github.GTNewHorizons:EnderIO:2.10.3:dev") {transitive = false}
     compileOnly("com.github.GTNewHorizons:EnderStorage:1.7.7:dev") {transitive = false}
     compileOnly("com.github.GTNewHorizons:ExtraCells2:2.5.35:dev") {transitive = false}
-    compileOnly("com.github.GTNewHorizons:ForestryMC:4.10.17:dev") {transitive = false}
-    compileOnly("com.github.GTNewHorizons:ForgeMultipart:1.6.8:dev") {transitive = false}
-    compileOnly("com.github.GTNewHorizons:Galacticraft:3.4.2-GTNH:dev") {transitive = false}
-    compileOnly("com.github.GTNewHorizons:GT5-Unofficial:5.09.52.59:dev") {transitive = false}
-    compileOnly("com.github.GTNewHorizons:GTNHLib:0.7.0:dev") {transitive = false}
+    compileOnly("com.github.GTNewHorizons:ForestryMC:4.11.0:dev") {transitive = false}
+    compileOnly("com.github.GTNewHorizons:ForgeMultipart:1.7.0:dev") {transitive = false}
+    compileOnly("com.github.GTNewHorizons:Galacticraft:3.4.4-GTNH:dev") {transitive = false}
+    compileOnly("com.github.GTNewHorizons:GT5-Unofficial:5.09.52.79:dev") {transitive = false}
+    compileOnly("com.github.GTNewHorizons:GTNHLib:0.7.3:dev") {transitive = false}
     compileOnly("com.github.GTNewHorizons:ModularUI:1.3.0:dev") {transitive = false}
-    compileOnly("com.github.GTNewHorizons:ModularUI2:2.3.4-1.7.10:dev") {transitive = false}
-    compileOnly("com.github.GTNewHorizons:NotEnoughItems:2.8.19-GTNH:dev") {transitive = false}
+    compileOnly("com.github.GTNewHorizons:ModularUI2:2.3.5-1.7.10:dev") {transitive = false}
+    compileOnly("com.github.GTNewHorizons:NotEnoughItems:2.8.21-GTNH:dev") {transitive = false}
     compileOnly("com.github.GTNewHorizons:ProjectRed:4.12.0-GTNH:dev") {transitive = false}
     compileOnly("com.github.GTNewHorizons:Railcraft:9.17.0:dev") {transitive = false}
-    compileOnly("com.github.GTNewHorizons:StructureLib:1.4.23:dev") {transitive = false}
+    compileOnly("com.github.GTNewHorizons:StructureLib:1.4.24:dev") {transitive = false}
     compileOnly("com.github.GTNewHorizons:ThaumicEnergistics:1.7.14-GTNH:dev") {transitive = false}
     compileOnly("com.github.GTNewHorizons:TinkersMechworks:0.4.1:dev") {transitive = false}
-    compileOnly("com.github.GTNewHorizons:waila:1.9.2:dev") {transitive = false}
+    compileOnly("com.github.GTNewHorizons:waila:1.9.7:dev") {transitive = false}
     compileOnly("com.github.GTNewHorizons:WirelessRedstone-CBE:1.7.1:dev") {transitive = false}
 
     compileOnly("api:coloredlightscore:1")
