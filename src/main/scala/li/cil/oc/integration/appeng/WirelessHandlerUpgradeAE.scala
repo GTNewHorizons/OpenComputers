@@ -72,6 +72,9 @@ class WirelessHandlerUpgradeAE extends IWirelessTermHandler {
     if (component == null) "" else getEncryptionKey(component)
   }
 
+  override def hasInfinityPower(itemStack: ItemStack): Boolean = false
+
+  override def hasInfinityRange(itemStack: ItemStack): Boolean = false
 }
 object WirelessHandlerUpgradeAE
 {

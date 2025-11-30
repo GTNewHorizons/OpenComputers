@@ -17,6 +17,9 @@ public final class ConverterCellInventory implements Converter {
     public void convert(final Object value, final Map<Object, Object> output) {
         if (value instanceof ICellInventory) {
             final ICellInventory cell = (ICellInventory) value;
+            if (cell.getChannel() != StorageChannel.ITEMS) {
+                return;
+            }
             output.put("storedItemTypes", cell.getStoredItemTypes());
             output.put("storedItemCount", cell.getStoredItemCount());
             output.put("remainingItemCount", cell.getRemainingItemCount());

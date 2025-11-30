@@ -16,4 +16,5 @@ repositories {
             artifact()
         }
     }
+    mavenLocal()
 }
