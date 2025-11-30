@@ -81,6 +81,7 @@ object Constants {
     final val CPUTier2 = "cpu2"
     final val CPUTier3 = "cpu3"
     final val CraftingUpgrade = "craftingUpgrade"
+    final val ArcaneCraftingUpgrade = "arcaneCraftingUpgrade"
     final val ControlUnit = "cu"
     final val CuttingWire = "cuttingWire"
     final val DatabaseUpgradeTier1 = "databaseUpgrade1"
