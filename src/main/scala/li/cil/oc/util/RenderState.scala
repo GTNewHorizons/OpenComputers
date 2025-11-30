@@ -11,9 +11,11 @@ object RenderState {
   val arb = GLContext.getCapabilities.GL_ARB_multitexture && !GLContext.getCapabilities.OpenGL13
 
   def checkError(where: String) {
-    val error = GL11.glGetError
-    if (error != 0 && Settings.get.logOpenGLErrors) {
-      OpenComputers.log.warn("GL ERROR @ " + where + ": " + GLU.gluErrorString(error))
+    if (Settings.get.logOpenGLErrors) {
+      val error = GL11.glGetError
+      if (error != 0) {
+        OpenComputers.log.warn("GL ERROR @ " + where + ": " + GLU.gluErrorString(error))
+      }
     }
   }
 
