@@ -7,7 +7,7 @@ dependencies {
 
     api("com.github.GTNewHorizons:AE2FluidCraft-Rework:1.5.27-gtnh:dev")
     compileOnly("com.github.GTNewHorizons:Angelica:1.0.0-beta68:api") {transitive = false}
-    api("com.github.GTNewHorizons:Applied-Energistics-2-Unofficial:rv3-beta-752-GTNH:dev")
+    api("com.github.GTNewHorizons:Applied-Energistics-2-Unofficial:rv3-beta-753-GTNH-pre:dev")
     compileOnly("com.github.GTNewHorizons:Avaritiaddons:1.9.3-GTNH:dev") {transitive = false}
     compileOnly("com.github.GTNewHorizons:BloodMagic:1.8.5:dev") {transitive = false}
     compileOnly("com.github.GTNewHorizons:BuildCraft:7.1.47:dev") {transitive = false}
