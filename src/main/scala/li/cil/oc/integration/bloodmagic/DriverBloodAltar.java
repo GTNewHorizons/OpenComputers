@@ -60,7 +60,7 @@ public class DriverBloodAltar extends DriverSidedTileEntity {
 
         @Callback(doc = "function():number -- Get the sacrifice multiplier.")
         public Object[] getSacrificeMultiplier(final Context context, final Arguments arguments) {
-            return new Object[] {tileEntity.getCapacity()};
+            return new Object[] {tileEntity.getSacrificeMultiplier()};
         }
 
         @Callback(doc = "function():number -- Get the self sacrifice multiplier.")
