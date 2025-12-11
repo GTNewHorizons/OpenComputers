@@ -5,9 +5,9 @@ dependencies {
     shadowImplementation name: 'OC-JNLua', version: '20230530.0', ext: 'jar'
     shadowImplementation name: 'OC-JNLua-Natives', version: '20220928.1', ext: 'jar'
 
-    api("com.github.GTNewHorizons:AE2FluidCraft-Rework:9.9.9:dev")
+    api("com.github.GTNewHorizons:AE2FluidCraft-Rework:1.5.30-gtnh:dev")
     compileOnly("com.github.GTNewHorizons:Angelica:1.0.0-beta62:api") {transitive = false}
-    api("com.github.GTNewHorizons:Applied-Energistics-2-Unofficial:9.9.9:dev")
+    api("com.github.GTNewHorizons:Applied-Energistics-2-Unofficial:rv3-beta-754-GTNH:dev")
     compileOnly("com.github.GTNewHorizons:Avaritiaddons:1.9.1-GTNH:dev") {transitive = false}
     compileOnly("com.github.GTNewHorizons:BloodMagic:1.8.5:dev") {transitive = false}
     compileOnly("com.github.GTNewHorizons:BuildCraft:7.1.45:dev") {transitive = false}
