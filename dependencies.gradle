@@ -31,6 +31,7 @@ dependencies {
     compileOnly("com.github.GTNewHorizons:TinkersMechworks:0.4.1:dev") {transitive = false}
     compileOnly("com.github.GTNewHorizons:waila:1.9.15:dev") {transitive = false}
     compileOnly("com.github.GTNewHorizons:WirelessRedstone-CBE:1.7.1:dev") {transitive = false}
+    compileOnly("com.github.GTNewHorizons:MatterManipulator:0.1.4-GTNH:dev")
 
     compileOnly("api:coloredlightscore:1")
     compileOnly("com.bluepowermod:BluePower:0.2.928:deobf") {transitive = false}
