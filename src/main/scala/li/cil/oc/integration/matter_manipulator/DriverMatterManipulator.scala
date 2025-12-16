@@ -261,13 +261,13 @@ class DriverMatterManipulator extends DriverItem {
     def getShape(ctx: Context, args: Arguments) = result(state.config.shape.toString)
 
     @Callback(doc = "function():table or nil -- Get coordinate A.")
-    def getCoordA(ctx: Context, args: Arguments) = state.config.coordA
+    def getCoordA(ctx: Context, args: Arguments) = result(state.config.coordA)
 
     @Callback(doc = "function():table or nil -- Get coordinate B.")
-    def getCoordB(ctx: Context, args: Arguments) = state.config.coordB
+    def getCoordB(ctx: Context, args: Arguments) = result(state.config.coordB)
 
     @Callback(doc = "function():table or nil -- Get coordinate C.")
-    def getCoordC(ctx: Context, args: Arguments) = state.config.coordC
+    def getCoordC(ctx: Context, args: Arguments) = result(state.config.coordC)
 
     @Callback(doc = "function():string -- Get the replace whitelist.")
     def getReplaceWhitelist(ctx: Context, args: Arguments) = result(state.config.replaceWhitelist.toString)
