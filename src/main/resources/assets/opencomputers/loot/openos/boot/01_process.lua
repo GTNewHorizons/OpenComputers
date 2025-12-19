@@ -50,9 +50,14 @@ _coroutine.create = function(f,standAlone)
 end
 
 _coroutine.wrap = function(f)
-  local thread = coroutine.create(f)
+  local co = _coroutine.create(f)
   return function(...)
-    return select(2, coroutine.resume(thread, ...))
+    local result = table.pack(coroutine.resume(co, ...))
+    if result[1] then
+      return table.unpack(result, 2, result.n)
+    else
+      error(result[2], 0)
+    end
   end
 end
 
