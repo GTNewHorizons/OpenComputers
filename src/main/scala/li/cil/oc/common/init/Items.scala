@@ -241,6 +241,7 @@ object Items extends ItemAPI {
       safeGetStack(Constants.ItemName.TankUpgrade),
       safeGetStack(Constants.ItemName.TankControllerUpgrade),
       safeGetStack(Constants.ItemName.CraftingUpgrade),
+      safeGetStack(Constants.ItemName.ArcaneCraftingUpgrade),
       safeGetStack(Constants.ItemName.HoverUpgradeTier2),
       safeGetStack(Constants.ItemName.TradingUpgrade),
       safeGetStack(Constants.ItemName.ExperienceUpgrade),
@@ -553,6 +554,7 @@ object Items extends ItemAPI {
     Recipes.addSubItem(new item.UpgradeRITEG(multi), Constants.ItemName.RITEGUpgrade, "oc:rtgUpgrade")
 
     Recipes.addSubItem(new item.TpsCard(multi), Constants.ItemName.TpsCard, "oc:tpsCard")
+    Recipes.addSubItem(new item.UpgradeArcaneCrafting(multi), Constants.ItemName.ArcaneCraftingUpgrade, "oc:arcaneCraftingUpgrade")
 
     // Register aliases.
     for ((k, v) <- aliases) {
