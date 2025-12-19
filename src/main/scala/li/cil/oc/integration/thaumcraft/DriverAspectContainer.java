@@ -32,7 +32,7 @@ public class DriverAspectContainer extends DriverSidedTileEntity {
 
         @Callback(doc = "function():table -- Get the Aspects stored in the block")
         public Object[] getAspects(final Context context, final Arguments args) {
-            return new Object[] {tileEntity};
+            return new Object[] {TCUtils.convert_aspects(tileEntity.getAspects())};
         }
 
         @Callback(doc = "function(aspect:string):number -- Get amount of specific aspect stored in this block")
