@@ -7,9 +7,10 @@ import appeng.api.networking.IGridNode
 import appeng.api.networking.crafting.{CraftingItemList, ICraftingLink, ICraftingRequester}
 import appeng.api.networking.security.{BaseActionSource, IActionHost, MachineSource}
 import appeng.api.networking.storage.IBaseMonitor
-import appeng.api.storage.IMEMonitorHandlerReceiver
-import appeng.api.storage.data.{IAEFluidStack, IAEItemStack, IItemList}
+import appeng.api.storage.{IMEMonitor, IMEMonitorHandlerReceiver}
+import appeng.api.storage.data.{IAEFluidStack, IAEItemStack, IAEStack, IItemList}
 import appeng.api.util.AECableType
+import appeng.me.GridAccessException
 import appeng.me.cluster.implementations.CraftingCPUCluster
 import appeng.me.helpers.IGridProxyable
 import appeng.tile.crafting.TileCraftingMonitorTile
@@ -43,6 +44,7 @@ import javax.annotation.Nonnull
 import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
+import scala.collection.mutable.ArrayBuffer
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.language.existentials
@@ -133,9 +135,14 @@ trait NetworkControl[AETile >: Null <: TileEntity with IGridProxyable with IActi
       .toArray)
   }
 
-  @Callback(doc = "function():userdata -- Get an iterator object for the list of the items in the network.")
+  @Callback(doc = "function([subscribe:bool]):userdata -- Get an iterator object for the list of the items in the network. [Event: network_item_changed]")
   def allItems(context: Context, args: Arguments): Array[AnyRef] = {
-    result(new NetworkContents(tile))
+    result(new ItemNetworkContents(tile, node, args.optBoolean(0, false)))
+  }
+
+  @Callback(doc = "function([subscribe:bool]):userdata -- Get an iterator object for the list of the fluids in the network. [Event: network_fluid_changed]")
+  def allFluids(context: Context, args: Arguments): Array[AnyRef] = {
+    result(new FluidNetworkContents(tile, node, args.optBoolean(0, false)))
   }
 
   @Callback(doc = "function(filter:table, dbAddress:string[, startSlot:number[, count:number]]): Boolean -- Store items in the network matching the specified filter in the database with the specified address.")
@@ -369,7 +376,7 @@ object NetworkControl {
           result(aeStack.getItemStack)
       }
     }
-    
+
     private def getCpu = {
       if (cpu == null && controller != null) {
         var i = 0
@@ -453,25 +460,39 @@ object NetworkControl {
   }
 
   //noinspection ConvertNullInitializerToUnderscore
-  class NetworkContents(var controller: TileEntity with IGridProxyable with IActionHost) extends AbstractValue with IMEMonitorHandlerReceiver[IAEItemStack]
+  abstract class NetworkContents[T <: IAEStack[T]](var controller: TileEntity with IGridProxyable with IActionHost, var node: Node, var subscribe: Boolean) extends AbstractValue with IMEMonitorHandlerReceiver[T]
   {
-    def this() = this(null)
-    if (controller != null)
-      controller.getProxy.getStorage.getItemInventory.addListener(this, null)
+    def this() = this(null, null, false)
+
+    def getInventory: IMEMonitor[T]
+
+    def withInventory[R](action: IMEMonitor[T] => R): Option[R] = {
+      for {
+        _   <- Option(controller)
+        inv <- Option(getInventory)
+      } yield action(inv)
+    }
+
+    def convertItem(stack: IAEStack[_]): java.util.HashMap[String, AnyRef]
+    val event_name: String = "network_changed"
+
+    withInventory(_.addListener(this, null))
+
     private var addedListener = true
-    private var items : IItemList[IAEItemStack] = null
-    private var itemIterator : java.util.Iterator[IAEItemStack] = null
+    private var items : IItemList[T] = null
+    private var itemIterator : java.util.Iterator[T] = null
     private var index = 0
 
     override def call(context: Context, arguments: Arguments): Array[AnyRef] = {
       if (controller == null)
         return null
       if (!addedListener) {
-        controller.getProxy.getStorage.getItemInventory.addListener(this, null)
+        withInventory(_.addListener(this, null))
         addedListener = true
       }
       if (items == null) {
-        items = controller.getProxy.getStorage.getItemInventory.getStorageList
+        val list: Option[IItemList[T]] = withInventory(_.getStorageList)
+        items = list.orNull
         if (items != null)
           itemIterator = items.iterator
         if (itemIterator != null)
@@ -485,7 +506,7 @@ object NetworkControl {
       if (!this.itemIterator.hasNext)
         return null
       index += 1
-      Array[AnyRef](convert(itemIterator.next(), controller))
+      result(convertItem(itemIterator.next()))
     }
 
     override def load(nbt: NBTTagCompound) {
@@ -511,9 +532,40 @@ object NetworkControl {
     override def onListUpdate(): Unit = {
       this.items = null
     }
-    override def postChange(monitor: IBaseMonitor[IAEItemStack], change: lang.Iterable[IAEItemStack], actionSource: BaseActionSource): Unit = {
+    override def postChange(monitor: IBaseMonitor[T], change: lang.Iterable[T], actionSource: BaseActionSource): Unit = {
+      if (subscribe && node != null) {
+        val flatArgs = ArrayBuffer[Object](event_name)
+        flatArgs ++= change.map(convertItem(_))
+        node.sendToReachable("computer.signal", flatArgs: _*)
+      }
       this.items = null
     }
+  }
+
+  class ItemNetworkContents(controller: TileEntity with IGridProxyable with IActionHost, node: Node, subscribe: Boolean) extends NetworkContents[IAEItemStack](controller, node, subscribe) {
+    override val event_name: String = "network_item_changed"
+
+    def getInventory: IMEMonitor[IAEItemStack] = {
+      try return controller.getProxy.getStorage.getItemInventory
+      catch {
+        case ignored: GridAccessException =>
+      }
+      return null
+    }
+    override def convertItem(stack: IAEStack[_]): java.util.HashMap[String, AnyRef] = convert(stack.asInstanceOf[IAEItemStack], controller)
+  }
+
+  class FluidNetworkContents(controller: TileEntity with IGridProxyable with IActionHost, node: Node, subscribe: Boolean) extends NetworkContents[IAEFluidStack](controller, node, subscribe) {
+    override val event_name: String = "network_fluid_changed"
+
+    override def getInventory: IMEMonitor[IAEFluidStack] = {
+      try return controller.getProxy.getStorage.getFluidInventory
+      catch {
+        case ignored: GridAccessException =>
+      }
+      return null
+    }
+    override def convertItem(stack: IAEStack[_]): java.util.HashMap[String, AnyRef] = convert(stack.asInstanceOf[IAEFluidStack], controller)
   }
 
   def aeCraftItem(aeItem: IAEItemStack, tile: TileEntity with IGridProxyable): IAEItemStack = {
