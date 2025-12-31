@@ -476,33 +476,25 @@ object NetworkControl {
     def convertItem(stack: IAEStack[_]): java.util.HashMap[String, AnyRef]
     val event_name: String = "network_changed"
 
-    withInventory(_.addListener(this, null))
-
-    private var addedListener = true
     private var items : IItemList[T] = null
     private var itemIterator : java.util.Iterator[T] = null
     private var index = 0
 
+    private def updateItems(): Unit = {
+      val list: Option[IItemList[T]] = withInventory(_.getStorageList)
+      items = list.orNull
+      if (items != null) {
+        itemIterator = items.iterator
+        itemIterator.drop(index)
+      }
+    }
+
+    updateItems()
+    withInventory(_.addListener(this, null))
+
     override def call(context: Context, arguments: Arguments): Array[AnyRef] = {
-      if (controller == null)
+      if (controller == null || itemIterator == null)
         return null
-      if (!addedListener) {
-        withInventory(_.addListener(this, null))
-        addedListener = true
-      }
-      if (items == null) {
-        val list: Option[IItemList[T]] = withInventory(_.getStorageList)
-        items = list.orNull
-        if (items != null)
-          itemIterator = items.iterator
-        if (itemIterator != null)
-          for (_ <- 1 to index) {
-            if (itemIterator.hasNext)
-              itemIterator.next
-          }
-      }
-      if (this.itemIterator == null && this.items != null)
-        this.itemIterator = items.iterator
       if (!this.itemIterator.hasNext)
         return null
       index += 1
@@ -511,7 +503,7 @@ object NetworkControl {
 
     override def load(nbt: NBTTagCompound) {
       super.load(nbt)
-      addedListener = false
+      withInventory(_.addListener(this, null))
       loadController(nbt, c => controller = c)
     }
 
@@ -530,7 +522,7 @@ object NetworkControl {
     override def isValid(verificationToken: Any): Boolean = valid
 
     override def onListUpdate(): Unit = {
-      this.items = null
+      updateItems()
     }
     override def postChange(monitor: IBaseMonitor[T], change: lang.Iterable[T], actionSource: BaseActionSource): Unit = {
       if (subscribe && node != null) {
@@ -538,7 +530,7 @@ object NetworkControl {
         flatArgs ++= change.map(convertItem(_))
         node.sendToReachable("computer.signal", flatArgs: _*)
       }
-      this.items = null
+      updateItems()
     }
   }
 
