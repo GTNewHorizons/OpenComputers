@@ -230,13 +230,13 @@ class UpgradeArcaneCrafting(val host: EnvironmentHost with internal.Robot) exten
       row * 4 + col
     }
 
+    private val mockWorkbench = new TileMagicWorkbench
     private def findArcaneRecipe(inv: IInventory, player: EntityPlayer): IArcaneRecipe = {
-      val workbenchTile = new TileMagicWorkbench;
       for (slotIndex <- 0 until 9) {
-        workbenchTile.setInventorySlotContentsSoftly(slotIndex, inv.getStackInSlot(slotIndex))
+        mockWorkbench.setInventorySlotContentsSoftly(slotIndex, inv.getStackInSlot(slotIndex))
       }
       ThaumcraftApi.getCraftingRecipes.asScala.collectFirst {
-        case r: IArcaneRecipe if r.matches(workbenchTile, player.worldObj, ArcaneProxy) => r
+        case r: IArcaneRecipe if r.matches(mockWorkbench, player.worldObj, ArcaneProxy) => r
       }.orNull
     }
   }
@@ -282,7 +282,6 @@ class UpgradeArcaneCrafting(val host: EnvironmentHost with internal.Robot) exten
   object ArcaneProxy extends FakePlayer(host.world.asInstanceOf[WorldServer], new GameProfile(null, "ArcaneProxy")) {
     override def getCommandSenderName: String = host.ownerName()
   }
-
   private var cachedStickyWarp = 0
 
   private def findOwner(): Option[EntityPlayerMP] = Option(MinecraftServer.getServer.getConfigurationManager.func_152612_a(host.ownerName()))
