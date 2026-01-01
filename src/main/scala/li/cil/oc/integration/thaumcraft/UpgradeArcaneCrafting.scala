@@ -1,8 +1,7 @@
 package li.cil.oc.integration.thaumcraft
 
 import com.mojang.authlib.GameProfile
-import cpw.mods.fml.common.FMLCommonHandler
-import li.cil.oc.Constants
+import cpw.mods.fml.common.{FMLCommonHandler, ObfuscationReflectionHelper}
 import li.cil.oc.api.driver.DeviceInfo
 import li.cil.oc.api.driver.DeviceInfo.{DeviceAttribute, DeviceClass}
 import li.cil.oc.api.machine.{Arguments, Callback, Context}
@@ -18,9 +17,11 @@ import net.minecraft.item.{Item, ItemStack}
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.server.MinecraftServer
 import net.minecraft.world.WorldServer
+import net.minecraft.world.storage.SaveHandler
 import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.common.util.FakePlayer
 import net.minecraftforge.event.entity.player.PlayerDestroyItemEvent
+import net.minecraftforge.event.entity.player.PlayerEvent.LoadFromFile
 import thaumcraft.api.ThaumcraftApi
 import thaumcraft.api.aspects.AspectList
 import thaumcraft.api.crafting.IArcaneRecipe
@@ -28,8 +29,10 @@ import thaumcraft.common.Thaumcraft
 import thaumcraft.common.config.{Config, ConfigBlocks, ConfigItems}
 import thaumcraft.common.items.ItemEssence
 import thaumcraft.common.items.wands.ItemWandCasting
+import thaumcraft.common.lib.research.ResearchManager
 import thaumcraft.common.tiles.{TileMagicWorkbench, TileMagicWorkbenchCharger}
 
+import java.io.File
 import java.util
 import scala.collection.JavaConverters._
 import scala.collection.convert.WrapAsJava._
@@ -231,6 +234,7 @@ class UpgradeArcaneCrafting(val host: EnvironmentHost with internal.Robot) exten
     }
 
     private val mockWorkbench = new TileMagicWorkbench
+
     private def findArcaneRecipe(inv: IInventory, player: EntityPlayer): IArcaneRecipe = {
       for (slotIndex <- 0 until 9) {
         mockWorkbench.setInventorySlotContentsSoftly(slotIndex, inv.getStackInSlot(slotIndex))
@@ -282,6 +286,7 @@ class UpgradeArcaneCrafting(val host: EnvironmentHost with internal.Robot) exten
   object ArcaneProxy extends FakePlayer(host.world.asInstanceOf[WorldServer], new GameProfile(null, "ArcaneProxy")) {
     override def getCommandSenderName: String = host.ownerName()
   }
+
   private var cachedStickyWarp = 0
 
   private def findOwner(): Option[EntityPlayerMP] = Option(MinecraftServer.getServer.getConfigurationManager.func_152612_a(host.ownerName()))
@@ -295,9 +300,17 @@ class UpgradeArcaneCrafting(val host: EnvironmentHost with internal.Robot) exten
     }
   }
 
+  private def getPlayerDir: File = {
+    val sh = host.world.getSaveHandler.getSaveHandler.asInstanceOf[SaveHandler]
+    ObfuscationReflectionHelper.getPrivateValue(classOf[SaveHandler], sh, "playersDirectory", "field_" + "75771_c")
+  }
+
   override def load(nbt: NBTTagCompound): Unit = {
     super.load(nbt)
     cachedStickyWarp = nbt.getInteger("cachedStickyWarp")
+    if (ResearchManager.getResearchForPlayerSafe(host.ownerName()) == null) {
+      Thaumcraft.instance.entityEventHandler.playerLoad(new LoadFromFile(ArcaneProxy, getPlayerDir, ""))
+    }
   }
 
   override def save(nbt: NBTTagCompound): Unit = {
