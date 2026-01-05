@@ -1,7 +1,6 @@
 package li.cil.oc.server.component
 
 import java.util
-import cofh.CoFHCore
 import li.cil.oc.{Constants, api}
 import li.cil.oc.api.driver.DeviceInfo
 import li.cil.oc.api.driver.DeviceInfo.{DeviceAttribute, DeviceClass}
@@ -11,12 +10,12 @@ import li.cil.oc.api.prefab
 import li.cil.oc.server.component.DebugCard.AccessContext
 import net.minecraft.entity.Entity
 import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.server.MinecraftServer
 import net.minecraft.world.WorldServer
 import net.minecraftforge.common.DimensionManager
 
 import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._
-import scala.collection.immutable.Map
 
 class TpsCard (val host: EnvironmentHost) extends prefab.ManagedEnvironment with DeviceInfo {
   override val node = api.Network.newNode(this, Visibility.Neighbors).
@@ -41,7 +40,7 @@ class TpsCard (val host: EnvironmentHost) extends prefab.ManagedEnvironment with
   private def getTickTimeSum(samples: Array[Long]) = samples.sum.toDouble / samples.length
 
   private def withWorld(dim:Int, f: WorldServer => Array[AnyRef] ) : Array[AnyRef] =
-    CoFHCore.server.worldServers.find(w => w.provider.dimensionId == dim) match {
+    MinecraftServer.getServer.worldServers.find(w => w.provider.dimensionId == dim) match {
       case Some(w) => f(w)
       case _ => result(null, "Dimension not loaded: " + dim.toString)
     }
@@ -49,12 +48,12 @@ class TpsCard (val host: EnvironmentHost) extends prefab.ManagedEnvironment with
   @Callback(doc = """function(dimension:number):number -- ms taken by the dimension.""")
   def getTickTimeInDim(context: Context, args: Arguments): Array[AnyRef] = {
     val dim = args.optInteger(0, world.provider.dimensionId)
-    result(getTickTimeSum(CoFHCore.server.worldTickTimes.get(dim)) * 1.0E-6D)
+    result(getTickTimeSum(MinecraftServer.getServer.worldTickTimes.get(dim)) * 1.0E-6D)
   }
 
   @Callback(doc = """function():number -- Overall tick time of the server.""")
   def getOverallTickTime(context: Context, args: Arguments): Array[AnyRef] =
-    result(getTickTimeSum(CoFHCore.server.tickTimeArray) * 1.0E-6D)
+    result(getTickTimeSum(MinecraftServer.getServer.tickTimeArray) * 1.0E-6D)
 
   @Callback(doc = """function():table -- Returns a table with index corresponding to the dimension id and value at the index being the dimension name.""")
   def getAllDims(context: Context, args: Arguments): Array[AnyRef] =
@@ -62,7 +61,7 @@ class TpsCard (val host: EnvironmentHost) extends prefab.ManagedEnvironment with
 
   @Callback(doc = """function():table -- Returns a table with index corresponding to the dimension id and value at the index being the tick time taken by the dim.""")
   def getAllTickTimes(context: Context, args: Arguments): Array[AnyRef] =
-    result(DimensionManager.getWorlds.map( w => (w.provider.dimensionId, getTickTimeSum(CoFHCore.server.worldTickTimes.get(w.provider.dimensionId)) * 1.0E-6D)).toMap)
+    result(DimensionManager.getWorlds.map( w => (w.provider.dimensionId, getTickTimeSum(MinecraftServer.getServer.worldTickTimes.get(w.provider.dimensionId)) * 1.0E-6D)).toMap)
 
   @Callback(doc = """function(dimension:number):string -- Returns the name corresponding to the dimension.""")
   def getNameForDim(context: Context, args: Arguments): Array[AnyRef] =
@@ -77,19 +76,19 @@ class TpsCard (val host: EnvironmentHost) extends prefab.ManagedEnvironment with
 
   @Callback(doc = """function():number -- Returns the overall amount of TE loaded in memory.""")
   def getOverallTileEntitiesLoaded(context: Context, args: Arguments): Array[AnyRef] =
-    result(CoFHCore.server.worldServers.foldLeft(0)((a, w) => a + w.loadedTileEntityList.length))
+    result(MinecraftServer.getServer.worldServers.foldLeft(0)((a, w) => a + w.loadedTileEntityList.length))
 
   @Callback(doc = """function():number -- Returns the overall amount of chunks loaded in memory.""")
   def getOverallChunksLoaded(context: Context, args: Arguments): Array[AnyRef] =
-    result(CoFHCore.server.worldServers.foldLeft(0)((a, w) => a + w.getChunkProvider.getLoadedChunkCount))
+    result(MinecraftServer.getServer.worldServers.foldLeft(0)((a, w) => a + w.getChunkProvider.getLoadedChunkCount))
 
   @Callback(doc = """function():number -- Returns the overall amount of entities loaded in memory.""")
   def getOverallEntitiesLoaded(context: Context, args: Arguments): Array[AnyRef] =
-    result(CoFHCore.server.worldServers.foldLeft(0)((a, w) => a + w.loadedEntityList.length))
+    result(MinecraftServer.getServer.worldServers.foldLeft(0)((a, w) => a + w.loadedEntityList.length))
 
   @Callback(doc = """function():number -- Returns the number of dimensions loaded.""")
   def getOverallDimsLoaded(context: Context, args: Arguments): Array[AnyRef] =
-    result(CoFHCore.server.worldServers.length)
+    result(MinecraftServer.getServer.worldServers.length)
 
   @Callback(doc = """function(dimension:number):table -- Returns a table where the index is the name of the entity class, and the value the amount of entities in that dim.""")
   def getEntitiesListForDim(context: Context, args: Arguments): Array[AnyRef] =

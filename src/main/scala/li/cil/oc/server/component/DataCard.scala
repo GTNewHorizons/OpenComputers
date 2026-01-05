@@ -135,6 +135,12 @@ object DataCard {
       val data = complexCost(context, args)
       result(Hashing.sha256().hashBytes(data).asBytes())
     }
+	
+    @Callback(direct = true, limit = 32, doc = """function(data:string):table -- Decode gzipped binary NBT data. Return NBT data as table.""")
+    def decodeNBT(context: Context, args: Arguments): Array[AnyRef] = {
+      val data = complexCost(context, args)
+      result(net.minecraft.nbt.CompressedStreamTools.func_152457_a(data,net.minecraft.nbt.NBTSizeTracker.field_152451_a))
+    }
   }
 
   class Tier2 extends Tier1 {
