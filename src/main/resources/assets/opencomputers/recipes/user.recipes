@@ -18,3 +18,9 @@ include file("default.recipes")
 # default.recipes file to get an idea how recipes have to be structured. You'll
 # want to define your recipes after all includes, to avoid those overwriting
 # your recipes.
+
+arcaneCraftingUpgrade {
+  input: [[ingotIron, "", ingotIron]
+          ["oc:circuitChip1", workbench, "oc:circuitChip1"]
+          [ingotIron, "oc:materialCircuitBoardPrinted", ingotIron]]
+}

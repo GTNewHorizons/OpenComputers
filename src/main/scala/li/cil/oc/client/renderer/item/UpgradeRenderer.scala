@@ -14,13 +14,13 @@ import org.lwjgl.opengl.GL11
 
 object UpgradeRenderer {
   lazy val craftingUpgrade = api.Items.get(Constants.ItemName.CraftingUpgrade)
+  lazy val arcaneCraftingUpgrade = api.Items.get(Constants.ItemName.ArcaneCraftingUpgrade)
   lazy val generatorUpgrade = api.Items.get(Constants.ItemName.GeneratorUpgrade)
   lazy val inventoryUpgrade = api.Items.get(Constants.ItemName.InventoryUpgrade)
 
   def preferredMountPoint(stack: ItemStack, availableMountPoints: java.util.Set[String]): String = {
     val descriptor = api.Items.get(stack)
-
-    if (descriptor == craftingUpgrade || descriptor == generatorUpgrade || descriptor == inventoryUpgrade) {
+    if (descriptor == craftingUpgrade || descriptor == arcaneCraftingUpgrade || descriptor == generatorUpgrade || descriptor == inventoryUpgrade) {
       if (descriptor == generatorUpgrade && availableMountPoints.contains(MountPointName.BottomBack)) MountPointName.BottomBack
       else if (descriptor == inventoryUpgrade && availableMountPoints.contains(MountPointName.TopBack)) MountPointName.TopBack
       else MountPointName.Any
@@ -31,7 +31,7 @@ object UpgradeRenderer {
   def canRender(stack: ItemStack): Boolean = {
     val descriptor = api.Items.get(stack)
 
-    descriptor == craftingUpgrade || descriptor == generatorUpgrade || descriptor == inventoryUpgrade
+    descriptor == craftingUpgrade || descriptor == arcaneCraftingUpgrade || descriptor == generatorUpgrade || descriptor == inventoryUpgrade
   }
 
   def render(stack: ItemStack, mountPoint: MountPoint): Unit = {
@@ -42,6 +42,13 @@ object UpgradeRenderer {
       drawSimpleBlock(mountPoint)
 
       RenderState.checkError(getClass.getName + ".renderItem: crafting upgrade")
+    }
+
+    else if (descriptor == api.Items.get(Constants.ItemName.ArcaneCraftingUpgrade)) {
+      Minecraft.getMinecraft.getTextureManager.bindTexture(Textures.upgradeArcaneCrafting)
+      drawSimpleBlock(mountPoint)
+
+      RenderState.checkError(getClass.getName + ".renderItem: arcane crafting upgrade")
     }
 
     else if (descriptor == api.Items.get(Constants.ItemName.GeneratorUpgrade)) {
