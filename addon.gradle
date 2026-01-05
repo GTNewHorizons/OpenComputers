@@ -6,7 +6,8 @@ tasks.withType(ScalaCompile) {
     }
 }
 tasks.named("processResources", ProcessResources).configure {
+    def pVersion = project.version.toString()
     filesMatching("application.conf") {
-        filter(ReplaceTokens, tokens: [version: project.version])
+        filter(ReplaceTokens, tokens: [version: pVersion])
     }
 }
