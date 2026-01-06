@@ -1,26 +1,23 @@
 package li.cil.oc.integration.appeng
 
-import java.lang
 import appeng.api.AEApi
 import appeng.api.config.Actionable
 import appeng.api.networking.IGridNode
 import appeng.api.networking.crafting.{CraftingItemList, ICraftingLink, ICraftingRequester}
 import appeng.api.networking.security.{BaseActionSource, IActionHost, MachineSource}
 import appeng.api.networking.storage.IBaseMonitor
-import appeng.api.storage.{IMEMonitor, IMEMonitorHandlerReceiver}
 import appeng.api.storage.data.{IAEFluidStack, IAEItemStack, IAEStack, IItemList}
+import appeng.api.storage.{IMEMonitor, IMEMonitorHandlerReceiver}
 import appeng.api.util.AECableType
 import appeng.me.GridAccessException
 import appeng.me.cluster.implementations.CraftingCPUCluster
 import appeng.me.helpers.IGridProxyable
 import appeng.tile.crafting.TileCraftingMonitorTile
 import appeng.util.IterationCounter
-import appeng.util.item.AEItemStack
+import appeng.util.item.{AEFluidStack, AEItemStack}
 import com.google.common.collect.ImmutableSet
 import li.cil.oc.OpenComputers
-import li.cil.oc.api.machine.Arguments
-import li.cil.oc.api.machine.Callback
-import li.cil.oc.api.machine.Context
+import li.cil.oc.api.machine.{Arguments, Callback, Context}
 import li.cil.oc.api.network.Node
 import li.cil.oc.api.prefab.AbstractValue
 import li.cil.oc.common.EventHandler
@@ -39,7 +36,9 @@ import net.minecraft.tileentity.TileEntity
 import net.minecraftforge.common.DimensionManager
 import net.minecraftforge.common.util.Constants.NBT
 import net.minecraftforge.common.util.ForgeDirection
+import net.minecraftforge.fluids.{FluidRegistry, FluidStack}
 
+import java.lang
 import javax.annotation.Nonnull
 import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._
@@ -56,9 +55,13 @@ trait NetworkControl[AETile >: Null <: TileEntity with IGridProxyable with IActi
 
   def node: Node
 
-  private def allItems: Iterable[IAEItemStack] = tile.getProxy.getStorage.getItemInventory.getStorageList
-  private def getAvailableItem(@Nonnull request: IAEItemStack, iteration: Int): IAEItemStack = tile.getProxy.getStorage.getItemInventory.getAvailableItem(request, iteration)
-  private def allCraftables: Iterable[IAEItemStack] = allItems.collect{ case aeItem if aeItem.isCraftable => aeCraftItem(aeItem, tile) }
+  private def allItems: IItemList[IAEItemStack] = tile.getProxy.getStorage.getItemInventory.getStorageList
+
+  private def getAvailableItem(@Nonnull request: IAEItemStack, iteration: Int = IterationCounter.fetchNewId()): IAEItemStack = tile.getProxy.getStorage.getItemInventory.getAvailableItem(request, iteration)
+
+  private def allFluids: IItemList[IAEFluidStack] = tile.getProxy.getStorage.getFluidInventory.getStorageList
+
+  private def getAvailableFluid(@Nonnull request: IAEFluidStack, iteration: Int = IterationCounter.fetchNewId()): IAEFluidStack = tile.getProxy.getStorage.getFluidInventory.getAvailableItem(request, iteration)
 
   @Callback(doc = "function():table -- Get a list of tables representing the available CPUs in the network.")
   def getCpus(context: Context, args: Arguments): Array[AnyRef] = {
@@ -82,9 +85,18 @@ trait NetworkControl[AETile >: Null <: TileEntity with IGridProxyable with IActi
     val filter = args.optTable(0, Map.empty[AnyRef, AnyRef]).collect {
       case (key: String, value: AnyRef) => (key, value)
     }
-    result(allCraftables
-      .collect{ case aeCraftItem if filter.isEmpty || matches(convert(aeCraftItem, tile), filter) => new NetworkControl.Craftable(tile, aeCraftItem) }
-      .toArray)
+
+    val builder = mutable.ArrayBuilder.make[AnyRef]
+    (allItems.view ++ allFluids.view).foreach({ s =>
+      if (s.isCraftable) {
+        val c = asCraft(s, tile).asInstanceOf[IAEStack[_ <: IAEStack[_]]]
+        if (matches(convert(c, tile), filter)) {
+          builder += new Craftable(tile, c)
+        }
+      }
+    })
+
+    result(builder.result())
   }
 
   @Callback(doc = "function([filter:table]):table -- Get a list of the stored items in the network.")
@@ -135,6 +147,18 @@ trait NetworkControl[AETile >: Null <: TileEntity with IGridProxyable with IActi
       .toArray)
   }
 
+  @Callback(doc = "function([name:string]):table -- Get a list of the stored fluids in the network.")
+  def getFluidInNetwork(context: Context, args: Arguments): Array[AnyRef] = {
+    FluidRegistry.getFluid(args.checkString(0)) match {
+      case null => result(null)
+      case fluid =>
+        getAvailableFluid(AEFluidStack.create(new FluidStack(fluid, 0))) match {
+          case null => result(null)
+          case fluid => result(convert(fluid, tile))
+        }
+    }
+  }
+
   @Callback(doc = "function([subscribe:bool]):userdata -- Get an iterator object for the list of the items in the network. [Event: network_item_changed]")
   def allItems(context: Context, args: Arguments): Array[AnyRef] = {
     result(new ItemNetworkContents(tile, node, args.optBoolean(0, false)))
@@ -152,7 +176,7 @@ trait NetworkControl[AETile >: Null <: TileEntity with IGridProxyable with IActi
     }
     DatabaseAccess.withDatabase(node, args.checkString(1), database => {
       val items = allItems
-        .collect{ case aeItem if matches(convert(aeItem, tile), filter) => aePotentialItem(aeItem, tile)}.toArray
+        .collect { case aeItem if matches(convert(aeItem, tile), filter) => aePotentialItem(aeItem, tile) }.toArray
       val offset = args.optSlot(database.data, 2, 0)
       val count = args.optInteger(3, Int.MaxValue) min (database.size - offset) min items.length
       var slot = offset
@@ -174,7 +198,7 @@ trait NetworkControl[AETile >: Null <: TileEntity with IGridProxyable with IActi
 
   @Callback(doc = "function():table -- Get a list of the stored fluids in the network.")
   def getFluidsInNetwork(context: Context, args: Arguments): Array[AnyRef] =
-    result(tile.getProxy.getStorage.getFluidInventory.getStorageList.filter(isFluidVisible).map(fs => convert(fs, tile)).toArray)
+    result(allFluids.filter(isFluidVisible).map(fs => convert(fs, tile)).toArray)
 
   @Callback(doc = "function():number -- Get the average power injection into the network.")
   def getAvgPowerInjection(context: Context, args: Arguments): Array[AnyRef] =
@@ -199,7 +223,7 @@ trait NetworkControl[AETile >: Null <: TileEntity with IGridProxyable with IActi
   private def matches(stack: java.util.HashMap[String, AnyRef], filter: scala.collection.mutable.Map[String, AnyRef]): Boolean = {
     if (stack == null) return false
     filter.forall {
-      case (key: String, value: AnyRef) => 
+      case (key: String, value: AnyRef) =>
         val stack_value = stack.get(key)
         if (stack_value == null) false
         else value match {
@@ -216,7 +240,7 @@ trait NetworkControl[AETile >: Null <: TileEntity with IGridProxyable with IActi
 object NetworkControl {
 
   //noinspection ScalaUnusedSymbol
-  class Craftable(var controller: TileEntity with IGridProxyable with IActionHost, var stack: IAEItemStack) extends AbstractValue with ICraftingRequester {
+  class Craftable(var controller: TileEntity with IGridProxyable with IActionHost, var stack: IAEStack[_ <: IAEStack[_]]) extends AbstractValue with ICraftingRequester {
     def this() = this(null, null)
 
     private val links = mutable.Set.empty[ICraftingLink]
@@ -243,7 +267,10 @@ object NetworkControl {
     // ----------------------------------------------------------------------- //
 
     @Callback(doc = "function():table -- Returns the item stack representation of the crafting result.")
-    def getItemStack(context: Context, args: Arguments): Array[AnyRef] = Array(stack.getItemStack)
+    def getStack(context: Context, args: Arguments): Array[AnyRef] = stack match {
+      case item: IAEItemStack => result(item.getItemStack)
+      case fluid: IAEFluidStack => result(fluid.getFluidStack)
+    }
 
     @Callback(doc = "function([amount:int[, prioritizePower:boolean[, cpuName:string]]]):userdata -- Requests the item to be crafted, returning an object that allows tracking the crafting status.")
     def request(context: Context, args: Arguments): Array[AnyRef] = {
@@ -252,7 +279,7 @@ object NetworkControl {
       }
 
       val count = args.optInteger(0, 1)
-      val request = stack.copy
+      val request = stack.copy.asInstanceOf[IAEStack[_]]
       request.setStackSize(count)
 
       val craftingGrid = controller.getProxy.getCrafting
@@ -319,7 +346,7 @@ object NetworkControl {
   }
 
   //noinspection ScalaUnusedSymbol
-  class Cpu(var controller: TileEntity with IGridProxyable, var index : Int, var cpu : CraftingCPUCluster) extends AbstractValue {
+  class Cpu(var controller: TileEntity with IGridProxyable, var index: Int, var cpu: CraftingCPUCluster) extends AbstractValue {
     def this() = this(null, 0, null)
 
     @Callback(doc = "function():boolean -- Cancel this CPU current crafting job.")
@@ -397,6 +424,7 @@ object NetworkControl {
       nbt.setInteger("index", index)
       saveController(controller, nbt)
     }
+
     override def load(nbt: NBTTagCompound) {
       super.load(nbt)
       index = nbt.getInteger("index")
@@ -460,24 +488,24 @@ object NetworkControl {
   }
 
   //noinspection ConvertNullInitializerToUnderscore
-  abstract class NetworkContents[T <: IAEStack[T]](var controller: TileEntity with IGridProxyable with IActionHost, var node: Node, var subscribe: Boolean) extends AbstractValue with IMEMonitorHandlerReceiver[T]
-  {
+  abstract class NetworkContents[T <: IAEStack[T]](var controller: TileEntity with IGridProxyable with IActionHost, var node: Node, var subscribe: Boolean) extends AbstractValue with IMEMonitorHandlerReceiver[T] {
     def this() = this(null, null, false)
 
     def getInventory: IMEMonitor[T]
 
     def withInventory[R](action: IMEMonitor[T] => R): Option[R] = {
       for {
-        _   <- Option(controller)
+        _ <- Option(controller)
         inv <- Option(getInventory)
       } yield action(inv)
     }
 
     def convertItem(stack: IAEStack[_]): java.util.HashMap[String, AnyRef]
+
     val event_name: String = "network_changed"
 
-    private var items : IItemList[T] = null
-    private var itemIterator : java.util.Iterator[T] = null
+    private var items: IItemList[T] = null
+    private var itemIterator: java.util.Iterator[T] = null
     private var index = 0
 
     private def updateItems(): Unit = {
@@ -524,6 +552,7 @@ object NetworkControl {
     override def onListUpdate(): Unit = {
       updateItems()
     }
+
     override def postChange(monitor: IBaseMonitor[T], change: lang.Iterable[T], actionSource: BaseActionSource): Unit = {
       if (subscribe && node != null) {
         val flatArgs = ArrayBuffer[Object](event_name)
@@ -544,6 +573,7 @@ object NetworkControl {
       }
       return null
     }
+
     override def convertItem(stack: IAEStack[_]): java.util.HashMap[String, AnyRef] = convert(stack.asInstanceOf[IAEItemStack], controller)
   }
 
@@ -557,14 +587,15 @@ object NetworkControl {
       }
       return null
     }
+
     override def convertItem(stack: IAEStack[_]): java.util.HashMap[String, AnyRef] = convert(stack.asInstanceOf[IAEFluidStack], controller)
   }
 
-  def aeCraftItem(aeItem: IAEItemStack, tile: TileEntity with IGridProxyable): IAEItemStack = {
-    val patterns = tile.getProxy.getCrafting.getCraftingFor(aeItem, null, 0, tile.getWorldObj)
-    patterns.find(pattern => pattern.getOutputs.exists(_.isSameType(aeItem))) match {
-      case Some(pattern) => pattern.getOutputs.find(_.isSameType(aeItem)).get
-      case _ => aeItem.copy.setStackSize(0) // Should not be possible, but hey...
+  def asCraft(stack: IAEStack[_], tile: TileEntity with IGridProxyable): IAEStack[_] = {
+    tile.getProxy.getCrafting.getCraftingFor(stack, null, 0, tile.getWorldObj).view.map(a => a.getAEOutputs.find(_.isSameType(stack)).get).headOption.getOrElse[IAEStack[_]] {
+      val result = stack.copy().asInstanceOf[IAEStack[_ <: IAEStack[_]]]
+      result.setStackSize(0)
+      result
     }
   }
 
@@ -572,7 +603,7 @@ object NetworkControl {
     if (aeItem.getStackSize > 0 || !aeItem.isCraftable)
       aeItem
     else
-      aeCraftItem(aeItem, tile)
+      asCraft(aeItem, tile).asInstanceOf[IAEItemStack]
   }
 
   def hashConvert(value: java.util.HashMap[_, _]) = {
@@ -581,10 +612,17 @@ object NetworkControl {
     hash
   }
 
+  def convert(aeItem: IAEStack[_ <: IAEStack[_]], tile: TileEntity with IGridProxyable): java.util.HashMap[String, AnyRef] = {
+    aeItem match {
+      case item: IAEItemStack => convert(item, tile)
+      case fluid: IAEFluidStack => convert(fluid, tile)
+    }
+  }
+
   def convert(aeItem: IAEItemStack, tile: TileEntity with IGridProxyable): java.util.HashMap[String, AnyRef] = {
     val potentialItem = aePotentialItem(aeItem, tile)
     val result = Registry.convert(Array[AnyRef](potentialItem.getItemStack))
-      .collect { case hash: java.util.HashMap[_,_] => hashConvert(hash) }
+      .collect { case hash: java.util.HashMap[_, _] => hashConvert(hash) }
     if (result.length > 0) {
       val hash = result(0)
       // it would have been nice to put these fields in a registry convert
@@ -608,7 +646,7 @@ object NetworkControl {
     null
   }
 
-  private def loadController(nbt: NBTTagCompound, f : TileEntity with IGridProxyable with IActionHost => Unit ) : Unit = {
+  private def loadController(nbt: NBTTagCompound, f: TileEntity with IGridProxyable with IActionHost => Unit): Unit = {
     if (nbt.hasKey("dimension")) {
       val dimension = nbt.getInteger("dimension")
       val x = nbt.getInteger("x")
