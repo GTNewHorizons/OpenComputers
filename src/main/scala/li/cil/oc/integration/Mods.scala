@@ -51,6 +51,7 @@ object Mods {
   val IndustrialCraft2 = new SimpleMod(IDs.IndustrialCraft2)
   val IndustrialCraft2Classic = new SimpleMod(IDs.IndustrialCraft2Classic)
   val IngameWiki = new SimpleMod(IDs.IngameWiki, version = "@[1.1.3,)")
+  val MatterManipulator = new SimpleMod(IDs.MatterManipulator)
   val Mekanism = new SimpleMod(IDs.Mekanism)
   val MekanismGas = new SimpleMod(IDs.MekanismGas)
   val Minecraft = new SimpleMod(IDs.Minecraft)
@@ -114,6 +115,7 @@ object Mods {
     integration.gc.ModGalacticraft,
     integration.gregtech.ModGregtech,
     integration.ic2.ModIndustrialCraft2,
+    integration.matter_manipulator.ModMatterManipulator,
     integration.mekanism.ModMekanism,
     integration.mekanism.gas.ModMekanismGas,
     integration.mfr.ModMineFactoryReloaded,
@@ -204,6 +206,7 @@ object Mods {
     final val IndustrialCraft2Classic = "IC2-Classic"
     final val IndustrialCraft2Spmod = "IC2-Classic-Spmod"
     final val IngameWiki = "IGWMod"
+    final val MatterManipulator = "matter-manipulator"
     final val Mekanism = "Mekanism"
     final val MekanismGas = "MekanismAPI|gas"
     final val Minecraft = "Minecraft"
