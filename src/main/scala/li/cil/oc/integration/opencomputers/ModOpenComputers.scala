@@ -36,6 +36,7 @@ import li.cil.oc.common.nanomachines.provider.PotionProvider
 import li.cil.oc.common.template._
 import li.cil.oc.integration.ModProxy
 import li.cil.oc.integration.Mods
+import li.cil.oc.integration.thaumcraft.DriverUpgradeArcaneCrafting
 import li.cil.oc.integration.util.BundledRedstone
 import li.cil.oc.integration.util.WirelessRedstone
 import li.cil.oc.server.machine.luac.LuaStateFactory
@@ -156,6 +157,7 @@ object ModOpenComputers extends ModProxy {
     api.Driver.add(DriverUpgradeBattery)
     api.Driver.add(DriverUpgradeChunkloader)
     api.Driver.add(DriverUpgradeCrafting)
+    api.Driver.add(DriverUpgradeArcaneCrafting)
     api.Driver.add(DriverUpgradeDatabase)
     api.Driver.add(DriverUpgradeExperience)
     api.Driver.add(DriverUpgradeGenerator)
@@ -195,6 +197,7 @@ object ModOpenComputers extends ModProxy {
 
     api.Driver.add(DriverUpgradeChunkloader.Provider)
     api.Driver.add(DriverUpgradeCrafting.Provider)
+    api.Driver.add(DriverUpgradeArcaneCrafting.Provider)
     api.Driver.add(DriverUpgradeDatabase.Provider)
     api.Driver.add(DriverUpgradeExperience.Provider)
     api.Driver.add(DriverUpgradeGenerator.Provider)
@@ -227,6 +230,7 @@ object ModOpenComputers extends ModProxy {
       Constants.ItemName.BatteryUpgradeTier3,
       Constants.ItemName.ChunkloaderUpgrade,
       Constants.ItemName.CraftingUpgrade,
+      Constants.ItemName.ArcaneCraftingUpgrade,
       Constants.ItemName.ExperienceUpgrade,
       Constants.ItemName.GeneratorUpgrade,
       Constants.ItemName.HoverUpgradeTier1,
@@ -260,6 +264,7 @@ object ModOpenComputers extends ModProxy {
       Constants.ItemName.RedstoneCardTier1,
       Constants.ItemName.AngelUpgrade,
       Constants.ItemName.CraftingUpgrade,
+      Constants.ItemName.ArcaneCraftingUpgrade,
       Constants.ItemName.HoverUpgradeTier1,
       Constants.ItemName.HoverUpgradeTier2,
       Constants.ItemName.BeekeeperUpgrade,
@@ -277,6 +282,7 @@ object ModOpenComputers extends ModProxy {
       Constants.ItemName.GraphicsCardTier3,
       Constants.ItemName.AngelUpgrade,
       Constants.ItemName.CraftingUpgrade,
+      Constants.ItemName.ArcaneCraftingUpgrade,
       Constants.ItemName.DatabaseUpgradeTier1,
       Constants.ItemName.DatabaseUpgradeTier2,
       Constants.ItemName.DatabaseUpgradeTier3,
@@ -313,6 +319,7 @@ object ModOpenComputers extends ModProxy {
       Constants.ItemName.AngelUpgrade,
       Constants.ItemName.ChunkloaderUpgrade,
       Constants.ItemName.CraftingUpgrade,
+      Constants.ItemName.ArcaneCraftingUpgrade,
       Constants.ItemName.DatabaseUpgradeTier1,
       Constants.ItemName.DatabaseUpgradeTier2,
       Constants.ItemName.DatabaseUpgradeTier3,
