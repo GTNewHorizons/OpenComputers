@@ -69,6 +69,7 @@ object Textures {
   val blockRackTerminalServerPresence = new ResourceLocation(Settings.resourceDomain, "textures/blocks/TerminalServerFrontPresence.png")
 
   val upgradeCrafting = new ResourceLocation(Settings.resourceDomain, "textures/model/UpgradeCrafting.png")
+  val upgradeArcaneCrafting = new ResourceLocation(Settings.resourceDomain, "textures/items/UpgradeArcaneCrafting.png")
   val upgradeGenerator = new ResourceLocation(Settings.resourceDomain, "textures/model/UpgradeGenerator.png")
   val upgradeInventory = new ResourceLocation(Settings.resourceDomain, "textures/model/UpgradeInventory.png")
 
