@@ -122,6 +122,14 @@ object AEUtil {
       AEApi.instance.parts.partInterface != null &&
       AEApi.instance.parts.partInterface.sameAsStack(stack)
 
+  def isPartInterfaceTerminal(stack: ItemStack): Boolean = stack != null && AEApi.instance != null && {
+    if (useNewItemDefinitionAPI) isPartInterfaceTerminalNew(stack)
+    else false
+  }
+
+  private def isPartInterfaceTerminalNew(stack: ItemStack): Boolean =
+    AEApi.instance.definitions.parts.interfaceTerminal.isSameAs(stack)
+
   def isRobot(stack: ItemStack): Boolean =
     api.Items.get(stack) == api.Items.get("robot")
 
