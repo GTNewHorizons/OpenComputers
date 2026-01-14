@@ -58,7 +58,10 @@ object DriverPartInterfaceTerminal extends driver.SidedBlock {
       val location = ConverterDimensioinalCoord.parse(args.checkTable(0), host.getLocation.getDimension)
       var filtered = allMachines.filter(_.getLocation == location)
       if (args.count() >= 2) {
-        val side = ForgeDirection.getOrientation(args.checkInteger(1))
+        val side = if (args.isInteger(1))
+          ForgeDirection.getOrientation(args.checkInteger(1))
+        else
+          ForgeDirection.valueOf(args.checkString(1).toUpperCase)
         filtered = filtered.filter {
           case part: AEBasePart => part.getSide == side
           case _ => ForgeDirection.UNKNOWN == side
@@ -104,7 +107,7 @@ object DriverPartInterfaceTerminal extends driver.SidedBlock {
         }
         val side: ForgeDirection = args.get("side") match {
           case value: java.lang.Number => ForgeDirection.getOrientation(value.intValue)
-          case str: String => ForgeDirection.valueOf(str)
+          case str: String => ForgeDirection.valueOf(str.toUpperCase)
           case _ => ForgeDirection.UNKNOWN
         }
         val slot: Integer = args.get("slot") match {
@@ -190,14 +193,17 @@ object DriverPartInterfaceTerminal extends driver.SidedBlock {
 
     private def getGrid = part.getActionableNode.getGrid
   }
+
   object Provider extends EnvironmentProvider {
     override def getEnvironment(stack: ItemStack): Class[_] =
       if (AEUtil.isPartInterfaceTerminal(stack))
         classOf[Environment]
       else null
   }
+
   class InterfaceViewableArrayValue(it: Iterable[IInterfaceViewable]) extends AbstractValue {
     def this() = this(Iterable.empty)
+
     private case class InterfaceViewableInfo(name: String, location: DimensionalCoord, side: ForgeDirection, patterns: Array[ItemStack])
 
     private def convert(info: InterfaceViewableInfo, includePatterns: Boolean = true) = {
