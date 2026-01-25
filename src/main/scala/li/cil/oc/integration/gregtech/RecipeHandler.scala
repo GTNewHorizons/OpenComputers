@@ -20,7 +20,6 @@ object RecipeHandler {
     Recipes.registerRecipeHandler("gt_canner", addGTCannerRecipe)
     Recipes.registerRecipeHandler("gt_chemical", addGTChemicalRecipe)
     Recipes.registerRecipeHandler("gt_cutter", addGTCutterRecipe)
-    Recipes.registerRecipeHandler("gt_fluidCanner", addGTFluidCannerRecipe)
     Recipes.registerRecipeHandler("gt_formingPress", addGTFormingPressRecipe)
     Recipes.registerRecipeHandler("gt_lathe", addGTLatheRecipe)
     Recipes.registerRecipeHandler("gt_laserEngraver", addGTLaserEngraverRecipe)
@@ -159,24 +158,6 @@ object RecipeHandler {
           recipe = recipe.itemOutputs(output)
       }
       recipe.duration(duration).eut(eu).addTo(RecipeMaps.cutterRecipes)
-    }
-  }
-
-  def addGTFluidCannerRecipe(output: ItemStack, recipe: Config) {
-    val (primaryInputs, _, fluidInput, fluidOutput, _, eu, duration) = parseRecipe(output, recipe)
-    for (primaryInput <- primaryInputs) {
-      var recipe = GTValues.RA.stdBuilder().itemInputs(primaryInput)
-      fluidInput match {
-        case Some(fluidStack) =>
-          recipe = recipe.fluidInputs(fluidStack)
-        case _ =>
-      }
-      fluidOutput match {
-        case Some(fluidStack) =>
-          recipe = recipe.fluidOutputs(fluidStack)
-        case _ =>
-      }
-      recipe.itemOutputs(output).duration(duration).eut(eu).addTo(RecipeMaps.fluidCannerRecipes)
     }
   }
 
