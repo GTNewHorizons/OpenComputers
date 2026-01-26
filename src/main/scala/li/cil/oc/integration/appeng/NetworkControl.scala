@@ -13,7 +13,7 @@ import appeng.me.GridAccessException
 import appeng.me.cluster.implementations.CraftingCPUCluster
 import appeng.me.helpers.IGridProxyable
 import appeng.tile.crafting.TileCraftingMonitorTile
-import appeng.util.IterationCounter
+import appeng.util.{IterationCounter, Platform}
 import appeng.util.item.{AEFluidStack, AEItemStack}
 import com.google.common.collect.ImmutableSet
 import li.cil.oc.OpenComputers
@@ -331,7 +331,12 @@ object NetworkControl {
 
     override def load(nbt: NBTTagCompound) {
       super.load(nbt)
-      stack = AEItemStack.loadItemStackFromNBT(nbt)
+      if (nbt.hasKey("StackType")) {
+        stack = Platform.readStackNBT(nbt, true).asInstanceOf[IAEStack[_ <: IAEStack[_]]]
+      }
+      else {
+        stack = AEItemStack.loadItemStackFromNBT(nbt)
+      }
       loadController(nbt, c => controller = c)
       links ++= nbt.getTagList("links", NBT.TAG_COMPOUND).map(
         (nbt: NBTTagCompound) => AEApi.instance.storage.loadCraftingLink(nbt, this))
@@ -339,7 +344,7 @@ object NetworkControl {
 
     override def save(nbt: NBTTagCompound) {
       super.save(nbt)
-      stack.writeToNBT(nbt)
+      Platform.writeStackNBT(stack, nbt, true)
       saveController(controller, nbt)
       nbt.setNewTagList("links", links.map(_.writeToNBT _))
     }
@@ -564,6 +569,8 @@ object NetworkControl {
   }
 
   class ItemNetworkContents(controller: TileEntity with IGridProxyable with IActionHost, node: Node, subscribe: Boolean) extends NetworkContents[IAEItemStack](controller, node, subscribe) {
+    def this() = this(null, null, false)
+
     override val event_name: String = "network_item_changed"
 
     def getInventory: IMEMonitor[IAEItemStack] = {
@@ -578,6 +585,8 @@ object NetworkControl {
   }
 
   class FluidNetworkContents(controller: TileEntity with IGridProxyable with IActionHost, node: Node, subscribe: Boolean) extends NetworkContents[IAEFluidStack](controller, node, subscribe) {
+    def this() = this(null, null, false)
+
     override val event_name: String = "network_fluid_changed"
 
     override def getInventory: IMEMonitor[IAEFluidStack] = {
