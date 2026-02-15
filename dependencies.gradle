@@ -5,9 +5,9 @@ dependencies {
     shadowImplementation name: 'OC-JNLua', version: '20230530.0', ext: 'jar'
     shadowImplementation name: 'OC-JNLua-Natives', version: '20220928.1', ext: 'jar'
 
-    api("com.github.GTNewHorizons:AE2FluidCraft-Rework:1.5.39-gtnh:dev")
+    api("com.github.GTNewHorizons:AE2FluidCraft-Rework:1.5.58-gtnh:dev")
     compileOnly("com.github.GTNewHorizons:Angelica:1.0.0-beta68a:api") {transitive = false}
-    api("com.github.GTNewHorizons:Applied-Energistics-2-Unofficial:rv3-betea-777-GTNH:dev")
+    api("com.github.GTNewHorizons:Applied-Energistics-2-Unofficial:rv3-beta-817-GTNH:dev")
     compileOnly("com.github.GTNewHorizons:Avaritiaddons:1.9.3-GTNH:dev") {transitive = false}
     compileOnly("com.github.GTNewHorizons:BloodMagic:1.8.8:dev") {transitive = false}
     compileOnly("com.github.GTNewHorizons:BuildCraft:7.1.48:dev") {transitive = false}
@@ -27,7 +27,9 @@ dependencies {
     compileOnly("com.github.GTNewHorizons:ProjectRed:4.12.8-GTNH:dev") {transitive = false}
     compileOnly("com.github.GTNewHorizons:Railcraft:9.17.12:dev") {transitive = false}
     compileOnly("com.github.GTNewHorizons:StructureLib:1.4.25:dev") {transitive = false}
-    compileOnly("com.github.GTNewHorizons:ThaumicEnergistics:1.7.18-GTNH:dev") {transitive = false}
+    compileOnly("com.github.GTNewHorizons:ThaumicEnergistics:1.7.27-GTNH:dev") {transitive = false}
+    runtimeOnly("thaumcraft:Thaumcraft:1.7.10-4.2.3.5:dev") {transitive = false}
+    runtimeOnly("com.github.GTNewHorizons:ThaumicEnergistics:1.7.27-GTNH:dev") {transitive = false}
     compileOnly("com.github.GTNewHorizons:TinkersMechworks:0.4.1:dev") {transitive = false}
     compileOnly("com.github.GTNewHorizons:waila:1.9.15:dev") {transitive = false}
     compileOnly("com.github.GTNewHorizons:WirelessRedstone-CBE:1.7.1:dev") {transitive = false}

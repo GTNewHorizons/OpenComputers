@@ -1,14 +1,12 @@
 package li.cil.oc.integration.appeng
 
-import li.cil.oc.api
-import li.cil.oc.Constants
 import li.cil.oc.api.driver.EnvironmentProvider
 import li.cil.oc.api.driver.item.HostAware
 import li.cil.oc.api.network.EnvironmentHost
-import li.cil.oc.common.Slot
-import li.cil.oc.common.Tier
 import li.cil.oc.common.item.Delegator
+import li.cil.oc.common.{Slot, Tier}
 import li.cil.oc.integration.opencomputers.Item
+import li.cil.oc.{Constants, api}
 import net.minecraft.item.ItemStack
 
 object DriverUpgradeAE extends Item with HostAware {

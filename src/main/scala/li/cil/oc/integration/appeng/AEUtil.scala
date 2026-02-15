@@ -3,10 +3,10 @@ package li.cil.oc.integration.appeng
 import appeng.api.AEApi
 import cpw.mods.fml.common.Loader
 import cpw.mods.fml.common.versioning.VersionRange
+import li.cil.oc.api
 import li.cil.oc.common.item.Delegator
 import li.cil.oc.common.item.data.{DroneData, RobotData}
 import li.cil.oc.integration.Mods
-import li.cil.oc.api
 import net.minecraft.item.ItemStack
 
 object AEUtil {
