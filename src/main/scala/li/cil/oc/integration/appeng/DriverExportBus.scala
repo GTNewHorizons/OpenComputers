@@ -10,7 +10,7 @@ import li.cil.oc.api.driver
 import li.cil.oc.api.driver.{EnvironmentProvider, NamedBlock}
 import li.cil.oc.api.machine.{Arguments, Callback, Context}
 import li.cil.oc.integration.ManagedTileEntityEnvironment
-import li.cil.oc.integration.appeng.internal.PartSharedItemBusBase
+import li.cil.oc.integration.appeng.internal.PartItemBusBase
 import li.cil.oc.util.ExtendedArguments._
 import li.cil.oc.util.ResultWrapper._
 import li.cil.oc.util.{BlockPosition, InventoryUtils}
@@ -31,7 +31,7 @@ object DriverExportBus extends driver.SidedBlock {
 
   override def createEnvironment(world: World, x: Int, y: Int, z: Int, side: ForgeDirection) = new Environment(world.getTileEntity(x, y, z).asInstanceOf[IPartHost])
 
-  final class Environment(val host: IPartHost) extends ManagedTileEntityEnvironment[IPartHost](host, "me_exportbus") with NamedBlock with PartSharedItemBusBase[PartExportBus] {
+  final class Environment(val host: IPartHost) extends ManagedTileEntityEnvironment[IPartHost](host, "me_exportbus") with NamedBlock with PartItemBusBase[PartExportBus] {
     override def preferredName = "me_exportbus"
 
     override def priority = 2
@@ -39,14 +39,8 @@ object DriverExportBus extends driver.SidedBlock {
     @Callback(doc = "function(side:number, [ slot:number]):boolean -- Get the configuration of the export bus pointing in the specified direction.")
     def getExportConfiguration(context: Context, args: Arguments): Array[AnyRef] = result(getPartConfig(context, args))
 
-    @Callback(doc = "function(side:number[, slot:number][, database:address, entry:number):boolean -- Configure the export bus pointing in the specified direction to export item stacks matching the specified descriptor.")
+    @Callback(doc = "function(side:number[, slot:number][, database:address, entry:number):boolean OR function(side:number[, slot:number][, detail: table):boolean -- Configure the export bus pointing in the specified direction to export item stacks matching the specified descriptor.")
     def setExportConfiguration(context: Context, args: Arguments): Array[AnyRef] = {
-      setPartConfigByDatabase(context, args)
-      result(true)
-    }
-
-    @Callback(doc = "function(side:number[, slot:number][, detail: table):boolean -- Configure the export bus pointing in the specified direction to export stacks matching the specified descriptor.")
-    def setExportConfigurationExtended(context: Context, args: Arguments): Array[AnyRef] = {
       setPartConfig[IAEItemStack](context, args)
       result(true)
     }

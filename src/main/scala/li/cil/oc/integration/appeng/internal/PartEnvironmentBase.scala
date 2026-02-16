@@ -3,7 +3,7 @@ package li.cil.oc.integration.appeng.internal
 import appeng.api.config.Upgrades
 import appeng.api.parts.IPartHost
 import appeng.api.storage.StorageName
-import appeng.api.storage.data.IAEStack
+import appeng.api.storage.data.{IAEItemStack, IAEStack}
 import appeng.parts.automation.PartSharedItemBus
 import appeng.tile.inventory.IIAEStackInventory
 import appeng.util.item.AEItemStack
@@ -58,16 +58,6 @@ trait PartEnvironmentBase[PartType <: IIAEStackInventory] extends ManagedEnviron
     val stack = AEStackFactory.parse[T](args.checkTable(offset))
     setPartConfig(part, slot, stack)
   }
-
-  // function(side:number[, slot:number][, database:address, entry:number[, size:number]]):boolean
-  def setPartConfigByDatabase(context: Context, args: Arguments): Unit = {
-    val stack: AEItemStack = if (!args.isString(2)) null
-    else AEItemStack.create(DatabaseAccess.getStackFromDatabase(node, args, 2))
-    val side = args.checkSideAny(0)
-    val part = getPart(side)
-    val slot = args.optInteger(1, 0)
-    setPartConfig(part, slot, stack)
-  }
 }
 
 trait PartSharedItemBusBase[PartType <: PartSharedItemBus[_]] extends PartEnvironmentBase[PartType] {
@@ -78,5 +68,18 @@ trait PartSharedItemBusBase[PartType <: PartSharedItemBus[_]] extends PartEnviro
     val side = args.checkSideAny(0)
     val part = getPart(side)
     getSlotSize(part)
+  }
+}
+
+trait PartItemBusBase[PartType <: PartSharedItemBus[_]] extends PartSharedItemBusBase[PartType]{
+  // function(side:number[, slot:number][, database:address, entry:number[, size:number]]):boolean
+  override def setPartConfig[T <: IAEStack[T]: ClassTag](context: Context, args: Arguments): Unit = {
+    val side = args.checkSideAny(0)
+    val part = getPart(side)
+    val (slot, offset) = if (args.isInteger(1)) (args.checkInteger(1), 2) else (0, 1)
+    val stack =
+      if (args.isTable(offset)) AEStackFactory.parse[IAEItemStack](args.checkTable(offset))
+      else AEItemStack.create(DatabaseAccess.getStackFromDatabase(node, args, offset))
+    setPartConfig(part, slot, stack)
   }
 }
