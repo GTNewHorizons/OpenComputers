@@ -13,6 +13,8 @@ import net.minecraft.item.ItemStack
 import net.minecraft.world.World
 import net.minecraftforge.common.util.ForgeDirection
 
+import scala.reflect.ClassTag
+
 object DriverImportBus extends driver.SidedBlock {
   override def worksWith(world: World, x: Int, y: Int, z: Int, side: ForgeDirection) =
     world.getTileEntity(x, y, z) match {
@@ -24,7 +26,7 @@ object DriverImportBus extends driver.SidedBlock {
 
   override def createEnvironment(world: World, x: Int, y: Int, z: Int, side: ForgeDirection) = new Environment(world.getTileEntity(x, y, z).asInstanceOf[IPartHost])
 
-  final class Environment(val host: IPartHost) extends ManagedTileEntityEnvironment[IPartHost](host, "me_importbus") with NamedBlock with PartItemBusBase[PartImportBus] {
+  final class Environment(val host: IPartHost)(implicit val tag: ClassTag[PartImportBus]) extends ManagedTileEntityEnvironment[IPartHost](host, "me_importbus") with NamedBlock with PartItemBusBase[PartImportBus] {
     override def preferredName = "me_importbus"
 
     override def priority = 1

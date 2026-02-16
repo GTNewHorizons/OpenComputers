@@ -6,12 +6,14 @@ import li.cil.oc.api.driver
 import li.cil.oc.api.driver.{EnvironmentProvider, NamedBlock}
 import li.cil.oc.api.machine.{Arguments, Callback, Context}
 import li.cil.oc.integration.ManagedTileEntityEnvironment
-import li.cil.oc.integration.appeng.internal.{PartInterfaceEnvironmentAE2, PartPatternEnvironment}
+import li.cil.oc.integration.appeng.internal.{PartInterfaceEnvironment, PartPatternEnvironment}
 import li.cil.oc.util.ExtendedArguments.extendedArguments
 import li.cil.oc.util.ResultWrapper.result
 import net.minecraft.item.ItemStack
 import net.minecraft.world.World
 import net.minecraftforge.common.util.ForgeDirection
+
+import scala.reflect.ClassTag
 
 object DriverPartInterface extends driver.SidedBlock {
   override def worksWith(world: World, x: Int, y: Int, z: Int, side: ForgeDirection) =
@@ -24,7 +26,7 @@ object DriverPartInterface extends driver.SidedBlock {
 
   override def createEnvironment(world: World, x: Int, y: Int, z: Int, side: ForgeDirection) = new Environment(world.getTileEntity(x, y, z).asInstanceOf[IPartHost])
 
-  final class Environment(val host: IPartHost) extends ManagedTileEntityEnvironment[IPartHost](host, "me_interface") with NamedBlock with PartInterfaceEnvironmentAE2 with PartPatternEnvironment[PartInterface] {
+  final class Environment(val host: IPartHost)(implicit val tag: ClassTag[PartInterface]) extends ManagedTileEntityEnvironment[IPartHost](host, "me_interface") with NamedBlock with PartInterfaceEnvironment[PartInterface] with PartPatternEnvironment[PartInterface] {
     override def preferredName = "me_interface"
 
     override def priority = 0
@@ -38,7 +40,7 @@ object DriverPartInterface extends driver.SidedBlock {
     @Callback(doc = "function([slot:number]):table -- Get the given pattern in the interface.")
     def getInterfacePattern(context: Context, args: Arguments): Array[AnyRef] = {
       val inv = getPatternInventory(context, args)
-      val slot = args.optSlot(inv, 0, 0)
+      val slot = args.optSlot(inv, 1, 0)
       val stack = inv.getStackInSlot(slot)
       result(stack)
     }
@@ -59,6 +61,8 @@ object DriverPartInterface extends driver.SidedBlock {
     @Callback(doc = "function(slot:number, index:number, database:address, entry:number):boolean -- Store pattern output at the given index to the database entry.")
     def storeInterfacePatternOutput(context: Context, args: Arguments): Array[AnyRef] =
       storeInterfacePattern(context, args, "out")
+
+    override def offset: Int = 1
   }
 
   object Provider extends EnvironmentProvider {

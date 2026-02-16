@@ -1,7 +1,7 @@
 package li.cil.oc.integration.appeng.internal
 
 import appeng.api.implementations.tiles.ISegmentedInventory
-import appeng.api.parts.IPartHost
+import appeng.api.parts.IPart
 import appeng.api.storage.data.IAEStack
 import appeng.tile.misc.TileInterface
 import appeng.util.Platform
@@ -16,12 +16,11 @@ import net.minecraft.inventory.IInventory
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.util.Constants.NBT
-import net.minecraftforge.common.util.ForgeDirection
 
 trait PatternEnvironment extends ManagedEnvironment {
   def getPatternInventory(context: Context, args: Arguments): IInventory
 
-  def offset: Int = 0
+  protected def offset: Int = 0
 
   private def getPatternNBT(context: Context, args: Arguments, tag: String) = {
     val inv = getPatternInventory(context, args)
@@ -89,17 +88,8 @@ trait BlockPatternEnvironment extends PatternEnvironment {
   }
 }
 
-trait PartPatternEnvironment[PartType <: ISegmentedInventory] extends PatternEnvironment {
-  def host: IPartHost
-
+trait PartPatternEnvironment[PartType <: ISegmentedInventory with IPart] extends PatternEnvironment with PartEnvironmentBase[PartType] {
   override def offset: Int = 1
-
-  def getPart(side: ForgeDirection): PartType = {
-    host.getPart(side) match {
-      case part: PartType => part
-      case _ => throw new IllegalArgumentException("no matching part")
-    }
-  }
 
   override def getPatternInventory(context: Context, args: Arguments): IInventory = {
     val side = args.checkSideAny(0)

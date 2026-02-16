@@ -15,6 +15,8 @@ import thaumicenergistics.api.ThEApi
 import thaumicenergistics.common.parts.PartEssentiaImportBus
 import thaumicenergistics.common.storage.AEEssentiaStack
 
+import scala.reflect.{ClassTag, classTag}
+
 object DriverEssentiaImportBus extends driver.SidedBlock {
   override def worksWith(world: World, x: Int, y: Int, z: Int, side: ForgeDirection) =
     world.getTileEntity(x, y, z) match {
@@ -26,7 +28,7 @@ object DriverEssentiaImportBus extends driver.SidedBlock {
 
   override def createEnvironment(world: World, x: Int, y: Int, z: Int, side: ForgeDirection) = new Environment(world, world.getTileEntity(x, y, z).asInstanceOf[IPartHost])
 
-  final class Environment(val world: World, val host: IPartHost) extends ManagedTileEntityEnvironment[IPartHost](host, "essentia_importbus") with NamedBlock with PartSharedItemBusBase[PartEssentiaImportBus] {
+  final class Environment(val world: World, val host: IPartHost)(implicit val tag: ClassTag[PartEssentiaImportBus]) extends ManagedTileEntityEnvironment[IPartHost](host, "essentia_importbus") with NamedBlock with PartSharedItemBusBase[PartEssentiaImportBus] {
     override def preferredName = "essentia_importbus"
 
     override def priority = 2
