@@ -37,7 +37,7 @@ object DriverPartInterfaceTerminal extends driver.SidedBlock {
     new Environment(host, host.getPart(side).asInstanceOf[PartInterfaceTerminal])
   }
 
-  final class Environment(val host: IPartHost, val part: PartInterfaceTerminal) extends ManagedTileEntityEnvironment[IPartHost](host, "me_interface_terminal") with NamedBlock with PartEnvironmentBase {
+  final class Environment(val host: IPartHost, val part: PartInterfaceTerminal) extends ManagedTileEntityEnvironment[IPartHost](host, "me_interface_terminal") with NamedBlock {
     override def preferredName = "me_interface_terminal"
 
     override def priority = 0
