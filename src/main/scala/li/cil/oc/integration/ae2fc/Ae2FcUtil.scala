@@ -20,4 +20,7 @@ object Ae2FcUtil {
 
   def isPartFluidInterface(stack: ItemStack): Boolean =
     stack != null && stack.getItem == ItemAndBlockHolder.FLUID_INTERFACE
+
+  def isFluidStorageBus(stack: ItemStack): Boolean =
+    stack != null && stack.getItem == ItemAndBlockHolder.FLUID_STORAGE_BUS
 }

@@ -19,5 +19,7 @@ object ModAe2fc extends ModProxy {
     Driver.add(DriverFluidExportBus.Provider)
     Driver.add(DriverFluidImportBus)
     Driver.add(DriverFluidImportBus.Provider)
+    Driver.add(DriverFluidStorageBus)
+    Driver.add(DriverFluidStorageBus.Provider)
   }
 }

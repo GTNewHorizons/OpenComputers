@@ -38,16 +38,19 @@ object DriverExportBus extends driver.SidedBlock {
     override def priority = 2
 
     @Callback(doc = "function(side:number, [ slot:number]):boolean -- Get the configuration of the export bus pointing in the specified direction.")
-    def getExportConfiguration(context: Context, args: Arguments): Array[AnyRef] = result(getPartConfig(context, args))
+    def getExportConfiguration(context: Context, args: Arguments): Array[AnyRef] = this.getPartConfig(context, args)
 
     @Callback(doc = "function(side:number[, slot:number][, database:address, entry:number):boolean OR function(side:number[, slot:number][, detail: table):boolean -- Configure the export bus pointing in the specified direction to export item stacks matching the specified descriptor.")
-    def setExportConfiguration(context: Context, args: Arguments): Array[AnyRef] = {
-      setPartConfig[IAEItemStack](context, args)
-      result(true)
-    }
+    def setExportConfiguration(context: Context, args: Arguments): Array[AnyRef] = this.setPartConfig[IAEItemStack](context, args)
 
     @Callback(doc = "function(side:number):number -- Get the number of valid slots in this export bus.")
-    def getExportSlotSize(context: Context, args: Arguments): Array[AnyRef] = result(getSlotSize(context, args))
+    def getExportSlotSize(context: Context, args: Arguments): Array[AnyRef] = getSlotSize(context, args)
+
+    @Callback(doc = "function(side:number):boolean -- Get the ore filter of the export bus pointing in the specified direction.")
+    def getExportOreFilter(context: Context, args: Arguments): Array[AnyRef] = this.getPartOreFilter(context, args)
+
+    @Callback(doc = "function(side:number, filter: String):boolean -- Set the ore filter of the export bus pointing in the specified direction.")
+    def setExportOreFilter(context: Context, args: Arguments): Array[AnyRef] = this.setPartOreFilter(context, args)
 
     @Callback(doc = "function(side:number, slot:number):boolean -- Make the export bus facing the specified direction perform a single export operation into the specified slot.")
     def exportIntoSlot(context: Context, args: Arguments): Array[AnyRef] = {

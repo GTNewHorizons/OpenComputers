@@ -8,7 +8,6 @@ import li.cil.oc.api.driver.{EnvironmentProvider, NamedBlock}
 import li.cil.oc.api.machine.{Arguments, Callback, Context}
 import li.cil.oc.integration.ManagedTileEntityEnvironment
 import li.cil.oc.integration.appeng.internal.PartSharedItemBusBase
-import li.cil.oc.util.ResultWrapper.result
 import net.minecraft.item.ItemStack
 import net.minecraft.world.World
 import net.minecraftforge.common.util.ForgeDirection
@@ -32,16 +31,19 @@ object DriverFluidImportBus extends driver.SidedBlock {
     override def priority = 1
 
     @Callback(doc = "function(side:number[, slot:number]):boolean -- Get the configuration of the import bus pointing in the specified direction.")
-    def getImportConfiguration(context: Context, args: Arguments): Array[AnyRef] = result(getPartConfig(context, args))
+    def getImportConfiguration(context: Context, args: Arguments): Array[AnyRef] = this.getPartConfig(context, args)
 
     @Callback(doc = "function(side:number[, slot:number][, database:address, entry:number]):boolean OR function(side:number[, slot:number][, detail:table]):boolean -- Configure the import bus pointing in the specified direction to import item stacks matching the specified descriptor.")
-    def setImportConfiguration(context: Context, args: Arguments): Array[AnyRef] = {
-      setPartConfig[IAEFluidStack](context, args)
-      result(true)
-    }
+    def setImportConfiguration(context: Context, args: Arguments): Array[AnyRef] = this.setPartConfig[IAEFluidStack](context, args)
 
     @Callback(doc = "function(side:number):number -- Get the number of valid slots in this import bus.")
-    def getImportSlotSize(context: Context, args: Arguments): Array[AnyRef] = result(getSlotSize(context, args))
+    def getImportSlotSize(context: Context, args: Arguments): Array[AnyRef] = getSlotSize(context, args)
+
+    @Callback(doc = "function(side:number):boolean -- Get the ore filter of the import bus pointing in the specified direction.")
+    def getImportOreFilter(context: Context, args: Arguments): Array[AnyRef] = this.getPartOreFilter(context, args)
+
+    @Callback(doc = "function(side:number, filter: String):boolean -- Set the ore filter of the import bus pointing in the specified direction.")
+    def setImportOreFilter(context: Context, args: Arguments): Array[AnyRef] = this.setPartOreFilter(context, args)
   }
 
   object Provider extends EnvironmentProvider {

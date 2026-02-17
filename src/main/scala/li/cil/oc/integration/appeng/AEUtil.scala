@@ -122,6 +122,10 @@ object AEUtil {
       AEApi.instance.parts.partInterface != null &&
       AEApi.instance.parts.partInterface.sameAsStack(stack)
 
+  def isPartStorageBus(stack: ItemStack): Boolean = {
+    AEApi.instance.definitions.parts.storageBus.isSameAs(stack)
+  }
+
   def isRobot(stack: ItemStack): Boolean =
     api.Items.get(stack) == api.Items.get("robot")
 
