@@ -16,13 +16,25 @@ object EventHandlerGregTech {
     val world = e.host.world
     val te = world.getTileEntity(e.x, e.y, e.z)
     te match {
-      case turnable : ITurnable =>
+      case turnable: ITurnable =>
         e.data += "facing" -> turnable.getFrontFacing.name
       case _ =>
     }
     val infoDevice = Capabilities.getCapability(te, classOf[IGregTechDeviceInformation])
     if (infoDevice != null) {
       e.data += "sensorInformation" -> infoDevice.getInfoData
+    }
+
+    te match {
+      case gtTe: IGregTechTileEntity =>
+        val meta = gtTe.getMetaTileEntity
+        if (meta != null) {
+          e.data += "sensorInformation" -> meta.getInfoData
+          e.data += "machineType"       -> meta.getInventoryName
+          e.data += "metaId"            -> meta.getClass.getSimpleName
+          e.data += "gtMetaId"          -> Int.box(gtTe.getMetaTileID.toInt)
+        }
+      case _ =>
     }
   }
 
