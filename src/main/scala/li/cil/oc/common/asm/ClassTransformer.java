@@ -5,14 +5,17 @@ import net.minecraft.launchwrapper.LaunchClassLoader;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.objectweb.asm.ClassWriter;
-import org.objectweb.asm.tree.AnnotationNode;
 import org.objectweb.asm.tree.ClassNode;
+import com.gtnewhorizon.gtnhlib.asm.ClassConstantPoolParser;
 
 public class ClassTransformer implements IClassTransformer {
 
   private static final Logger log = LogManager.getLogger("OpenComputers");
   private final LaunchClassLoader loader =
     (LaunchClassLoader) ClassTransformer.class.getClassLoader();
+
+  private final ClassConstantPoolParser simpleComponentParser =
+    new ClassConstantPoolParser("li/cil/oc/api/network/SimpleComponent");
 
   public static boolean hadErrors = false;
   public static boolean hadSimpleComponentErrors = false;
@@ -50,7 +53,6 @@ public class ClassTransformer implements IClassTransformer {
         name.startsWith("cpw.mods.fml.") ||
         // We're using apache's ArrayUtils here, so we need to avoid circular transforms of this class
         name.startsWith("org.apache.") ||
-        name.startsWith("li.cil.oc.common.asm.") ||
         name.startsWith("li.cil.oc.integration.")) {
         return basicClass;
       }
@@ -62,23 +64,10 @@ public class ClassTransformer implements IClassTransformer {
         return ASMHelpers.writeClass(loader, classNode, ClassWriter.COMPUTE_MAXS);
       }
 
-      ClassNode classNode = ASMHelpers.newClassNode(basicClass);
-
-      boolean hasSimpleComponent = classNode.interfaces.contains("li/cil/oc/api/network/SimpleComponent");
-      boolean hasSkipAnnotation = false;
-
-      if (classNode.visibleAnnotations != null) {
-        for (AnnotationNode annotation : classNode.visibleAnnotations) {
-          if (annotation != null && annotation.desc.equals("Lli/cil/oc/api/network/SimpleComponent$SkipInjection;")) {
-            hasSkipAnnotation = true;
-            break;
-          }
-        }
-      }
-
-      if (hasSimpleComponent && !hasSkipAnnotation) {
+      boolean hasSimpleComponent = simpleComponentParser.find(basicClass);
+      if (hasSimpleComponent) {
         try {
-          byte[] transformedClass = TransformerInjectEnvironmentImplementation.transform(loader, classNode);
+          byte[] transformedClass = TransformerInjectEnvironmentImplementation.transform(loader, basicClass);
           log.info("Successfully injected component logic into class {}.", name);
           return transformedClass;
         } catch (Throwable e) {

@@ -8,6 +8,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.tree.AnnotationNode;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.MethodNode;
 
@@ -19,8 +20,18 @@ public final class TransformerInjectEnvironmentImplementation {
   private static final Logger log = LogManager.getLogger("OpenComputers");
 
   @Nonnull
-  public static byte[] transform(LaunchClassLoader loader, ClassNode classNode) throws Exception {
+  public static byte[] transform(LaunchClassLoader loader, byte[] classBytes) throws Exception {
+    ClassNode classNode = ASMHelpers.newClassNode(classBytes);
     log.trace("Injecting methods from Environment interface into {}.", classNode.name);
+
+    if (classNode.visibleAnnotations != null) {
+      for (AnnotationNode annotation : classNode.visibleAnnotations) {
+        if (annotation != null && annotation.desc.equals("Lli/cil/oc/api/network/SimpleComponent$SkipInjection;")) {
+          log.trace("Detected @SimpleComponent.SkipInjection annotation, skipping the class");
+          return classBytes;
+        }
+      }
+    }
 
     if (!isTileEntity(loader, classNode)) {
       throw new Exception("Found SimpleComponent on something that isn't a tile entity, ignoring.");
