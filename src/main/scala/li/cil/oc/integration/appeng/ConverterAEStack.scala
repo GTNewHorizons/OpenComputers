@@ -10,6 +10,7 @@ object ConverterAEStack extends Converter {
     value match {
       case stack: IAEStack[_] =>
         AEStackFactory.convert(stack, output)
+      case _ =>
     }
   }
 }

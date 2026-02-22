@@ -6,7 +6,7 @@ import li.cil.oc.api.machine.{Arguments, Callback, Context}
 import li.cil.oc.api.network.ManagedEnvironment
 import li.cil.oc.api.prefab.DriverSidedTileEntity
 import li.cil.oc.integration.ManagedTileEntityEnvironment
-import li.cil.oc.integration.appeng.internal.{BlockInterfaceEnvironmentAE2, BlockPatternEnvironment}
+import li.cil.oc.integration.appeng.internal.{BlockInterfaceEnvironment, BlockPatternEnvironment}
 import li.cil.oc.util.ExtendedArguments._
 import li.cil.oc.util.ResultWrapper.result
 import net.minecraft.item.ItemStack
@@ -19,7 +19,7 @@ object DriverBlockInterface extends DriverSidedTileEntity {
   def createEnvironment(world: World, x: Int, y: Int, z: Int, side: ForgeDirection): ManagedEnvironment =
     new Environment(world.getTileEntity(x, y, z).asInstanceOf[TileInterface])
 
-  final class Environment(val tile: TileInterface) extends ManagedTileEntityEnvironment[TileInterface](tile, "me_interface") with NamedBlock with NetworkControl[TileInterface] with BlockInterfaceEnvironmentAE2 with BlockPatternEnvironment {
+  final class Environment(val tile: TileInterface) extends ManagedTileEntityEnvironment[TileInterface](tile, "me_interface") with NamedBlock with NetworkControl[TileInterface] with BlockInterfaceEnvironment with BlockPatternEnvironment {
     override def preferredName = "me_interface"
 
     override def priority = 5
@@ -64,6 +64,8 @@ object DriverBlockInterface extends DriverSidedTileEntity {
     @Callback(doc = "function(slot:number, index:number):boolean -- Clear pattern output at the given index.")
     def clearInterfacePatternOutput(context: Context, args: Arguments): Array[AnyRef] =
       setPatternSlot(context, args, "out")
+
+    override def offset: Int = 0
   }
 
   object Provider extends EnvironmentProvider {

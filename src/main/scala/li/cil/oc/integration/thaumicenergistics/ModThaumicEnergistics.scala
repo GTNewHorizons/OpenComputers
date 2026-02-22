@@ -1,8 +1,8 @@
 package li.cil.oc.integration.thaumicenergistics
 
 import li.cil.oc.api.Driver
-import li.cil.oc.integration.{Mod, ModProxy, Mods}
 import li.cil.oc.integration.appeng.AEStackFactory
+import li.cil.oc.integration.{Mod, ModProxy, Mods}
 import thaumicenergistics.common.storage.{AEEssentiaStack, AEEssentiaStackType}
 
 object ModThaumicEnergistics extends ModProxy {
@@ -16,11 +16,13 @@ object ModThaumicEnergistics extends ModProxy {
     Driver.add(DriverBlockInterface)
     Driver.add(DriverEssentiaExportBus)
     Driver.add(DriverEssentiaImportBus)
+    Driver.add(DriverEssentiaStorageBus)
 
     Driver.add(DriverController.Provider)
     Driver.add(DriverBlockInterface.Provider)
     Driver.add(DriverEssentiaExportBus.Provider)
     Driver.add(DriverEssentiaImportBus.Provider)
+    Driver.add(DriverEssentiaStorageBus.Provider)
     Driver.add(ConvertAspectCraftable)
   }
 }
