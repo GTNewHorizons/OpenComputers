@@ -101,17 +101,6 @@ public final class ASMHelpers {
     return node;
   }
 
-  public static boolean classExists(LaunchClassLoader loader, String name) {
-    try {
-      if (loader.getClassBytes(name) != null) return true;
-      if (loader.getClassBytes(FMLDeobfuscatingRemapper.INSTANCE.unmap(name)) != null) return true;
-
-      return loader.findClass(name.replace('/', '.')) != null;
-    } catch (IOException | ClassNotFoundException ignored) {
-      return false;
-    }
-  }
-
   public static boolean isAssignable(LaunchClassLoader loader, ClassNode parent, ClassNode child) {
     if (parent == null || child == null) return false;
     if (isFinal(parent)) return false;

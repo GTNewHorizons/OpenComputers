@@ -1,5 +1,6 @@
 package li.cil.oc.common.asm;
 
+import com.gtnewhorizon.gtnhlib.asm.ClassConstantPoolParser;
 import li.cil.oc.integration.Mods;
 import net.minecraft.launchwrapper.LaunchClassLoader;
 import org.apache.logging.log4j.LogManager;
@@ -12,9 +13,16 @@ import org.objectweb.asm.tree.MethodNode;
 public final class TransformerInjectInterfaces {
 
   private static final Logger log = LogManager.getLogger("OpenComputers");
+  private final static ClassConstantPoolParser injectableAnnotationParser =
+    new ClassConstantPoolParser("li/cil/oc/common/asm/Injectable$Interface", "li/cil/oc/common/asm/Injectable$InterfaceList");
 
   // Inject available interfaces where requested.
   public static byte[] transform(LaunchClassLoader loader, String name, byte[] classBytes) {
+    boolean hasInjectableAnnotations = injectableAnnotationParser.find(classBytes);
+    if (!hasInjectableAnnotations) {
+      return classBytes;
+    }
+
     ClassNode classNode = ASMHelpers.newClassNode(classBytes);
     boolean injected = false;
 

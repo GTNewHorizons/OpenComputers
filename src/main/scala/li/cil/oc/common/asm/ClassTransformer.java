@@ -55,7 +55,7 @@ public class ClassTransformer implements IClassTransformer {
         return basicClass;
       }
 
-      if (name.startsWith("li.cil.oc.")) {
+      if (name.startsWith("li.cil.oc.common")) {
         return TransformerInjectInterfaces.transform(loader, name, basicClass);
       }
 
