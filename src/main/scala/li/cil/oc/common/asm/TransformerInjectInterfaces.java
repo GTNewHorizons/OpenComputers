@@ -4,7 +4,6 @@ import li.cil.oc.integration.Mods;
 import net.minecraft.launchwrapper.LaunchClassLoader;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.tree.AnnotationNode;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.MethodNode;
@@ -14,9 +13,7 @@ public final class TransformerInjectInterfaces {
   private static final Logger log = LogManager.getLogger("OpenComputers");
 
   // Inject available interfaces where requested.
-  public static byte[] transform(LaunchClassLoader loader, String name, byte[] classBytes) {
-    ClassNode classNode = ASMHelpers.newClassNode(classBytes);
-
+  public static void transform(LaunchClassLoader loader, String name, ClassNode classNode) {
     if (classNode.visibleAnnotations != null) {
       for (AnnotationNode annotation : classNode.visibleAnnotations) {
         if (annotation.desc.equals("Lli/cil/oc/common/asm/Injectable$Interface;")) {
@@ -37,8 +34,6 @@ public final class TransformerInjectInterfaces {
         }
       }
     }
-
-    return ASMHelpers.writeClass(loader, classNode, ClassWriter.COMPUTE_MAXS);
   }
 
   private static void injectInterface(LaunchClassLoader loader, String ownerName, ClassNode classNode,

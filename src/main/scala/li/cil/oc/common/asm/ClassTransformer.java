@@ -4,6 +4,7 @@ import net.minecraft.launchwrapper.IClassTransformer;
 import net.minecraft.launchwrapper.LaunchClassLoader;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.tree.AnnotationNode;
 import org.objectweb.asm.tree.ClassNode;
 
@@ -54,14 +55,15 @@ public class ClassTransformer implements IClassTransformer {
         return basicClass;
       }
 
-      byte[] transformedClass = basicClass;
-
       if (name.startsWith("li.cil.oc.")) {
-        transformedClass = TransformerStripMissingClasses.transform(loader, name, transformedClass);
-        transformedClass = TransformerInjectInterfaces.transform(loader, name, transformedClass);
+        ClassNode classNode = ASMHelpers.newClassNode(basicClass);
+        TransformerStripMissingClasses.transform(loader, name, classNode);
+        TransformerInjectInterfaces.transform(loader, name, classNode);
+        return ASMHelpers.writeClass(loader, classNode, ClassWriter.COMPUTE_MAXS);
       }
 
-      ClassNode classNode = ASMHelpers.newClassNode(transformedClass);
+      ClassNode classNode = ASMHelpers.newClassNode(basicClass);
+
       boolean hasSimpleComponent = classNode.interfaces.contains("li/cil/oc/api/network/SimpleComponent");
       boolean hasSkipAnnotation = false;
 
@@ -76,19 +78,20 @@ public class ClassTransformer implements IClassTransformer {
 
       if (hasSimpleComponent && !hasSkipAnnotation) {
         try {
-          transformedClass = TransformerInjectEnvironmentImplementation.transform(loader, classNode);
+          byte[] transformedClass = TransformerInjectEnvironmentImplementation.transform(loader, classNode);
           log.info("Successfully injected component logic into class {}.", name);
+          return transformedClass;
         } catch (Throwable e) {
           log.warn("Failed injecting component logic into class {}.", name, e);
           hadSimpleComponentErrors = true;
+          return basicClass;
         }
       }
-
-      return transformedClass;
     } catch (Throwable t) {
       log.warn("Something went wrong!", t);
       hadErrors = true;
-      return basicClass;
     }
+
+    return basicClass;
   }
 }
