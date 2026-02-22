@@ -4,8 +4,6 @@ import net.minecraft.launchwrapper.IClassTransformer;
 import net.minecraft.launchwrapper.LaunchClassLoader;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.objectweb.asm.ClassWriter;
-import org.objectweb.asm.tree.ClassNode;
 import com.gtnewhorizon.gtnhlib.asm.ClassConstantPoolParser;
 
 public class ClassTransformer implements IClassTransformer {
@@ -58,10 +56,7 @@ public class ClassTransformer implements IClassTransformer {
       }
 
       if (name.startsWith("li.cil.oc.")) {
-        ClassNode classNode = ASMHelpers.newClassNode(basicClass);
-        TransformerStripMissingClasses.transform(loader, name, classNode);
-        TransformerInjectInterfaces.transform(loader, name, classNode);
-        return ASMHelpers.writeClass(loader, classNode, ClassWriter.COMPUTE_MAXS);
+        return TransformerInjectInterfaces.transform(loader, name, basicClass);
       }
 
       boolean hasSimpleComponent = simpleComponentParser.find(basicClass);
