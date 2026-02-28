@@ -50,13 +50,16 @@ public class ClassTransformer implements IClassTransformer {
         name.startsWith("net.minecraftforge.") ||
         name.startsWith("cpw.mods.fml.") ||
         // We're using apache's ArrayUtils here, so we need to avoid circular transforms of this class
-        name.startsWith("org.apache.") ||
-        name.startsWith("li.cil.oc.integration.")) {
+        name.startsWith("org.apache.")) {
         return basicClass;
       }
 
-      if (name.startsWith("li.cil.oc.common")) {
-        return TransformerInjectInterfaces.transform(loader, name, basicClass);
+      if (name.startsWith("li.cil.oc.")) {
+        if (name.startsWith("li.cil.oc.common")) {
+          return TransformerInjectInterfaces.transform(loader, name, basicClass);
+        }
+
+        return basicClass;
       }
 
       boolean hasSimpleComponent = simpleComponentParser.find(basicClass);
