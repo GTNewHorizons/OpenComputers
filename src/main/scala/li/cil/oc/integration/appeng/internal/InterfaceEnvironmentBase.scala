@@ -3,7 +3,7 @@ package li.cil.oc.integration.appeng.internal
 import appeng.api.implementations.tiles.ISegmentedInventory
 import appeng.api.parts.IPart
 import li.cil.oc.api.machine.{Arguments, Context}
-import li.cil.oc.api.network.{ManagedEnvironment, Node}
+import li.cil.oc.api.network.{Environment, Node}
 import li.cil.oc.integration.vanilla.ConverterItemStack
 import li.cil.oc.util.DatabaseAccess
 import li.cil.oc.util.ExtendedArguments.extendedArguments
@@ -11,7 +11,7 @@ import li.cil.oc.util.ResultWrapper.result
 import net.minecraft.inventory.IInventory
 import net.minecraft.item.ItemStack
 
-trait InterfaceEnvironmentBase extends ManagedEnvironment {
+trait InterfaceEnvironmentBase extends Environment {
   protected def getConfigInventory(inv: ISegmentedInventory): IInventory =
     inv.getInventoryByName("config")
 

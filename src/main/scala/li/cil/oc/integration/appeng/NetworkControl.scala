@@ -9,7 +9,6 @@ import appeng.api.networking.storage.IBaseMonitor
 import appeng.api.storage.data.{IAEFluidStack, IAEItemStack, IAEStack, IItemList}
 import appeng.api.storage.{IMEMonitor, IMEMonitorHandlerReceiver}
 import appeng.api.util.AECableType
-import appeng.me.GridAccessException
 import appeng.me.cluster.implementations.CraftingCPUCluster
 import appeng.me.helpers.IGridProxyable
 import appeng.tile.crafting.TileCraftingMonitorTile
@@ -17,13 +16,15 @@ import appeng.util.item.{AEFluidStack, AEItemStack}
 import appeng.util.{IterationCounter, Platform}
 import com.google.common.collect.ImmutableSet
 import li.cil.oc.OpenComputers
+import li.cil.oc.api.Persistable
 import li.cil.oc.api.machine.{Arguments, Callback, Context}
-import li.cil.oc.api.network.Node
+import li.cil.oc.api.network.{ManagedEnvironment, Node}
 import li.cil.oc.api.prefab.AbstractValue
 import li.cil.oc.common.EventHandler
 import li.cil.oc.integration.Mods
 import li.cil.oc.integration.ae2fc.Ae2FcUtil
 import li.cil.oc.integration.appeng.NetworkControl._
+import li.cil.oc.integration.appeng.internal.SubscriptionBase
 import li.cil.oc.integration.ec.ECUtil
 import li.cil.oc.server.driver.Registry
 import li.cil.oc.util.DatabaseAccess
@@ -43,7 +44,6 @@ import javax.annotation.Nonnull
 import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
-import scala.collection.mutable.ArrayBuffer
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.language.existentials
@@ -55,7 +55,7 @@ trait AETypes {
   type AEStack = IAEStack[T] forSome {type T <: IAEStack[T]}
 }
 
-trait NetworkControl[AETile >: Null <: TileEntity with IGridProxyable with IActionHost] extends AETypes {
+trait NetworkControl[AETile >: Null <: TileEntity with IGridProxyable with IActionHost] extends AETypes with Persistable with ManagedEnvironment {
   def tile: AETile
 
   def node: Node
@@ -92,17 +92,24 @@ trait NetworkControl[AETile >: Null <: TileEntity with IGridProxyable with IActi
     }
 
     val builder = mutable.ArrayBuilder.make[AnyRef]
-    val allStacks: Iterable[IAEStack[_]] = AEStackFactory.getRegisteredTypes.flatMap { tp =>
-      tile.getProxy.getStorage.getMEMonitor(tp).getStorageList.asInstanceOf[IItemList[AEStack]]
-    }
-    allStacks.foreach({ s =>
-      if (s.isCraftable) {
-        val c = asCraft(s, tile).asInstanceOf[AEStack]
-        if (matches(convert(c, tile), filter)) {
-          builder += new Craftable(tile, c)
+    val types = AEStackFactory.getRegisteredTypes
+    types.foreach { tp =>
+      val monitor = tile.getProxy.getStorage.getMEMonitor(tp)
+      if (monitor != null) {
+        val storageList = monitor.getStorageList
+        val it = storageList.iterator()
+
+        while (it.hasNext) {
+          val s = it.next().asInstanceOf[IAEStack[_]]
+          if (s.isCraftable) {
+            val c = asCraft(s, tile).asInstanceOf[AEStack]
+            if (matches(convert(c, tile), filter)) {
+              builder += new Craftable(tile, c)
+            }
+          }
         }
       }
-    })
+    }
 
     result(builder.result())
   }
@@ -113,6 +120,7 @@ trait NetworkControl[AETile >: Null <: TileEntity with IGridProxyable with IActi
       case (key: String, value: AnyRef) => (key, value)
     }
     result(allItems
+      .view
       .map(item => convert(item, tile))
       .filter(hash => matches(hash, filter))
       .toArray)
@@ -150,6 +158,7 @@ trait NetworkControl[AETile >: Null <: TileEntity with IGridProxyable with IActi
       }
     }
     result(allItems
+      .view
       .filter(item => itemFilterSet.contains(item.getItem))
       .map(item => convert(item, tile))
       .toArray)
@@ -167,14 +176,9 @@ trait NetworkControl[AETile >: Null <: TileEntity with IGridProxyable with IActi
     }
   }
 
-  @Callback(doc = "function([subscribe:bool]):userdata -- Get an iterator object for the list of the items in the network. [Event: network_item_changed]")
+  @Callback(doc = "function():userdata -- Get an iterator object for the list of the items in the network. ")
   def allItems(context: Context, args: Arguments): Array[AnyRef] = {
-    result(new ItemNetworkContents(tile, node, args.optBoolean(0, false)))
-  }
-
-  @Callback(doc = "function([subscribe:bool]):userdata -- Get an iterator object for the list of the fluids in the network. [Event: network_fluid_changed]")
-  def allFluids(context: Context, args: Arguments): Array[AnyRef] = {
-    result(new FluidNetworkContents(tile, node, args.optBoolean(0, false)))
+    result(new ItemNetworkContents(tile))
   }
 
   @Callback(doc = "function(filter:table, dbAddress:string[, startSlot:number[, count:number]]): Boolean -- Store items in the network matching the specified filter in the database with the specified address.")
@@ -206,7 +210,11 @@ trait NetworkControl[AETile >: Null <: TileEntity with IGridProxyable with IActi
 
   @Callback(doc = "function():table -- Get a list of the stored fluids in the network.")
   def getFluidsInNetwork(context: Context, args: Arguments): Array[AnyRef] =
-    result(allFluids.filter(isFluidVisible).map(fs => convert(fs, tile)).toArray)
+    result(allFluids
+      .view
+      .filter(isFluidVisible)
+      .map(fs => convert(fs, tile))
+      .toArray)
 
   @Callback(doc = "function():number -- Get the average power injection into the network.")
   def getAvgPowerInjection(context: Context, args: Arguments): Array[AnyRef] =
@@ -243,12 +251,74 @@ trait NetworkControl[AETile >: Null <: TileEntity with IGridProxyable with IActi
         }
     }
   }
+
+  private val itemSubscription: SubscriptionBase[IAEItemStack] = new SubscriptionBase[IAEItemStack] {
+    implicit val tag: ClassTag[IAEItemStack] = ClassTag(classOf[IAEItemStack])
+
+    override def event_name: String = "network_item_changed"
+
+    override def tile: TileEntity with IGridProxyable = NetworkControl.this.tile
+
+    override def node: Node = NetworkControl.this.node
+  }
+
+  private val fluidSubscription: SubscriptionBase[IAEFluidStack] = new SubscriptionBase[IAEFluidStack] {
+    implicit val tag: ClassTag[IAEFluidStack] = ClassTag(classOf[IAEFluidStack])
+
+    override def event_name: String = "network_fluid_changed"
+
+    override def tile: TileEntity with IGridProxyable = NetworkControl.this.tile
+
+    override def node: Node = NetworkControl.this.node
+  }
+
+  abstract override def load(nbt: NBTTagCompound): Unit = {
+    super.load(nbt)
+    itemSubscription.load(nbt)
+    fluidSubscription.load(nbt)
+  }
+
+  abstract override def save(nbt: NBTTagCompound): Unit = {
+    super.save(nbt)
+    itemSubscription.save(nbt)
+    fluidSubscription.save(nbt)
+  }
+
+  override def canUpdate: Boolean = true
+
+  abstract override def update(): Unit = {
+    super.update()
+    itemSubscription.update()
+    fluidSubscription.update()
+  }
+
+  @Callback(doc = """function(enabled: bool): nil -- Enable or disable subscription to the "network_fluid_changed" event.""")
+  def setFluidEventSubscription(context: Context, args: Arguments): Array[AnyRef] = {
+    fluidSubscription.setSubscribe(args.checkBoolean(0))
+    null
+  }
+
+  @Callback(doc = """function(): boolean -- Returns whether the "network_fluid_changed" event subscription is currently enabled.""", direct = true)
+  def isFluidEventSubscription(context: Context, args: Arguments): Array[AnyRef] = {
+    result(fluidSubscription.getSubscribe)
+  }
+
+  @Callback(doc = """function(enabled: bool): nil -- Enable or disable subscription to the "network_item_changed" event.""")
+  def setItemEventSubscription(context: Context, args: Arguments): Array[AnyRef] = {
+    itemSubscription.setSubscribe(args.checkBoolean(0))
+    null
+  }
+
+  @Callback(doc = """function(): boolean -- Returns whether the "network_item_changed" event subscription is currently enabled.""", direct = true)
+  def isItemEventSubscription(context: Context, args: Arguments): Array[AnyRef] = {
+    result(itemSubscription.getSubscribe)
+  }
 }
 
 object NetworkControl extends AETypes {
 
   //noinspection ScalaUnusedSymbol
-  class Craftable(var controller: TileEntity with IGridProxyable with IActionHost, var stack: AEStack) extends AbstractValue with ICraftingRequester {
+  private class Craftable(var controller: TileEntity with IGridProxyable with IActionHost, var stack: AEStack) extends AbstractValue with ICraftingRequester {
     def this() = this(null, null)
 
     private val links = mutable.Set.empty[ICraftingLink]
@@ -258,7 +328,7 @@ object NetworkControl extends AETypes {
     //noinspection RedundantCollectionConversion
     override def getRequestedJobs: ImmutableSet[ICraftingLink] = ImmutableSet.copyOf(links.toIterable)
 
-    override def jobStateChange(link: ICraftingLink) {
+    override def jobStateChange(link: ICraftingLink): Unit = {
       links -= link
     }
 
@@ -292,7 +362,7 @@ object NetworkControl extends AETypes {
       val future = craftingGrid.beginCraftingJob(controller.getWorldObj, controller.getProxy.getGrid, source, request, null)
       val prioritizePower = args.optBoolean(1, true)
       val cpuName = args.optString(2, "")
-      val cpu = if (!cpuName.isEmpty) {
+      val cpu = if (cpuName.nonEmpty) {
         controller.getProxy.getCrafting.getCpus.collectFirst({
           case c if cpuName.equals(c.getName) => c
         }).orNull
@@ -334,7 +404,7 @@ object NetworkControl extends AETypes {
 
     // ----------------------------------------------------------------------- //
 
-    override def load(nbt: NBTTagCompound) {
+    override def load(nbt: NBTTagCompound): Unit = {
       super.load(nbt)
       if (nbt.hasKey("StackType")) {
         stack = Platform.readStackNBT(nbt, true).asInstanceOf[AEStack]
@@ -347,7 +417,7 @@ object NetworkControl extends AETypes {
         (nbt: NBTTagCompound) => AEApi.instance.storage.loadCraftingLink(nbt, this))
     }
 
-    override def save(nbt: NBTTagCompound) {
+    override def save(nbt: NBTTagCompound): Unit = {
       super.save(nbt)
       Platform.writeStackNBT(stack, nbt, true)
       saveController(controller, nbt)
@@ -358,7 +428,7 @@ object NetworkControl extends AETypes {
   }
 
   //noinspection ScalaUnusedSymbol
-  class Cpu(var controller: TileEntity with IGridProxyable, var index: Int, var cpu: CraftingCPUCluster) extends AbstractValue {
+  private class Cpu(var controller: TileEntity with IGridProxyable, var index: Int, var cpu: CraftingCPUCluster) extends AbstractValue {
     def this() = this(null, 0, null)
 
     @Callback(doc = "function():boolean -- Cancel this CPU current crafting job.")
@@ -431,13 +501,13 @@ object NetworkControl extends AETypes {
       cpu
     }
 
-    override def save(nbt: NBTTagCompound) {
+    override def save(nbt: NBTTagCompound): Unit = {
       super.save(nbt)
       nbt.setInteger("index", index)
       saveController(controller, nbt)
     }
 
-    override def load(nbt: NBTTagCompound) {
+    override def load(nbt: NBTTagCompound): Unit = {
       super.load(nbt)
       index = nbt.getInteger("index")
       loadController(nbt, c => controller = c)
@@ -445,18 +515,18 @@ object NetworkControl extends AETypes {
   }
 
   //noinspection ScalaUnusedSymbol
-  class CraftingStatus extends AbstractValue {
+  private class CraftingStatus extends AbstractValue {
     private var isComputing = true
     private var link: Option[ICraftingLink] = None
     private var failed = false
     private var reason = "no link"
 
-    def setLink(value: ICraftingLink) {
+    def setLink(value: ICraftingLink): Unit = {
       isComputing = false
       link = Option(value)
     }
 
-    def fail(reason: String) {
+    def fail(reason: String): Unit = {
       isComputing = false
       failed = true
       this.reason = s"request failed ($reason)"
@@ -480,7 +550,7 @@ object NetworkControl extends AETypes {
       link.fold(result(!failed, reason))(l => result(l.isDone))
     }
 
-    override def save(nbt: NBTTagCompound) {
+    override def save(nbt: NBTTagCompound): Unit = {
       super.save(nbt)
       failed = link.fold(true)(!_.isDone)
       nbt.setBoolean("failed", failed)
@@ -489,7 +559,7 @@ object NetworkControl extends AETypes {
       }
     }
 
-    override def load(nbt: NBTTagCompound) {
+    override def load(nbt: NBTTagCompound): Unit = {
       super.load(nbt)
       isComputing = false
       failed = nbt.getBoolean("failed")
@@ -500,68 +570,50 @@ object NetworkControl extends AETypes {
   }
 
   //noinspection ConvertNullInitializerToUnderscore
-  abstract class NetworkContents[T <: IAEStack[T] : ClassTag](var controller: TileEntity with IGridProxyable with IActionHost, var node: Node, var subscribe: Boolean) extends AbstractValue with IMEMonitorHandlerReceiver[T] {
-    def this() = this(null, null, false)
+  // Note: only IAEItemStack use the ConcurrentSkipListSet, and this has performance issues.
+  // Because AE2 storage doesn't support indexed access, but OC requires it for iteration.
+  // Creating a full snapshot for large networks to bridge this gap will introduce significant memory overhead and server-side lag.
+  private abstract class NetworkContents[T <: IAEStack[T] : ClassTag](var controller: TileEntity with IGridProxyable with IActionHost) extends AbstractValue with IMEMonitorHandlerReceiver[T] {
+    def this() = this(null)
 
-    def getInventory: IMEMonitor[T] = {
-      try {
-        val tp = AEStackFactory.getEntry[T]()
-        tp match {
-          case Some(t) =>
-            controller.getProxy.getStorage.getMEMonitor(t.stackType).asInstanceOf[IMEMonitor[T]]
-          case None => null
-        }
-      }
-      catch {
-        case _: GridAccessException => null
-      }
-    }
+    private def getMonitor: Option[IMEMonitor[T]] = AEUtil.getMonitor[T](controller)
 
-    def withInventory[R](action: IMEMonitor[T] => R): Option[R] = {
-      for {
-        _ <- Option(controller)
-        inv <- Option(getInventory)
-      } yield action(inv)
-    }
-
-    def convertItem(stack: IAEStack[_]): java.util.HashMap[String, AnyRef] = {
+    private def convertItem(stack: IAEStack[_]): java.util.HashMap[String, AnyRef] = {
       convert(stack.asInstanceOf[AEStack], controller)
     }
-
-    val event_name: String = "network_changed"
 
     private var items: IItemList[T] = null
     private var itemIterator: java.util.Iterator[T] = null
     private var index = 0
 
     private def updateItems(): Unit = {
-      val list: Option[IItemList[T]] = withInventory(_.getStorageList)
+      val list: Option[IItemList[T]] = getMonitor.map(_.getStorageList)
       items = list.orNull
       if (items != null) {
-        itemIterator = items.iterator
+        itemIterator = items.toSorted.iterator
         itemIterator.drop(index)
       }
     }
 
     updateItems()
-    withInventory(_.addListener(this, null))
+    getMonitor.foreach(_.addListener(this, null))
 
     override def call(context: Context, arguments: Arguments): Array[AnyRef] = {
       if (controller == null || itemIterator == null)
         return null
-      if (!this.itemIterator.hasNext)
+      if (!itemIterator.hasNext)
         return null
       index += 1
       result(convertItem(itemIterator.next()))
     }
 
-    override def load(nbt: NBTTagCompound) {
+    override def load(nbt: NBTTagCompound): Unit = {
       super.load(nbt)
-      withInventory(_.addListener(this, null))
+      index = nbt.getInteger("index")
       loadController(nbt, c => controller = c)
     }
 
-    override def save(nbt: NBTTagCompound) {
+    override def save(nbt: NBTTagCompound): Unit = {
       super.save(nbt)
       nbt.setInteger("index", index)
       saveController(controller, nbt)
@@ -580,44 +632,13 @@ object NetworkControl extends AETypes {
     }
 
     override def postChange(monitor: IBaseMonitor[T], change: lang.Iterable[T], actionSource: BaseActionSource): Unit = {
-      if (subscribe && node != null) {
-        val flatArgs = ArrayBuffer[Object](event_name)
-        flatArgs ++= change.map(convertItem(_))
-        node.sendToReachable("computer.signal", flatArgs: _*)
-      }
       updateItems()
     }
+
+    override def toString = "{IAEStack Array}"
   }
 
-  private class ItemNetworkContents(controller: TileEntity with IGridProxyable with IActionHost, node: Node, subscribe: Boolean) extends NetworkContents[IAEItemStack](controller, node, subscribe) {
-    def this() = this(null, null, false)
-
-    override val event_name: String = "network_item_changed"
-
-    override def getInventory: IMEMonitor[IAEItemStack] = {
-      try
-        controller.getProxy.getStorage.getItemInventory
-      catch {
-        case _: GridAccessException => null
-      }
-    }
-  }
-
-  private class FluidNetworkContents(controller: TileEntity with IGridProxyable with IActionHost, node: Node, subscribe: Boolean) extends NetworkContents[IAEFluidStack](controller, node, subscribe) {
-    def this() = this(null, null, false)
-
-    override val event_name: String = "network_fluid_changed"
-
-    override def getInventory: IMEMonitor[IAEFluidStack] = {
-      try
-        controller.getProxy.getStorage.getFluidInventory
-      catch {
-        case _: GridAccessException => null
-      }
-    }
-  }
-
-  def asCraft(stack: IAEStack[_], tile: TileEntity with IGridProxyable): IAEStack[_] = {
+  private def asCraft(stack: IAEStack[_], tile: TileEntity with IGridProxyable): IAEStack[_] = {
     tile.getProxy.getCrafting.getCraftingFor(stack, null, 0, tile.getWorldObj).view.map(a => a.getAEOutputs.find(_.isSameType(stack)).get).headOption.getOrElse[IAEStack[_]] {
       val result = stack.copy().asInstanceOf[AEStack]
       result.setStackSize(0)
@@ -625,14 +646,14 @@ object NetworkControl extends AETypes {
     }
   }
 
-  def aePotential(aeItem: AEStack, tile: TileEntity with IGridProxyable): AEStack = {
+  private def aePotential(aeItem: AEStack, tile: TileEntity with IGridProxyable): AEStack = {
     if (aeItem.getStackSize > 0 || !aeItem.isCraftable)
       aeItem
     else
       asCraft(aeItem, tile).asInstanceOf[AEStack]
   }
 
-  def hashConvert(value: java.util.HashMap[_, _]) = {
+  private def hashConvert(value: java.util.HashMap[_, _]) = {
     val hash = new java.util.HashMap[String, AnyRef]
     value.collect { case (k: String, v: AnyRef) => hash += k -> v }
     hash
@@ -676,5 +697,10 @@ object NetworkControl extends AETypes {
       nbt.setInteger("y", controller.yCoord)
       nbt.setInteger("z", controller.zCoord)
     }
+  }
+
+
+  private class ItemNetworkContents(controller: TileEntity with IGridProxyable with IActionHost) extends NetworkContents[IAEItemStack](controller) {
+    def this() = this(null)
   }
 }
