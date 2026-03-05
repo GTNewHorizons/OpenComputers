@@ -7,7 +7,7 @@ import appeng.tile.misc.TileInterface
 import appeng.util.Platform
 import appeng.util.item.AEItemStack
 import li.cil.oc.api.machine.{Arguments, Context}
-import li.cil.oc.api.network.ManagedEnvironment
+import li.cil.oc.api.network.Environment
 import li.cil.oc.integration.appeng.AEStackFactory
 import li.cil.oc.util.DatabaseAccess
 import li.cil.oc.util.ExtendedArguments.extendedArguments
@@ -17,7 +17,7 @@ import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.util.Constants.NBT
 
-trait PatternEnvironment extends ManagedEnvironment {
+trait PatternEnvironment extends Environment {
   def getPatternInventory(context: Context, args: Arguments): IInventory
 
   protected def offset: Int = 0
