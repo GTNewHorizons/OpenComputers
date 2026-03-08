@@ -245,6 +245,16 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
 
       val block = world.getBlock(x, y, z)
       val canActivate = block != null && Settings.get.allowActivateBlocks
+      if (canActivate && isSneaking) {
+        eyeHeight = 1.62f
+        try {
+          if (block.onBlockActivated(world, x, y, z, this, side, hitX, hitY, hitZ)) {
+            return ActivationType.BlockActivated
+          }
+        } finally {
+          eyeHeight = 0f
+        }
+      }
       val shouldActivate = canActivate && (!isSneaking || (item == null || item.doesSneakBypassUse(world, x, y, z, this)))
       val result =
         if (shouldActivate && block.onBlockActivated(world, x, y, z, this, side, hitX, hitY, hitZ))
