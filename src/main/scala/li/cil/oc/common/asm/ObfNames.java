@@ -4,8 +4,6 @@ public final class ObfNames {
   private ObfNames() {}
 
   public static final String[] CLASS_ENTITY_HANGING = { "net/minecraft/entity/EntityHanging", "ss" };
-  public static final String[] CLASS_ENTITY_LIVING = { "net/minecraft/entity/EntityLiving", "sw" };
-  public static final String[] CLASS_RENDER_LIVING = { "net/minecraft/client/renderer/entity/RenderLiving", "bok" };
   public static final String[] CLASS_TILE_ENTITY = { "net/minecraft/tileentity/TileEntity", "aor" };
 
   public static final String[] FIELD_LEASH_NBT_TAG = { "leashNBTTag", "field_110170_bx", "bx" };
