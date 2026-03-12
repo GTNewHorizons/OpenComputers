@@ -582,6 +582,17 @@ public interface TextBuffer extends ManagedEnvironment, Persistable {
     void clipboard(String value, EntityPlayer player);
 
     /**
+     * Signals a file drop event for the buffer.
+     * <br>
+     * This method is intended to be called on the client side only.
+     *
+     * @param fileName    the name of file that was dropped.
+     * @param fileContent the context of the file being transferred.
+     * @param player      the player that dropped the file. Pass <tt>null</tt> on the client side.
+     */
+    void dropFile(String fileName, String fileContent, EntityPlayer player);
+
+    /**
      * Signals a mouse button down event for the buffer.
      * <br>
      * On the client side this causes a packet to be sent to the server. On the

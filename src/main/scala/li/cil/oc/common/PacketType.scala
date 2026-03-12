@@ -83,6 +83,7 @@ object PacketType extends Enumeration {
   KeyDown,
   KeyUp,
   Clipboard,
+  DropFile,
   MouseClickOrDrag,
   MouseScroll,
   MouseUp,

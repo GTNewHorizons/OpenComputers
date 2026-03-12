@@ -48,6 +48,7 @@ object PacketHandler extends CommonPacketHandler {
       case PacketType.ChargerState => onChargerState(p)
       case PacketType.ClientLog => onClientLog(p)
       case PacketType.Clipboard => onClipboard(p)
+      case PacketType.DropFile => onDropFile(p)
       case PacketType.ColorChange => onColorChange(p)
       case PacketType.ComputerState => onComputerState(p)
       case PacketType.ComputerUserList => onComputerUserList(p)
@@ -138,6 +139,9 @@ object PacketHandler extends CommonPacketHandler {
 
   def onClipboard(p: PacketParser) {
     GuiScreen.setClipboardString(p.readUTF())
+  }
+
+  def onDropFile(p: PacketParser): Unit = {
   }
 
   def onColorChange(p: PacketParser) =

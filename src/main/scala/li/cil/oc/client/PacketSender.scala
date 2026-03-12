@@ -91,6 +91,24 @@ object PacketSender {
     }
   }
 
+  def sendDropFile(address: String, name: String, context: String): Unit = {
+      val length = name.length + context.length
+      if (length > 64 * 1024) {
+        val player = Minecraft.getMinecraft.thePlayer
+        val handler = Minecraft.getMinecraft.getSoundHandler
+        handler.playSound(new PositionedSoundRecord(new ResourceLocation("note.harp"), 1, 1, player.posX.toFloat, player.posY.toFloat, player.posZ.toFloat))
+      }
+      else {
+        val pb = new CompressedPacketBuilder(PacketType.DropFile)
+
+        pb.writeUTF(address)
+        pb.writeUTF(name)
+        pb.writeUTF(context)
+
+        pb.sendToServer()
+      }
+  }
+
   def sendMouseClick(address: String, x: Double, y: Double, drag: Boolean, button: Int) {
     val pb = new SimplePacketBuilder(PacketType.MouseClickOrDrag)
 
