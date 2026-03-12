@@ -1,10 +1,11 @@
 package li.cil.oc.common.asm;
 
 import cpw.mods.fml.common.asm.transformers.deobf.FMLDeobfuscatingRemapper;
-import li.cil.oc.OpenComputers;
 import li.cil.oc.common.asm.template.SimpleComponentImpl;
 import net.minecraft.launchwrapper.LaunchClassLoader;
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.ClassNode;
@@ -15,9 +16,11 @@ import java.util.function.Predicate;
 
 public final class TransformerInjectEnvironmentImplementation {
 
+  private static final Logger log = LogManager.getLogger("OpenComputers");
+
   @Nonnull
   public static byte[] transform(LaunchClassLoader loader, ClassNode classNode) throws Exception {
-    OpenComputers.log().trace("Injecting methods from Environment interface into {}.", classNode.name);
+    log.trace("Injecting methods from Environment interface into {}.", classNode.name);
 
     if (!isTileEntity(loader, classNode)) {
       throw new Exception("Found SimpleComponent on something that isn't a tile entity, ignoring.");
@@ -33,7 +36,7 @@ public final class TransformerInjectEnvironmentImplementation {
     injectMethodIfMissing(classNode, template, "onDisconnect", "(Lli/cil/oc/api/network/Node;)V", false);
     injectMethodIfMissing(classNode, template, "onMessage", "(Lli/cil/oc/api/network/Message;)V", false);
 
-    OpenComputers.log().trace("Injecting / wrapping overrides for required tile entity methods.");
+    log.trace("Injecting / wrapping overrides for required tile entity methods.");
 
     replaceTileMethod(loader, classNode, template, ObfNames.METHOD_VALIDATE[0], ObfNames.METHOD_VALIDATE[1], "()V");
     replaceTileMethod(loader, classNode, template, ObfNames.METHOD_INVALIDATE[0], ObfNames.METHOD_INVALIDATE[1], "()V");
@@ -41,7 +44,7 @@ public final class TransformerInjectEnvironmentImplementation {
     replaceTileMethod(loader, classNode, template, ObfNames.METHOD_READ_FROM_NBT[0], ObfNames.METHOD_READ_FROM_NBT[1], "(Lnet/minecraft/nbt/NBTTagCompound;)V");
     replaceTileMethod(loader, classNode, template, ObfNames.METHOD_WRITE_TO_NBT[0], ObfNames.METHOD_WRITE_TO_NBT[1], "(Lnet/minecraft/nbt/NBTTagCompound;)V");
 
-    OpenComputers.log().trace("Injecting interface.");
+    log.trace("Injecting interface.");
     classNode.interfaces.add("li/cil/oc/common/asm/template/SimpleComponentImpl");
 
     return ASMHelpers.writeClass(loader, classNode, ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES);
@@ -49,7 +52,7 @@ public final class TransformerInjectEnvironmentImplementation {
 
   private static boolean isTileEntity(LaunchClassLoader loader, ClassNode classNode) {
     if (classNode == null) return false;
-    OpenComputers.log().trace("Checking if class {} is a TileEntity...", classNode.name);
+    log.trace("Checking if class {} is a TileEntity...", classNode.name);
     if (ArrayUtils.contains(ObfNames.CLASS_TILE_ENTITY, classNode.name)) return true;
     return classNode.superName != null && isTileEntity(loader, ASMHelpers.classNodeFor(loader, classNode.superName));
   }
@@ -103,10 +106,10 @@ public final class TransformerInjectEnvironmentImplementation {
     }
 
     if (original != null) {
-      OpenComputers.log().trace("Found original implementation of '{}', wrapping.", methodNamePlain);
+      log.trace("Found original implementation of '{}', wrapping.", methodNamePlain);
       original.name = methodNamePlain + SimpleComponentImpl.PostFix;
     } else {
-      OpenComputers.log().trace("No original implementation of '{}', will inject override.", methodNamePlain);
+      log.trace("No original implementation of '{}', will inject override.", methodNamePlain);
 
       ensureNonFinalInHierarchy(loader, classNode.superName, filter, methodNamePlain);
 

@@ -1,14 +1,15 @@
 package li.cil.oc.common.asm;
 
-import li.cil.oc.OpenComputers;
 import net.minecraft.launchwrapper.IClassTransformer;
 import net.minecraft.launchwrapper.LaunchClassLoader;
-import org.apache.commons.lang3.ArrayUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.objectweb.asm.tree.AnnotationNode;
 import org.objectweb.asm.tree.ClassNode;
 
 public class ClassTransformer implements IClassTransformer {
 
+  private static final Logger log = LogManager.getLogger("OpenComputers");
   private final LaunchClassLoader loader =
     (LaunchClassLoader) ClassTransformer.class.getClassLoader();
 
@@ -18,22 +19,43 @@ public class ClassTransformer implements IClassTransformer {
   @Override
   public byte[] transform(String name, String transformedName, byte[] basicClass) {
     if (basicClass == null) {
-      return basicClass;
+      return null;
     }
-
-    if (name.startsWith("scala.") ||
-      name.startsWith("net.minecraft.") ||
-      name.startsWith("net.minecraftforge.") ||
-      name.startsWith("cpw.mods.fml.") ||
-      name.startsWith("org.apache.") ||
-      name.startsWith("li.cil.oc.common.asm.") ||
-      name.startsWith("li.cil.oc.integration.")) {
-      return basicClass;
-    }
-
-    byte[] transformedClass = basicClass;
 
     try {
+      if (transformedName.equals("net.minecraft.entity.EntityLiving")) {
+        byte[] patched = TransformerEntityLiving.transform(loader, basicClass);
+        if (patched != null) {
+          return patched;
+        }
+
+        hadErrors = true;
+        return basicClass;
+      }
+
+      if (transformedName.equals("net.minecraft.client.renderer.entity.RenderLiving")) {
+        byte[] patched = TransformerRenderLiving.transform(loader, basicClass);
+        if (patched != null) {
+          return patched;
+        }
+
+        hadErrors = true;
+        return basicClass;
+      }
+
+      if (name.startsWith("scala.") ||
+        name.startsWith("net.minecraft.") ||
+        name.startsWith("net.minecraftforge.") ||
+        name.startsWith("cpw.mods.fml.") ||
+        // We're using apache's ArrayUtils here, so we need to avoid circular transforms of this class
+        name.startsWith("org.apache.") ||
+        name.startsWith("li.cil.oc.common.asm.") ||
+        name.startsWith("li.cil.oc.integration.")) {
+        return basicClass;
+      }
+
+      byte[] transformedClass = basicClass;
+
       if (name.startsWith("li.cil.oc.")) {
         transformedClass = TransformerStripMissingClasses.transform(loader, name, transformedClass);
         transformedClass = TransformerInjectInterfaces.transform(loader, name, transformedClass);
@@ -55,36 +77,16 @@ public class ClassTransformer implements IClassTransformer {
       if (hasSimpleComponent && !hasSkipAnnotation) {
         try {
           transformedClass = TransformerInjectEnvironmentImplementation.transform(loader, classNode);
-          OpenComputers.log().info("Successfully injected component logic into class {}.", name);
+          log.info("Successfully injected component logic into class {}.", name);
         } catch (Throwable e) {
-          OpenComputers.log().warn("Failed injecting component logic into class {}.", name, e);
+          log.warn("Failed injecting component logic into class {}.", name, e);
           hadSimpleComponentErrors = true;
-        }
-      }
-
-      String internalName = name.replace('.', '/');
-
-      if (ArrayUtils.contains(ObfNames.CLASS_ENTITY_LIVING, internalName)) {
-        byte[] patched = TransformerEntityLiving.transform(loader, transformedClass);
-        if (patched != null) {
-          transformedClass = patched;
-        } else {
-          hadErrors = true;
-        }
-      }
-
-      if (ArrayUtils.contains(ObfNames.CLASS_RENDER_LIVING, internalName)) {
-        byte[] patched = TransformerRenderLiving.transform(loader, transformedClass);
-        if (patched != null) {
-          transformedClass = patched;
-        } else {
-          hadErrors = true;
         }
       }
 
       return transformedClass;
     } catch (Throwable t) {
-      OpenComputers.log().warn("Something went wrong!", t);
+      log.warn("Something went wrong!", t);
       hadErrors = true;
       return basicClass;
     }

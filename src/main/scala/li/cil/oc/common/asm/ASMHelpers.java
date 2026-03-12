@@ -1,9 +1,10 @@
 package li.cil.oc.common.asm;
 
 import cpw.mods.fml.common.asm.transformers.deobf.FMLDeobfuscatingRemapper;
-import li.cil.oc.OpenComputers;
 import net.minecraft.launchwrapper.LaunchClassLoader;
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Opcodes;
@@ -18,6 +19,8 @@ import java.util.function.Predicate;
 
 public final class ASMHelpers {
 
+  private static final Logger log = LogManager.getLogger("OpenComputers");
+
   @Nullable
   public static byte[] insertInto(LaunchClassLoader loader, ClassNode classNode, String[] methodNames, String[] methodDescs, Predicate<InsnList> inserter) {
     MethodNode methodNode = null;
@@ -29,16 +32,16 @@ public final class ASMHelpers {
     }
 
     if (methodNode == null) {
-      OpenComputers.log().warn("Failed patching {}.{}, method not found.", classNode.name, methodNames[0]);
+      log.warn("Failed patching {}.{}, method not found.", classNode.name, methodNames[0]);
       return null;
     }
 
     if (!inserter.test(methodNode.instructions)) {
-      OpenComputers.log().warn("Failed patching {}.{}, injection point not found.", classNode.name, methodNames[0]);
+      log.warn("Failed patching {}.{}, injection point not found.", classNode.name, methodNames[0]);
       return null;
     }
 
-    OpenComputers.log().info("Successfully patched {}.{}.", classNode.name, methodNames[0]);
+    log.info("Successfully patched {}.{}.", classNode.name, methodNames[0]);
     return writeClass(loader, classNode, ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES);
   }
 
