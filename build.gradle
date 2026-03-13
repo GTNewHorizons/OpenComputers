@@ -7,7 +7,11 @@ plugins {
 // https://github.com/GTNewHorizons/NewHorizonsCoreMod/blob/master/build.gradle.kts
 def lwjgl3Version = project.minecraft.lwjgl3Version.get()
 dependencies {
-    compileOnly("org.lwjgl:lwjgl-sdl:${lwjgl3Version}") { transitive = false }
-    compileOnly("org.lwjgl:lwjgl:${lwjgl3Version}") { transitive = false }
-    compileOnly("com.github.GTNewHorizons:lwjgl3ify:3.0.3:dev") { transitive = false }
+    lwjgl3CompileOnly("org.lwjgl:lwjgl-sdl:${lwjgl3Version}") { transitive = false }
+    lwjgl3CompileOnly("org.lwjgl:lwjgl:${lwjgl3Version}") { transitive = false }
+    lwjgl3CompileOnly("com.github.GTNewHorizons:lwjgl3ify:3.0.3:dev") { transitive = false }
+}
+
+jar {
+    from sourceSets.lwjgl3.output
 }
