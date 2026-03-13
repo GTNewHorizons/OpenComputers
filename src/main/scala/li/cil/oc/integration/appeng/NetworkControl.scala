@@ -284,12 +284,10 @@ trait NetworkControl[AETile >: Null <: TileEntity with IGridProxyable with IActi
     fluidSubscription.save(nbt)
   }
 
-  override def canUpdate: Boolean = true
-
-  abstract override def update(): Unit = {
-    super.update()
-    itemSubscription.update()
-    fluidSubscription.update()
+  abstract override def onDisconnect(node: Node): Unit = {
+    super.onDisconnect(node)
+    itemSubscription.setSubscribe(false)
+    fluidSubscription.setSubscribe(false)
   }
 
   @Callback(doc = """function(enabled: bool): nil -- Enable or disable subscription to the "network_fluid_changed" event.""")
