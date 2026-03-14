@@ -7,6 +7,7 @@ import appeng.api.storage.data.IAEStack
 import appeng.me.helpers.IGridProxyable
 import li.cil.oc.api.Persistable
 import li.cil.oc.api.network.Node
+import li.cil.oc.common.EventHandler
 import li.cil.oc.integration.appeng.AEUtil
 import li.cil.oc.integration.appeng.NetworkControl.convert
 import net.minecraft.nbt.NBTTagCompound
@@ -30,23 +31,24 @@ trait SubscriptionBase[T <: IAEStack[T]] extends IMEMonitorHandlerReceiver[T] wi
   def setSubscribe(flag: Boolean): Unit = {
     if (subscribe == flag) return
     subscribe = flag
-    canUpdate = true
+    updateSubscribe()
   }
 
-  def update(): Unit = {
-    if (canUpdate) {
-      AEUtil.getMonitor[T](tile).foreach { inv =>
-        canUpdate = false;
+  private def updateSubscribe(): Unit = {
+    if (tile.isInvalid) return
+    AEUtil.getMonitor[T](tile) match {
+      case Some(inv) =>
         if (subscribe)
           inv.addListener(this, null)
         else
           inv.removeListener(this)
-      }
+      case None => EventHandler.scheduleServer(() => {
+        updateSubscribe()
+      })
     }
   }
 
   private var subscribe = false
-  var canUpdate = false
 
   def event_name: String
 

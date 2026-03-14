@@ -60,14 +60,9 @@ trait NetworkControl[AETile >: Null <: TileEntity with IGridProxyable with IActi
     essentiaSubscription.save(nbt)
   }
 
-  abstract override def canUpdate: Boolean = {
-    val flag = super.canUpdate
-    flag || essentiaSubscription.canUpdate
-  }
-
-  abstract override def update(): Unit = {
-    super.update()
-    essentiaSubscription.update()
+  abstract override def onDisconnect(node: Node): Unit = {
+    super.onDisconnect(node)
+    essentiaSubscription.setSubscribe(false)
   }
 
   @Callback(doc = """function(enabled: bool): nil -- Enable or disable subscription to the "network_essentia_changed" event.""")
