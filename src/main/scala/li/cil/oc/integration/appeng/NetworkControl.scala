@@ -126,9 +126,10 @@ trait NetworkControl[AETile >: Null <: TileEntity with IGridProxyable with IActi
       .toArray)
   }
 
-  @Callback(doc = "function(name:string[, damage:number[, nbt:string]]):table -- Retrieves the stored item in the network by its unlocalized name.")
+  @Callback(doc = "function(name:string|id:number[, damage:number[, nbt:string]]):table -- Retrieves the stored item in the network by its unlocalized name.")
   def getItemInNetwork(context: Context, args: Arguments): Array[AnyRef] = {
-    val item = Item.itemRegistry.getObject(args.checkString(0))
+    val item = if (args.isString(0)) Item.itemRegistry.getObject(args.checkString(0))
+    else Item.itemRegistry.getObjectById(args.checkInteger(0))
     if (item == null) {
       return result(null)
     }
