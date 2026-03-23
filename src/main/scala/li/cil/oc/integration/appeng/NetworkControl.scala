@@ -27,7 +27,7 @@ import li.cil.oc.integration.appeng.NetworkControl._
 import li.cil.oc.integration.appeng.internal.SubscriptionBase
 import li.cil.oc.integration.ec.ECUtil
 import li.cil.oc.server.driver.Registry
-import li.cil.oc.util.DatabaseAccess
+import li.cil.oc.util.{AE2Bridge, DatabaseAccess}
 import li.cil.oc.util.ExtendedArguments._
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.ResultWrapper._
@@ -100,9 +100,9 @@ trait NetworkControl[AETile >: Null <: TileEntity with IGridProxyable with IActi
         val it = storageList.iterator()
 
         while (it.hasNext) {
-          val s = it.next().asInstanceOf[IAEStack[_]]
+          val s = it.next().asInstanceOf[AEStack]
           if (s.isCraftable) {
-            val c = asCraft(s, tile).asInstanceOf[AEStack]
+            val c = asCraft(s, tile)
             if (matches(convert(c, tile), filter)) {
               builder += new Craftable(tile, c)
             }
@@ -452,22 +452,22 @@ object NetworkControl extends AETypes {
 
     @Callback(doc = "function():table -- Get currently crafted items.")
     def activeItems(context: Context, args: Arguments): Array[AnyRef] = {
-      val list = AEApi.instance.storage.createItemList
-      getCpu.getListOfItem(list, CraftingItemList.ACTIVE)
+      val list = AEApi.instance.storage.createAEStackList().asInstanceOf[IItemList[AEStack]]
+      AE2Bridge.getModernListOfItem(getCpu, list, CraftingItemList.ACTIVE)
       result(list.map(item => convert(item, controller)).toArray)
     }
 
     @Callback(doc = "function():table -- Get pending items.")
     def pendingItems(context: Context, args: Arguments): Array[AnyRef] = {
-      val list = AEApi.instance.storage.createItemList
-      getCpu.getListOfItem(list, CraftingItemList.PENDING)
+      val list = AEApi.instance.storage.createAEStackList().asInstanceOf[IItemList[AEStack]]
+      AE2Bridge.getModernListOfItem(getCpu, list, CraftingItemList.PENDING)
       result(list.map(item => convert(item, controller)).toArray)
     }
 
     @Callback(doc = "function():table -- Get stored items.")
     def storedItems(context: Context, args: Arguments): Array[AnyRef] = {
-      val list = AEApi.instance.storage.createItemList
-      getCpu.getListOfItem(list, CraftingItemList.STORAGE)
+      val list = AEApi.instance.storage.createAEStackList().asInstanceOf[IItemList[AEStack]]
+      AE2Bridge.getModernListOfItem(getCpu, list, CraftingItemList.STORAGE)
       result(list.map(item => convert(item, controller)).toArray)
     }
 
@@ -577,10 +577,6 @@ object NetworkControl extends AETypes {
 
     private def getMonitor: Option[IMEMonitor[T]] = AEUtil.getMonitor[T](controller)
 
-    private def convertItem(stack: IAEStack[_]): java.util.HashMap[String, AnyRef] = {
-      convert(stack.asInstanceOf[AEStack], controller)
-    }
-
     private var items: IItemList[T] = null
     private var itemIterator: java.util.Iterator[T] = null
     private var index = 0
@@ -603,7 +599,7 @@ object NetworkControl extends AETypes {
       if (!itemIterator.hasNext)
         return null
       index += 1
-      result(convertItem(itemIterator.next()))
+      result(itemIterator.next())
     }
 
     override def load(nbt: NBTTagCompound): Unit = {
@@ -637,11 +633,14 @@ object NetworkControl extends AETypes {
     override def toString = "{IAEStack Array}"
   }
 
-  private def asCraft(stack: IAEStack[_], tile: TileEntity with IGridProxyable): IAEStack[_] = {
-    tile.getProxy.getCrafting.getCraftingFor(stack, null, 0, tile.getWorldObj).view.map(a => a.getAEOutputs.find(_.isSameType(stack)).get).headOption.getOrElse[IAEStack[_]] {
-      val result = stack.copy().asInstanceOf[AEStack]
-      result.setStackSize(0)
-      result
+  private def asCraft(stack: AEStack, tile: TileEntity with IGridProxyable): AEStack = {
+    val outputOpt = tile.getProxy.getCrafting.getCraftingFor(stack, null, 0, tile.getWorldObj).view.map(a => a.getAEOutputs.find(_.isSameType(stack)).get).headOption
+    outputOpt match {
+      case Some(output) => output.asInstanceOf[AEStack]
+      case None =>
+        val result = stack.copy()
+        result.setStackSize(0)
+        result
     }
   }
 
@@ -649,7 +648,7 @@ object NetworkControl extends AETypes {
     if (aeItem.getStackSize > 0 || !aeItem.isCraftable)
       aeItem
     else
-      asCraft(aeItem, tile).asInstanceOf[AEStack]
+      asCraft(aeItem, tile)
   }
 
   private def hashConvert(value: java.util.HashMap[_, _]) = {
