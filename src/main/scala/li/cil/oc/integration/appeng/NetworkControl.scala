@@ -330,7 +330,7 @@ object NetworkControl extends AETypes {
       links -= link
     }
 
-    override def injectCraftedItems(link: ICraftingLink, stack: IAEItemStack, p3: Actionable): IAEItemStack = stack
+    override def injectCraftedItems(link: ICraftingLink, stack: IAEStack[_], p3: Actionable): IAEStack[_] = stack
 
     override def getActionableNode: IGridNode = controller.getActionableNode
 
