@@ -243,12 +243,11 @@ trait NetworkControl[AETile >: Null <: TileEntity with IGridProxyable with IActi
       case (key: String, value: AnyRef) =>
         val stack_value = stack.get(key)
         if (stack_value == null) false
-        else value match {
-          case number: Number => stack_value match {
-            case stack_number: Number => number.intValue == stack_number.intValue
-            case any => number.toString.equals(any.toString)
-          }
-          case any => any.toString.equals(stack_value.toString)
+        else (value, stack_value) match {
+          case (number: Number, stack_number: Number) => number.intValue() == stack_number.intValue()
+          case (arr: Array[Byte], stack_arr: Array[Byte]) => arr.sameElements(stack_arr)
+          case (str: String, stack_arr: Array[Byte]) => str.equals(stack_arr.mkString)
+          case (_, _) => value.toString.equals(stack_value.toString)
         }
     }
   }
