@@ -1,7 +1,7 @@
 package li.cil.oc.integration.ae2fc
 
 import appeng.api.parts.IPartHost
-import appeng.api.storage.data.IAEItemStack
+import appeng.api.storage.data.IAEFluidStack
 import com.glodblock.github.common.parts.PartFluidExportBus
 import li.cil.oc.api.driver
 import li.cil.oc.api.driver.{EnvironmentProvider, NamedBlock}
