@@ -419,9 +419,7 @@ object NetworkControl extends AETypes {
       super.save(nbt)
       Platform.writeStackNBT(stack, nbt, true)
       saveController(controller, nbt)
-      val tag = new NBTTagCompound()
-      links.foreach(_.writeToNBT(tag))
-      nbt.setNewTagList("links", tag)
+      nbt.setNewTagList("links", links.map(link => link.writeToNBT _))
     }
   }
 
