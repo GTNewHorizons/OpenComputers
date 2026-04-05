@@ -6,11 +6,11 @@ import appeng.api.storage.ICellInventory;
 import appeng.api.storage.ICellInventoryHandler;
 import appeng.api.storage.IMEInventoryHandler;
 import appeng.api.storage.StorageChannel;
-import java.util.Map;
-
 import appeng.util.IterationCounter;
 import li.cil.oc.api.driver.Converter;
 import net.minecraft.item.ItemStack;
+
+import java.util.Map;
 
 public final class ConverterCellInventory implements Converter {
     @Override
