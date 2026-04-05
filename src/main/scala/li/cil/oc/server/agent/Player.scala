@@ -2,7 +2,6 @@ package li.cil.oc.server.agent
 
 import java.util.UUID
 
-import appeng.api.parts.IPartHost
 import com.mojang.authlib.GameProfile
 import cpw.mods.fml.common.ObfuscationReflectionHelper
 import cpw.mods.fml.common.eventhandler.Event
