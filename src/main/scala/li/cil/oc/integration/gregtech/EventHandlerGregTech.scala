@@ -20,10 +20,6 @@ object EventHandlerGregTech {
         e.data += "facing" -> turnable.getFrontFacing.name
       case _ =>
     }
-    val infoDevice = Capabilities.getCapability(te, classOf[IGregTechDeviceInformation])
-    if (infoDevice != null) {
-      e.data += "sensorInformation" -> infoDevice.getInfoData
-    }
 
     te match {
       case gtTe: IGregTechTileEntity =>
