@@ -1,6 +1,5 @@
 package li.cil.oc.integration.gregtech
 
-import com.gtnewhorizon.gtnhlib.capability.Capabilities
 import cpw.mods.fml.common.eventhandler.SubscribeEvent
 import gregtech.api.interfaces.IDamagableItem
 import gregtech.api.interfaces.tileentity.{IGregTechTileEntity, ITurnable}
