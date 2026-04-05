@@ -2,7 +2,6 @@ package li.cil.oc.server.agent
 
 import java.util.UUID
 
-import appeng.api.parts.IPartHost
 import com.mojang.authlib.GameProfile
 import cpw.mods.fml.common.ObfuscationReflectionHelper
 import cpw.mods.fml.common.eventhandler.Event
@@ -246,19 +245,6 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
 
       val block = world.getBlock(x, y, z)
       val canActivate = block != null && Settings.get.allowActivateBlocks
-      // Special handling for ae2 P2Ps
-      val tile = world.getTileEntity(x, y, z)
-      if (isSneaking && tile != null && tile.isInstanceOf[IPartHost]) {
-        val host = tile.asInstanceOf[IPartHost]
-        val hitVec = Vec3.createVectorHelper(hitX, hitY, hitZ)
-        val selected = host.selectPart(hitVec)
-        if (selected != null && selected.part != null) {
-          return if (selected.part.onShiftActivate(this, hitVec))
-            ActivationType.BlockActivated
-          else
-            ActivationType.None
-        }
-      }
       val shouldActivate = canActivate && (!isSneaking || (item == null || item.doesSneakBypassUse(world, x, y, z, this)))
       val result =
         if (shouldActivate && block.onBlockActivated(world, x, y, z, this, side, hitX, hitY, hitZ))
