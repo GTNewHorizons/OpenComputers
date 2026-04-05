@@ -1,23 +1,28 @@
 package li.cil.oc.integration.thaumicenergistics
 
 import li.cil.oc.api.Driver
-import li.cil.oc.integration.Mod
-import li.cil.oc.integration.ModProxy
-import li.cil.oc.integration.Mods
+import li.cil.oc.integration.appeng.AEStackFactory
+import li.cil.oc.integration.{Mod, ModProxy, Mods}
+import thaumicenergistics.common.storage.{AEEssentiaStack, AEEssentiaStackType}
 
 object ModThaumicEnergistics extends ModProxy {
   override def getMod: Mod = Mods.ThaumicEnergistics
 
   override def initialize(): Unit = {
+    AEStackFactory.register[AEEssentiaStack](AEEssentiaStackType.ESSENTIA_STACK_TYPE, ConvertAEEssentiaStack.convert, ConvertAEEssentiaStack.parse)
+
+    Driver.add(ConvertAEEssentiaStack)
     Driver.add(DriverController)
     Driver.add(DriverBlockInterface)
     Driver.add(DriverEssentiaExportBus)
     Driver.add(DriverEssentiaImportBus)
+    Driver.add(DriverEssentiaStorageBus)
 
     Driver.add(DriverController.Provider)
     Driver.add(DriverBlockInterface.Provider)
     Driver.add(DriverEssentiaExportBus.Provider)
     Driver.add(DriverEssentiaImportBus.Provider)
+    Driver.add(DriverEssentiaStorageBus.Provider)
     Driver.add(ConvertAspectCraftable)
   }
 }

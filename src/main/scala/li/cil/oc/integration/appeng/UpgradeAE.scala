@@ -1,6 +1,5 @@
 package li.cil.oc.integration.appeng
 
-import java.util
 import appeng.api.AEApi
 import appeng.api.config.Actionable
 import appeng.api.implementations.tiles.IWirelessAccessPoint
@@ -15,7 +14,6 @@ import li.cil.oc.Constants
 import li.cil.oc.api.Network
 import li.cil.oc.api.driver.DeviceInfo
 import li.cil.oc.api.driver.DeviceInfo.{DeviceAttribute, DeviceClass}
-import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.api.internal.{Agent, Database, Drone, Robot}
 import li.cil.oc.api.machine.{Arguments, Callback, Context}
 import li.cil.oc.api.network._
@@ -27,6 +25,7 @@ import net.minecraft.item.ItemStack
 import net.minecraftforge.common.util.ForgeDirection
 import net.minecraftforge.fluids.FluidContainerRegistry
 
+import java.util
 import scala.collection.JavaConversions._
 
 class UpgradeAE(val host: EnvironmentHost, val tier: Int) extends ManagedEnvironment with appeng.NetworkControl[TileSecurity] with DeviceInfo {
@@ -49,16 +48,16 @@ class UpgradeAE(val host: EnvironmentHost, val tier: Int) extends ManagedEnviron
   val agent: Agent = host.asInstanceOf[Agent]
 
   def getComponent: ItemStack = host match {
-      case robot : Robot => robot.getStackInSlot(robot.componentSlot(node.address))
-      case drone: Drone =>
-        for (i <- drone.internalComponents)
-          Delegator.subItem(i) match {
-            case Some(_: ItemUpgradeAE) => return i
-            case _ =>
-          }
-        null
-      case _ => null
-    }
+    case robot: Robot => robot.getStackInSlot(robot.componentSlot(node.address))
+    case drone: Drone =>
+      for (i <- drone.internalComponents)
+        Delegator.subItem(i) match {
+          case Some(_: ItemUpgradeAE) => return i
+          case _ =>
+        }
+      null
+    case _ => null
+  }
 
 
   def getSecurity: IGridHost = {
@@ -72,6 +71,7 @@ class UpgradeAE(val host: EnvironmentHost, val tier: Int) extends ManagedEnviron
     else
       null
   }
+
   def checkRange(stack: ItemStack, sec: IGridHost): Boolean = {
     if (sec == null) return false
     val gridNode: IGridNode = sec.getGridNode(ForgeDirection.UNKNOWN)
@@ -365,9 +365,9 @@ class UpgradeAE(val host: EnvironmentHost, val tier: Int) extends ManagedEnviron
       .0
     else
       c.getItemDamage match {
-        case 0 => .6
-        case 1 => .3
-        case _ => .05
+        case 0 =>.6
+        case 1 =>.3
+        case _ =>.05
       }
   }
 
