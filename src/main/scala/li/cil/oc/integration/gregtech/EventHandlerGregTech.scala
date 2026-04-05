@@ -3,7 +3,7 @@ package li.cil.oc.integration.gregtech
 import com.gtnewhorizon.gtnhlib.capability.Capabilities
 import cpw.mods.fml.common.eventhandler.SubscribeEvent
 import gregtech.api.interfaces.IDamagableItem
-import gregtech.api.interfaces.tileentity.{IGregTechDeviceInformation, IGregTechTileEntity, ITurnable}
+import gregtech.api.interfaces.tileentity.{IGregTechTileEntity, ITurnable}
 import gregtech.api.items.MetaGeneratedTool
 import li.cil.oc.api.event.{GeolyzerEvent, RobotUsedToolEvent}
 import net.minecraft.item.ItemStack
