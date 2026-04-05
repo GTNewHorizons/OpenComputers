@@ -587,7 +587,7 @@ public interface TextBuffer extends ManagedEnvironment, Persistable {
      * This method is intended to be called on the client side only.
      *
      * @param fileName    the name of file that was dropped.
-     * @param fileContent the context of the file being transferred.
+     * @param fileContent the content of the file being transferred.
      * @param player      the player that dropped the file. Pass <tt>null</tt> on the client side.
      */
     void dropFile(String fileName, String fileContent, EntityPlayer player);

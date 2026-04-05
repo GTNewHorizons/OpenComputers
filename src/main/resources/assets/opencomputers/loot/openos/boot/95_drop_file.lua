@@ -2,7 +2,7 @@ local event = require("event")
 local fs = require("filesystem")
 local shell = require("shell")
 
-local function onDropFile(ev, _, filename, context)
+local function onDropFile(ev, _, filename, content)
     local path = shell.resolve(filename)
     local file_parentpath = fs.path(path)
     fs.makeDirectory(file_parentpath)
@@ -20,7 +20,7 @@ local function onDropFile(ev, _, filename, context)
         return
     end
 
-    f:write(context)
+    f:write(content)
     f:close()
 end
 

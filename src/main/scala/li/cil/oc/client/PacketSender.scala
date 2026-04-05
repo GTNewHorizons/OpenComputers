@@ -91,8 +91,8 @@ object PacketSender {
     }
   }
 
-  def sendDropFile(address: String, name: String, context: String): Unit = {
-      val length = name.length + context.length
+  def sendDropFile(address: String, name: String, content: String): Unit = {
+      val length = name.length + content.length
       if (length > 64 * 1024) {
         val player = Minecraft.getMinecraft.thePlayer
         val handler = Minecraft.getMinecraft.getSoundHandler
@@ -103,7 +103,7 @@ object PacketSender {
 
         pb.writeUTF(address)
         pb.writeUTF(name)
-        pb.writeUTF(context)
+        pb.writeUTF(content)
 
         pb.sendToServer()
       }
