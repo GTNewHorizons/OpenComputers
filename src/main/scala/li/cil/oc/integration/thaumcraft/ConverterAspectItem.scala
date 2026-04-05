@@ -2,7 +2,7 @@ package li.cil.oc.integration.thaumcraft
 
 import li.cil.oc.api.driver.Converter
 import net.minecraft.item.ItemStack
-import thaumcraft.api.aspects.{AspectList, IAspectContainer}
+import thaumcraft.api.aspects.AspectList
 import thaumcraft.common.items.wands.ItemWandCasting
 
 import java.util
@@ -16,7 +16,7 @@ object ConverterAspectItem extends Converter {
       if (aspects.size() > 0)
         output += "aspects" -> TCUtils.convert_aspects(aspects)
       stack.getItem match {
-        case wand : ItemWandCasting =>
+        case wand: ItemWandCasting =>
           aspects = wand.getAllVis(stack)
           if (aspects.size() > 0) {
             output += "aspects" -> TCUtils.convert_aspects(aspects)
