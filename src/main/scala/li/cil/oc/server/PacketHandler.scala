@@ -50,6 +50,7 @@ object PacketHandler extends CommonPacketHandler {
       case PacketType.KeyDown => onKeyDown(p)
       case PacketType.KeyUp => onKeyUp(p)
       case PacketType.Clipboard => onClipboard(p)
+      case PacketType.DropFile => onDropFile(p)
       case PacketType.MouseClickOrDrag => onMouseClick(p)
       case PacketType.MouseScroll => onMouseScroll(p)
       case PacketType.DatabaseSetSlot => onDatabaseSetSlot(p)
@@ -197,6 +198,16 @@ object PacketHandler extends CommonPacketHandler {
     val copy = p.readUTF()
     ComponentTracker.get(p.player.worldObj, address) match {
       case Some(buffer: api.internal.TextBuffer) => buffer.clipboard(copy, p.player.asInstanceOf[EntityPlayer])
+      case _ => // Invalid Packet
+    }
+  }
+
+  def onDropFile(p: PacketParser): Unit = {
+    val address = p.readUTF()
+    val fileName = p.readUTF()
+    val fileContent = p.readUTF()
+    ComponentTracker.get(p.player.worldObj, address) match {
+      case Some(buffer: api.internal.TextBuffer) => buffer.dropFile(fileName, fileContent, p.player.asInstanceOf[EntityPlayer])
       case _ => // Invalid Packet
     }
   }
