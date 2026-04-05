@@ -381,6 +381,9 @@ class TextBuffer(val host: EnvironmentHost) extends prefab.ManagedEnvironment wi
   override def clipboard(value: String, player: EntityPlayer): Unit =
     proxy.clipboard(value, player)
 
+  override def dropFile(fileName: String, fileContent: String, player: EntityPlayer): Unit =
+    proxy.dropFile(fileName, fileContent, player)
+
   override def mouseDown(x: Double, y: Double, button: Int, player: EntityPlayer): Unit =
     proxy.mouseDown(x, y, button, player)
 
@@ -589,6 +592,8 @@ object TextBuffer {
 
     def clipboard(value: String, player: EntityPlayer): Unit
 
+    def dropFile(fileName: String, fileContent: String, player: EntityPlayer): Unit
+
     def mouseDown(x: Double, y: Double, button: Int, player: EntityPlayer): Unit
 
     def mouseDrag(x: Double, y: Double, button: Int, player: EntityPlayer): Unit
@@ -680,6 +685,11 @@ object TextBuffer {
     override def clipboard(value: String, player: EntityPlayer) {
       debug(s"{type = clipboard}")
       ClientPacketSender.sendClipboard(nodeAddress, value)
+    }
+
+    override def dropFile(fileName: String, fileContent: String, player: EntityPlayer) {
+      debug(s"{type = dropFile}")
+      ClientPacketSender.sendDropFile(nodeAddress, fileName, fileContent)
     }
 
     override def mouseDown(x: Double, y: Double, button: Int, player: EntityPlayer) {
@@ -817,6 +827,10 @@ object TextBuffer {
 
     override def clipboard(value: String, player: EntityPlayer) {
       sendToKeyboards("keyboard.clipboard", player, value)
+    }
+
+    override def dropFile(fileName: String, fileContent: String, player: EntityPlayer): Unit = {
+      owner.node.sendToReachable("computer.checked_signal", player, "drop_file", fileName, fileContent)
     }
 
     override def mouseDown(x: Double, y: Double, button: Int, player: EntityPlayer) {
