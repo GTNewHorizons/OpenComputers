@@ -37,7 +37,7 @@ object DriverLSC extends SidedBlock {
     @Callback(doc = "function():number --  Returns the amount of electricity containable in this Block, in EU units! NOTE: Value is clamped to Long.MaxValue to prevent overflow.")
     def getEUCapacity(context: Context, args: Arguments): Array[AnyRef] = result(tileEntity.maxEUStore)
 
-    @Callback(doc = "function():number --  Returns the amount of electricity containable in this Block, in EU units! (As a string for HUGE amounts.)")
+    @Callback(doc = "function():string --  Returns the amount of electricity containable in this Block, in EU units! (As a string for HUGE amounts.)")
     def getEUCapacityString(context: Context, args: Arguments) = Array[AnyRef](tileEntity.getEnergyCapacity.toString)
   }
 }
