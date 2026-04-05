@@ -14,30 +14,16 @@ object ConverterAspectItem extends Converter {
       var aspects = new AspectList()
       aspects.readFromNBT(stack.getTagCompound)
       if (aspects.size() > 0)
-        output += "aspects" -> aspects
+        output += "aspects" -> TCUtils.convert_aspects(aspects)
       stack.getItem match {
         case wand : ItemWandCasting =>
           aspects = wand.getAllVis(stack)
           if (aspects.size() > 0) {
-            output += "aspects" -> aspects
+            output += "aspects" -> TCUtils.convert_aspects(aspects)
           }
         case _ =>
       }
 
-    case container : IAspectContainer =>
-      output += "aspects" -> container.getAspects
-
-    case aspects : AspectList =>
-      var i = 1
-      for (aspect <- aspects.getAspects) {
-        if (aspect != null) {
-          val aspectMap = new util.HashMap[AnyRef, AnyRef]()
-          aspectMap += "name" -> aspect.getName
-          aspectMap += "amount" -> aspects.getAmount(aspect).asInstanceOf[AnyRef]
-          output += i.asInstanceOf[AnyRef] -> aspectMap
-          i += 1;
-        }
-      }
     case _ =>
   }
 }
