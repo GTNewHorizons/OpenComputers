@@ -14,7 +14,7 @@ local function onDropFile(ev, _, filename, context)
         end
     end
 
-    local f, reason = io.open(filename, "w")
+    local f, reason = io.open(path, "w")
     if not f then
         io.stderr:write("Failed opening file for writing: " .. reason)
         return
