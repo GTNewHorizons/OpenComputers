@@ -60,6 +60,7 @@ class GpuTextBuffer(val owner: String, val id: Int, val data: li.cil.oc.util.Tex
   override def keyDown(character: Char, code: Int, player: EntityPlayer): Unit = {}
   override def keyUp(character: Char, code: Int, player: EntityPlayer): Unit = {}
   override def clipboard(value: String, player: EntityPlayer): Unit = {}
+  override def dropFile(fileName: String, fileContent: String, player: EntityPlayer): Unit = {}
   override def mouseDown(x: Double, y: Double, button: Int, player: EntityPlayer): Unit = {}
   override def mouseDrag(x: Double, y: Double, button: Int, player: EntityPlayer): Unit = {}
   override def mouseUp(x: Double, y: Double, button: Int, player: EntityPlayer): Unit = {}
