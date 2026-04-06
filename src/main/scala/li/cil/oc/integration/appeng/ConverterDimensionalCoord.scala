@@ -5,7 +5,7 @@ import li.cil.oc.api.driver.Converter
 
 import java.util
 
-object ConverterDimensioinalCoord extends Converter {
+object ConverterDimensionalCoord extends Converter {
   override def convert(value: AnyRef, output: util.Map[AnyRef, AnyRef]): Unit = value match {
     case coord: DimensionalCoord =>
       output.put("x", Int.box(coord.x))
