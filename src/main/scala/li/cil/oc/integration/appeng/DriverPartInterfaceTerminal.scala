@@ -55,7 +55,7 @@ object DriverPartInterfaceTerminal extends driver.SidedBlock {
 
     @Callback(doc = "function(location:table{x:number, y:number: z:number[, dimId:number]}[, side:number|string]):table -- Returns a list of interfaces at the specified location. 'side' can be a Forge direction number or name.")
     def getInterfacesByLocation(context: Context, args: Arguments): Array[AnyRef] = {
-      val location = ConverterDimensioinalCoord.parse(args.checkTable(0), host.getLocation.getDimension)
+      val location = ConverterDimensionalCoord.parse(args.checkTable(0), host.getLocation.getDimension)
       var filtered = allMachines.filter(_.getLocation == location)
       if (args.count() >= 2) {
         val side = if (args.isInteger(1))
@@ -102,7 +102,7 @@ object DriverPartInterfaceTerminal extends driver.SidedBlock {
     private object TransferData {
       def create(args: java.util.Map[_, _]): TransferData = {
         val location: DimensionalCoord = args.get("location") match {
-          case location: util.Map[_, _] => ConverterDimensioinalCoord.parse(location, host.getLocation.getDimension)
+          case location: util.Map[_, _] => ConverterDimensionalCoord.parse(location, host.getLocation.getDimension)
           case _ => throw new Exception("location is missing")
         }
         val side: ForgeDirection = args.get("side") match {

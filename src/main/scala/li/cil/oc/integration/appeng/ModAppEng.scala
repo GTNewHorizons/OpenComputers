@@ -35,7 +35,7 @@ object ModAppEng extends ModProxy {
     Driver.add(ConverterAEItemStack)
     Driver.add(ConverterAEFluidStack)
     Driver.add(new ConverterCellInventory)
-    Driver.add(ConverterDimensioinalCoord)
+    Driver.add(ConverterDimensionalCoord)
     Driver.add(ConverterPattern)
 
     Driver.add(DriverController.Provider)
