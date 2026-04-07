@@ -11,3 +11,10 @@ tasks.named("processResources", ProcessResources).configure {
         filter(ReplaceTokens, tokens: [version: pVersion])
     }
 }
+
+sourceSets {
+    lwjgl3 {
+        compileClasspath += sourceSets.main.compileClasspath
+        compileClasspath += sourceSets.main.output
+    }
+}
