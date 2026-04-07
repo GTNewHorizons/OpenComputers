@@ -355,8 +355,6 @@ object InventoryUtils {
     }
 
   def swapBetweenInventoriesSlots(source: IInventory, sourceSide: ForgeDirection, sourceSlot: Int, sink: IInventory, sinkSide: ForgeDirection, sinkSlot: Int, safe: Boolean): Boolean = {
-    if (source == sink && sourceSlot == sinkSlot) return true
-
     val sourceStack = source.getStackInSlot(sourceSlot)
     val sinkStack = sink.getStackInSlot(sinkSlot)
 
@@ -368,6 +366,11 @@ object InventoryUtils {
     } else {
       if (sourceEmpty && sinkEmpty) return true
     }
+
+    if (source == sink && sourceSlot == sinkSlot) return true
+
+    if (!sourceEmpty && sourceStack.stackSize > sink.getInventoryStackLimit) return false
+    if (!sinkEmpty && sinkStack.stackSize > source.getInventoryStackLimit) return false
 
     if (!sourceEmpty) {
       source match {
@@ -404,7 +407,7 @@ object InventoryUtils {
     source.setInventorySlotContents(sourceSlot, if (sinkEmpty) null else sinkStack.copy())
     sink.setInventorySlotContents(sinkSlot, if (sourceEmpty) null else sourceStack.copy())
     source.markDirty()
-    sink.markDirty()
+    if (source != sink) sink.markDirty()
     true
   }
 

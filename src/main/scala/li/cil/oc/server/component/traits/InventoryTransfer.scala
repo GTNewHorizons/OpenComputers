@@ -49,7 +49,10 @@ trait InventoryTransfer extends traits.WorldAware with traits.SideRestricted {
     val sinkSide = checkSideForAction(args, 1)
     val sinkPos = position.offset(sinkSide)
 
-    onTransferContents().foreach(reason => return result(Unit, reason))
+    onTransferContents() match {
+      case Some(reason) => return result(Unit, reason)
+      case _ =>
+    }
 
     val source = InventoryUtils.inventoryAt(sourcePos).getOrElse(return result(Unit, "no inventory"))
     val sink = InventoryUtils.inventoryAt(sinkPos).getOrElse(return result(Unit, "no inventory"))
