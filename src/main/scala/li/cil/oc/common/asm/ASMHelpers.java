@@ -73,25 +73,35 @@ public final class ASMHelpers {
   }
 
   @Nullable
-  public static ClassNode classNodeFor(LaunchClassLoader loader, String internalName) {
+  public static byte[] classBytesFor(LaunchClassLoader loader, String internalName) {
     try {
       // internalName is slash-form, e.g. "net/minecraft/tileentity/TileEntity"
       String namePlain = internalName.replace('/', '.');
 
-      byte[] bytes = loader.getClassBytes(namePlain);
+      final byte[] bytes = loader.getClassBytes(namePlain);
       if (bytes != null) {
-        return newClassNode(bytes);
+        return bytes;
       }
 
-      String nameObfed = FMLDeobfuscatingRemapper.INSTANCE.unmap(internalName).replace('/', '.');
-      bytes = loader.getClassBytes(nameObfed);
-      if (bytes == null) {
+      String nameObf = FMLDeobfuscatingRemapper.INSTANCE.unmap(internalName).replace('/', '.');
+      if (nameObf.equals(namePlain)) {
         return null;
       }
-      return newClassNode(bytes);
+
+      return loader.getClassBytes(nameObf);
     } catch (IOException ignored) {
       return null;
     }
+  }
+
+  @Nullable
+  public static ClassNode classNodeFor(LaunchClassLoader loader, String internalName) {
+    final byte[] bytes = classBytesFor(loader, internalName);
+    if (bytes == null) {
+      return null;
+    }
+
+    return newClassNode(bytes);
   }
 
   @Nonnull
@@ -101,15 +111,13 @@ public final class ASMHelpers {
     return node;
   }
 
-  public static boolean classExists(LaunchClassLoader loader, String name) {
-    try {
-      if (loader.getClassBytes(name) != null) return true;
-      if (loader.getClassBytes(FMLDeobfuscatingRemapper.INSTANCE.unmap(name)) != null) return true;
-
-      return loader.findClass(name.replace('/', '.')) != null;
-    } catch (IOException | ClassNotFoundException ignored) {
-      return false;
-    }
+  public static MethodNode copyMethodNode(MethodNode methodNode) {
+    MethodNode newMethodNode = new MethodNode(
+      methodNode.access, methodNode.name, methodNode.desc, methodNode.signature,
+      methodNode.exceptions == null ? null : methodNode.exceptions.toArray(new String[0])
+    );
+    methodNode.accept(newMethodNode); // clones instructions/labels/etc
+    return newMethodNode;
   }
 
   public static boolean isAssignable(LaunchClassLoader loader, ClassNode parent, ClassNode child) {

@@ -15,7 +15,7 @@ import org.apache.logging.log4j.Logger
 
 @Mod(modid = OpenComputers.ID, name = OpenComputers.Name,
   version = OpenComputers.Version,
-  modLanguage = "scala", useMetadata = true /*@MCVERSIONDEP@*/)
+  modLanguage = "scala", useMetadata = true /*@MCVERSIONDEP@*/, dependencies = "required-after:gtnhlib@[0.6.9,);")
 object OpenComputers {
   final val ID = "OpenComputers"
 

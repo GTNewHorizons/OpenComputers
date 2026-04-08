@@ -1,5 +1,6 @@
 package li.cil.oc.common.asm;
 
+import com.gtnewhorizon.gtnhlib.asm.ClassConstantPoolParser;
 import li.cil.oc.integration.Mods;
 import net.minecraft.launchwrapper.LaunchClassLoader;
 import org.apache.logging.log4j.LogManager;
@@ -12,15 +13,23 @@ import org.objectweb.asm.tree.MethodNode;
 public final class TransformerInjectInterfaces {
 
   private static final Logger log = LogManager.getLogger("OpenComputers");
+  private final static ClassConstantPoolParser injectableAnnotationParser =
+    new ClassConstantPoolParser("li/cil/oc/common/asm/Injectable$Interface", "li/cil/oc/common/asm/Injectable$InterfaceList");
 
   // Inject available interfaces where requested.
   public static byte[] transform(LaunchClassLoader loader, String name, byte[] classBytes) {
+    boolean hasInjectableAnnotations = injectableAnnotationParser.find(classBytes);
+    if (!hasInjectableAnnotations) {
+      return classBytes;
+    }
+
     ClassNode classNode = ASMHelpers.newClassNode(classBytes);
+    boolean injected = false;
 
     if (classNode.visibleAnnotations != null) {
       for (AnnotationNode annotation : classNode.visibleAnnotations) {
         if (annotation.desc.equals("Lli/cil/oc/common/asm/Injectable$Interface;")) {
-          injectInterface(loader, name, classNode, annotation);
+          injected |= injectInterface(loader, name, classNode, annotation);
           break;
         }
 
@@ -29,7 +38,7 @@ public final class TransformerInjectInterfaces {
           if (value instanceof Iterable<?>) {
             for (Object item : (Iterable<?>) value) {
               if (item instanceof AnnotationNode) {
-                injectInterface(loader, name, classNode, (AnnotationNode) item);
+                injected |= injectInterface(loader, name, classNode, (AnnotationNode) item);
               }
             }
           }
@@ -38,17 +47,20 @@ public final class TransformerInjectInterfaces {
       }
     }
 
-    return ASMHelpers.writeClass(loader, classNode, ClassWriter.COMPUTE_MAXS);
+    if (injected) {
+      return ASMHelpers.writeClass(loader, classNode, ClassWriter.COMPUTE_MAXS);
+    }
+    return classBytes;
   }
 
-  private static void injectInterface(LaunchClassLoader loader, String ownerName, ClassNode classNode,
+  private static boolean injectInterface(LaunchClassLoader loader, String ownerName, ClassNode classNode,
     AnnotationNode annotation) {
 
     Object interfaceObj = getAnnotationField(annotation, "value");
     Object modIdObj = getAnnotationField(annotation, "modid");
 
     if (!(interfaceObj instanceof String) || !(modIdObj instanceof String)) {
-      return;
+      return false;
     }
 
     String interfaceName = (String) interfaceObj;
@@ -63,14 +75,14 @@ public final class TransformerInjectInterfaces {
       if (!mod.isAvailable()) {
         log.info("Skipping interface {} from missing mod {}.", interfaceName, modId);
         mod.disablePower();
-        return;
+        return false;
       }
 
       String interfaceNameInternal = interfaceName.replace('.', '/');
       ClassNode node = ASMHelpers.classNodeFor(loader, interfaceNameInternal);
       if (node == null) {
         log.warn("Interface {} not found, skipping injection.", interfaceName);
-        return;
+        return false;
       }
 
       boolean isMissing = false;
@@ -95,8 +107,12 @@ public final class TransformerInjectInterfaces {
       if (!isMissing) {
         log.info("Injecting interface {} into {}.", interfaceName, ownerName);
         classNode.interfaces.add(interfaceNameInternal);
+        return true;
       }
+      return false;
     }
+
+    return false;
   }
 
   private static Object getAnnotationField(AnnotationNode annotation, String field) {
