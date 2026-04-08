@@ -36,7 +36,6 @@ import li.cil.oc.common.nanomachines.provider.PotionProvider
 import li.cil.oc.common.template._
 import li.cil.oc.integration.ModProxy
 import li.cil.oc.integration.Mods
-import li.cil.oc.integration.thaumcraft.DriverUpgradeArcaneCrafting
 import li.cil.oc.integration.util.BundledRedstone
 import li.cil.oc.integration.util.WirelessRedstone
 import li.cil.oc.server.machine.luac.LuaStateFactory
@@ -157,7 +156,6 @@ object ModOpenComputers extends ModProxy {
     api.Driver.add(DriverUpgradeBattery)
     api.Driver.add(DriverUpgradeChunkloader)
     api.Driver.add(DriverUpgradeCrafting)
-    api.Driver.add(DriverUpgradeArcaneCrafting)
     api.Driver.add(DriverUpgradeDatabase)
     api.Driver.add(DriverUpgradeExperience)
     api.Driver.add(DriverUpgradeGenerator)
@@ -197,7 +195,6 @@ object ModOpenComputers extends ModProxy {
 
     api.Driver.add(DriverUpgradeChunkloader.Provider)
     api.Driver.add(DriverUpgradeCrafting.Provider)
-    api.Driver.add(DriverUpgradeArcaneCrafting.Provider)
     api.Driver.add(DriverUpgradeDatabase.Provider)
     api.Driver.add(DriverUpgradeExperience.Provider)
     api.Driver.add(DriverUpgradeGenerator.Provider)

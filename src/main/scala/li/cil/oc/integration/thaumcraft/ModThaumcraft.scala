@@ -19,7 +19,8 @@ object ModThaumcraft extends ModProxy {
   override def initialize() {
     Driver.add(new DriverAspectContainer)
     Driver.add(new DriverInfusionMatrix)
-
+    Driver.add(DriverUpgradeArcaneCrafting)
+    Driver.add(DriverUpgradeArcaneCrafting.Provider)
     Driver.add(ConverterAspectItem)
 
     val multi = new li.cil.oc.common.item.Delegator() {
