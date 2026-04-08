@@ -45,7 +45,7 @@ object ModThaumcraft extends ModProxy {
       }
     }
 
-    GameRegistry.registerItem(multi, "item..thaumcraft")
+    GameRegistry.registerItem(multi, "item.thaumcraft")
     Recipes.addSubItem(new item.UpgradeArcaneCrafting(multi), Constants.ItemName.ArcaneCraftingUpgrade, "oc:arcaneCraftingUpgrade")
   }
 }
