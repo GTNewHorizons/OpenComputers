@@ -128,6 +128,14 @@ object AEUtil {
       AEApi.instance.parts.partInterface != null &&
       AEApi.instance.parts.partInterface.sameAsStack(stack)
 
+  def isPartInterfaceTerminal(stack: ItemStack): Boolean = stack != null && AEApi.instance != null && {
+    if (useNewItemDefinitionAPI) isPartInterfaceTerminalNew(stack)
+    else false
+  }
+
+  private def isPartInterfaceTerminalNew(stack: ItemStack): Boolean =
+    AEApi.instance.definitions.parts.interfaceTerminal.isSameAs(stack)
+
   def isPartStorageBus(stack: ItemStack): Boolean = {
     AEApi.instance.definitions.parts.storageBus.isSameAs(stack)
   }

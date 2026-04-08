@@ -28,12 +28,14 @@ object ModAppEng extends ModProxy {
     Driver.add(DriverImportBus)
     Driver.add(DriverStorageBus)
     Driver.add(DriverPartInterface)
+    Driver.add(DriverPartInterfaceTerminal)
     Driver.add(DriverBlockInterface)
     Driver.add(DriverUpgradeAE)
 
     Driver.add(ConverterAEItemStack)
     Driver.add(ConverterAEFluidStack)
     Driver.add(new ConverterCellInventory)
+    Driver.add(ConverterDimensionalCoord)
     Driver.add(ConverterPattern)
 
     Driver.add(DriverController.Provider)
@@ -41,6 +43,7 @@ object ModAppEng extends ModProxy {
     Driver.add(DriverImportBus.Provider)
     Driver.add(DriverStorageBus.Provider)
     Driver.add(DriverPartInterface.Provider)
+    Driver.add(DriverPartInterfaceTerminal.Provider)
     Driver.add(DriverBlockInterface.Provider)
     Driver.add(DriverUpgradeAE.Provider)
 
