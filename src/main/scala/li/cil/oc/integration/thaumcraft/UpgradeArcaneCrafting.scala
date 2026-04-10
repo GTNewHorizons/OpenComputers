@@ -301,7 +301,7 @@ class UpgradeArcaneCrafting(val host: EnvironmentHost with internal.Robot) exten
   }
 
   private def getPlayerDir: File = {
-    val sh = host.world.getSaveHandler.getSaveHandler.asInstanceOf[SaveHandler]
+    val sh = host.world.getSaveHandler.asInstanceOf[SaveHandler]
     ObfuscationReflectionHelper.getPrivateValue(classOf[SaveHandler], sh, "playersDirectory", "field_" + "75771_c")
   }
 
