@@ -250,7 +250,8 @@ beekeeperUpgrade {
           [ingotGold, "oc:materialCircuitBoardPrinted", ingotGold]]
 }
 arcaneCraftingUpgrade {
-  input: [["oc:craftingUpgrade", {item="Thaumcraft:blockTable", subID=15}, "oc:circuitChip2"]]
+  type: shapeless
+  input: ["oc:craftingUpgrade", {item="Thaumcraft:blockTable", subID=15}, "oc:circuitChip2"]
 }
 
 configuratorUpgrade {
