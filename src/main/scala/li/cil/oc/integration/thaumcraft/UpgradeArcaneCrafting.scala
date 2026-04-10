@@ -67,7 +67,7 @@ class UpgradeArcaneCrafting(val host: EnvironmentHost with internal.Robot) exten
   @Callback(doc = """function([count:number]):boolean, number, string -- Tries to craft the specified number of items in the top left area of the inventory using only vanilla crafting recipes.""")
   def craftNormal(context: Context, args: Arguments): Array[AnyRef] = {
     val wantedCount = args.optInteger(0, 64) max 0 min 64
-    var res = CraftingInventory.craftNormal(wantedCount)
+    val res = CraftingInventory.craftNormal(wantedCount)
     res.error match {
       case Some(msg) => result(res.count != 0, res.count, msg)
       case None => result(res.count != 0, res.count)
@@ -77,7 +77,7 @@ class UpgradeArcaneCrafting(val host: EnvironmentHost with internal.Robot) exten
   @Callback(doc = """function([count:number]):boolean, number, string -- Tries to craft the specified number of items in the top left area of the inventory using only Thaumcraft crafting recipes.""")
   def craftArcane(context: Context, args: Arguments): Array[AnyRef] = {
     val wantedCount = args.optInteger(0, 64) max 0 min 64
-    var res = CraftingInventory.craftArcane(wantedCount)
+    val res = CraftingInventory.craftArcane(wantedCount)
     res.error match {
       case Some(msg) => result(res.count != 0, res.count, msg)
       case None => result(res.count != 0, res.count)
