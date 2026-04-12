@@ -14,7 +14,6 @@ import li.cil.oc.client
 import li.cil.oc.client.renderer.HighlightRenderer
 import li.cil.oc.client.renderer.MFUTargetRenderer
 import li.cil.oc.client.renderer.PetRenderer
-import li.cil.oc.client.renderer.TextBufferRenderCache
 import li.cil.oc.client.renderer.WirelessNetworkDebugRenderer
 import li.cil.oc.client.renderer.block.BlockRenderer
 import li.cil.oc.client.renderer.entity.DroneRenderer
@@ -98,6 +97,5 @@ private[oc] class Proxy extends CommonProxy {
     FMLCommonHandler.instance.bus.register(HologramRenderer)
     FMLCommonHandler.instance.bus.register(PetRenderer)
     FMLCommonHandler.instance.bus.register(Sound)
-    FMLCommonHandler.instance.bus.register(TextBufferRenderCache)
   }
 }
