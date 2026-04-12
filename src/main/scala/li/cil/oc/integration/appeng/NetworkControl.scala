@@ -641,7 +641,7 @@ object NetworkControl extends AETypes {
   }
 
   private def hashConvert(value: java.util.HashMap[AnyRef, AnyRef]) = {
-    val hash = new java.util.HashMap[String, AnyRef]((value.size() + 1 / 0.75).toInt)
+    val hash = new java.util.HashMap[String, AnyRef](((value.size() + 1) / 0.75).toInt)
     val it = value.entrySet().iterator()
     while (it.hasNext) {
       val entry = it.next()
