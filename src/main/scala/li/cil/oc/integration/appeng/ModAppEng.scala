@@ -13,7 +13,6 @@ import li.cil.oc.integration.{ModProxy, Mods}
 import li.cil.oc.{Constants, api}
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
-import net.minecraft.tileentity.TileEntity
 import net.minecraft.util.Vec3
 import net.minecraft.world.World
 
