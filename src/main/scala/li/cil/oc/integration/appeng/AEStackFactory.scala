@@ -3,6 +3,7 @@ package li.cil.oc.integration.appeng
 import appeng.api.storage.data.{IAEStack, IAEStackType}
 import appeng.util.item.{AEFluidStack, AEItemStack}
 import li.cil.oc.api.driver.Converter
+import li.cil.oc.integration.util.MapUtils.MapWrapper
 import li.cil.oc.integration.vanilla.{ConverterFluidStack, ConverterItemStack}
 
 import java.util
@@ -24,22 +25,32 @@ object AEStackFactory {
 
   def parse[T <: IAEStack[T]](map: util.Map[_, _])(implicit tag: ClassTag[T]): T = {
     classRegistry.get(tag.runtimeClass) match {
-      case Some(entry) => entry.parser(map).asInstanceOf[T]
+      case Some(entry) =>
+        val result = entry.parser(map).asInstanceOf[T]
+        result.setStackSize(map.getLong("size").get)
+        result
       case None => throw new UnregisteredAETypeException(s"Type ${tag.runtimeClass} hasn't been registered");
     }
   }
 
   def parse(key: String, map: util.Map[_, _]): IAEStack[_] = {
     idRegistry.get(key) match {
-      case Some(entry) => entry.parser(map)
+      case Some(entry) =>
+        val result = entry.parser(map)
+        result.setStackSize(map.getLong("size").get)
+        result
       case None => throw new UnregisteredAETypeException(s"Type $key hasn't been registered");
     }
   }
 
   def convert(stack: IAEStack[_], map: util.Map[AnyRef, AnyRef]): Unit = {
-    classRegistry.get(stack.getClass) match {
-      case Some(entry) => entry.converter(stack, map)
-      case None => throw new UnregisteredAETypeException(s"Type ${stack.getClass} hasn't been registered");
+    val id = stack.getStackType.getId
+    idRegistry.get(id) match {
+      case Some(entry) =>
+        entry.converter(stack, map)
+        map.put("size", Long.box(stack.getStackSize))
+        map.put("isCraftable", Boolean.box(stack.isCraftable))
+      case None => throw new UnregisteredAETypeException(s"Type ${id} hasn't been registered");
     }
   }
 
