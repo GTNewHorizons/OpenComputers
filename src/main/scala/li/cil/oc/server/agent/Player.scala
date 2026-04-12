@@ -2,7 +2,6 @@ package li.cil.oc.server.agent
 
 import java.util.UUID
 
-import appeng.api.parts.IPartHost
 import com.mojang.authlib.GameProfile
 import cpw.mods.fml.common.ObfuscationReflectionHelper
 import cpw.mods.fml.common.eventhandler.Event
@@ -13,6 +12,7 @@ import li.cil.oc.api.internal
 import li.cil.oc.api.network.Connector
 import li.cil.oc.common.EventHandler
 import li.cil.oc.integration.Mods
+import li.cil.oc.integration.appeng.ModAppEng
 import li.cil.oc.integration.magtools.ModMagnanimousTools
 import li.cil.oc.integration.tcon.ModTinkersConstruct
 import li.cil.oc.integration.util.PortalGun
@@ -243,22 +243,17 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
           return ActivationType.ItemUsed
         }
       }
-
-      val block = world.getBlock(x, y, z)
-      val canActivate = block != null && Settings.get.allowActivateBlocks
-      // Special handling for ae2 P2Ps
-      val tile = world.getTileEntity(x, y, z)
-      if (isSneaking && tile != null && tile.isInstanceOf[IPartHost]) {
-        val host = tile.asInstanceOf[IPartHost]
-        val hitVec = Vec3.createVectorHelper(hitX, hitY, hitZ)
-        val selected = host.selectPart(hitVec)
-        if (selected != null && selected.part != null) {
-          return if (selected.part.onShiftActivate(this, hitVec))
+      if (isSneaking && stack != null && stack.stackSize > 0) {
+        if (ModAppEng.MemoryCard.isMemoryCard(stack)) {
+          return if (ModAppEng.MemoryCard.handleShiftClick(this, world, x, y, z, hitX, hitY, hitZ))
             ActivationType.BlockActivated
           else
             ActivationType.None
         }
       }
+
+      val block = world.getBlock(x, y, z)
+      val canActivate = block != null && Settings.get.allowActivateBlocks
       val shouldActivate = canActivate && (!isSneaking || (item == null || item.doesSneakBypassUse(world, x, y, z, this)))
       val result =
         if (shouldActivate && block.onBlockActivated(world, x, y, z, this, side, hitX, hitY, hitZ))
