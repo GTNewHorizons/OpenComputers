@@ -26,11 +26,10 @@ import li.cil.oc.integration.ae2fc.Ae2FcUtil
 import li.cil.oc.integration.appeng.NetworkControl._
 import li.cil.oc.integration.appeng.internal.SubscriptionBase
 import li.cil.oc.integration.ec.ECUtil
-import li.cil.oc.server.driver.Registry
-import li.cil.oc.util.{AE2Bridge, DatabaseAccess}
 import li.cil.oc.util.ExtendedArguments._
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.ResultWrapper._
+import li.cil.oc.util.{AE2Bridge, DatabaseAccess}
 import net.minecraft.item.{Item, ItemStack}
 import net.minecraft.nbt.{JsonToNBT, NBTTagCompound}
 import net.minecraft.tileentity.TileEntity
@@ -189,7 +188,7 @@ trait NetworkControl[AETile >: Null <: TileEntity with IGridProxyable with IActi
     }
     DatabaseAccess.withDatabase(node, args.checkString(1), database => {
       val items = allItems
-        .collect { case aeItem if matches(convert(aeItem, tile), filter) => aePotential(aeItem, tile) }.toArray
+        .collect { case aeItem if matches(convert(aeItem, tile), filter) => aeItem }.toArray
       val offset = args.optSlot(database.data, 2, 0)
       val count = args.optInteger(3, Int.MaxValue) min (database.size - offset) min items.length
       var slot = offset
@@ -641,32 +640,28 @@ object NetworkControl extends AETypes {
     }
   }
 
-  private def aePotential(aeItem: AEStack, tile: TileEntity with IGridProxyable): AEStack = {
-    if (aeItem.getStackSize > 0 || !aeItem.isCraftable)
-      aeItem
-    else
-      asCraft(aeItem, tile)
-  }
-
-  private def hashConvert(value: java.util.HashMap[_, _]) = {
-    val hash = new java.util.HashMap[String, AnyRef]
-    value.collect { case (k: String, v: AnyRef) => hash += k -> v }
+  private def hashConvert(value: java.util.HashMap[AnyRef, AnyRef]) = {
+    val hash = new java.util.HashMap[String, AnyRef]((value.size() + 1 / 0.75).toInt)
+    val it = value.entrySet().iterator()
+    while (it.hasNext) {
+      val entry = it.next()
+      val k = entry.getKey
+      val v = entry.getValue
+      k match {
+        case str: String =>
+          hash.put(str, v)
+        case _ =>
+      }
+    }
     hash
   }
 
   def convert(aeItem: AEStack, tile: TileEntity with IGridProxyable): java.util.HashMap[String, AnyRef] = {
-    val potentialItem = aePotential(aeItem, tile)
-    val result = Registry.convert(Array[AnyRef](potentialItem))
-      .collect { case hash: java.util.HashMap[_, _] => hashConvert(hash) }
-    if (result.length > 0) {
-      val hash = result(0)
-      // it would have been nice to put these fields in a registry convert
-      // but the potential ae item needs the tile and position data
-      hash.update("size", Long.box(aeItem.getStackSize))
-      hash.update("isCraftable", Boolean.box(aeItem.isCraftable))
-      return hash
+    val converted = new java.util.HashMap[AnyRef, AnyRef]()
+    try AEStackFactory.convert(aeItem, converted) catch {
+      case t: Throwable => OpenComputers.log.warn("Type converter threw an exception.", t)
     }
-    null
+    hashConvert(converted)
   }
 
   private def loadController(nbt: NBTTagCompound, f: TileEntity with IGridProxyable with IActionHost => Unit): Unit = {
