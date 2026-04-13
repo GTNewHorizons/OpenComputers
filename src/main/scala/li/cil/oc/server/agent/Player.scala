@@ -12,6 +12,7 @@ import li.cil.oc.api.internal
 import li.cil.oc.api.network.Connector
 import li.cil.oc.common.EventHandler
 import li.cil.oc.integration.Mods
+import li.cil.oc.integration.appeng.ModAppEng
 import li.cil.oc.integration.magtools.ModMagnanimousTools
 import li.cil.oc.integration.tcon.ModTinkersConstruct
 import li.cil.oc.integration.util.PortalGun
@@ -240,6 +241,14 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
       if (!PortalGun.isPortalGun(stack)) {
         if (item != null && item.onItemUseFirst(stack, this, world, x, y, z, side, hitX, hitY, hitZ)) {
           return ActivationType.ItemUsed
+        }
+      }
+      if (isSneaking && stack != null && stack.stackSize > 0) {
+        if (ModAppEng.MemoryCard.isMemoryCard(stack)) {
+          return if (ModAppEng.MemoryCard.handleShiftClick(this, world, x, y, z, hitX, hitY, hitZ))
+            ActivationType.BlockActivated
+          else
+            ActivationType.None
         }
       }
 

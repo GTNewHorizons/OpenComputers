@@ -1,6 +1,7 @@
 package li.cil.oc.integration.appeng
 
 import appeng.api.AEApi
+import appeng.api.parts.IPartHost
 import appeng.api.storage.data.{IAEFluidStack, IAEItemStack}
 import appeng.util.item.{AEFluidStackType, AEItemStackType}
 import cpw.mods.fml.common.registry.GameRegistry
@@ -10,6 +11,10 @@ import li.cil.oc.common.recipe.Recipes.addSubItem
 import li.cil.oc.common.tileentity.Print
 import li.cil.oc.integration.{ModProxy, Mods}
 import li.cil.oc.{Constants, api}
+import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.item.ItemStack
+import net.minecraft.util.Vec3
+import net.minecraft.world.World
 
 object ModAppEng extends ModProxy {
   override def getMod = Mods.AppliedEnergistics2
@@ -53,5 +58,31 @@ object ModAppEng extends ModProxy {
     addSubItem(new ItemUpgradeAE(multi, Tier.One), Constants.ItemName.UpgradeAE1, "oc:me_upgrade1")
     addSubItem(new ItemUpgradeAE(multi, Tier.Two), Constants.ItemName.UpgradeAE2, "oc:me_upgrade2")
     addSubItem(new ItemUpgradeAE(multi, Tier.Three), Constants.ItemName.UpgradeAE3, "oc:me_upgrade3")
+  }
+
+  object MemoryCard {
+    private lazy val memoryCardClass = try {
+      Class.forName("appeng.api.implementations.items.IMemoryCard")
+    } catch { case _: Throwable => null }
+
+    def isMemoryCard(stack: ItemStack): Boolean = {
+      stack != null && stack.stackSize > 0 &&
+        Mods.AppliedEnergistics2.isAvailable &&
+        memoryCardClass != null &&
+        memoryCardClass.isAssignableFrom(stack.getItem.getClass)
+    }
+
+    def handleShiftClick(player: EntityPlayer, world: World, x: Int, y: Int, z: Int, hitX: Float, hitY: Float, hitZ: Float): Boolean = {
+      val tile = world.getTileEntity(x, y, z)
+      if (tile != null && tile.isInstanceOf[IPartHost]) {
+        val host = tile.asInstanceOf[IPartHost]
+        val hitVec = Vec3.createVectorHelper(hitX, hitY, hitZ)
+        val selected = host.selectPart(hitVec)
+        if (selected != null && selected.part != null) {
+          return selected.part.onShiftActivate(player, hitVec)
+        }
+      }
+      false
+    }
   }
 }
