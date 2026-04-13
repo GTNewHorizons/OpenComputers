@@ -28,7 +28,7 @@ object DatabaseAccess {
       val dbStack = database.getStackInSlot(entry - 1)
       if (dbStack == null || size < 1) null
       else {
-        dbStack.stackSize = math.min(size, dbStack.getMaxStackSize)
+        dbStack.stackSize = size
         dbStack
       }
     })
