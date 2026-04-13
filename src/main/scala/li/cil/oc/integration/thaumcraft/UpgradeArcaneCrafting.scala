@@ -2,6 +2,7 @@ package li.cil.oc.integration.thaumcraft
 
 import com.mojang.authlib.GameProfile
 import cpw.mods.fml.common.{FMLCommonHandler, ObfuscationReflectionHelper}
+import li.cil.oc.OpenComputers
 import li.cil.oc.api.driver.DeviceInfo
 import li.cil.oc.api.driver.DeviceInfo.{DeviceAttribute, DeviceClass}
 import li.cil.oc.api.machine.{Arguments, Callback, Context}
@@ -12,8 +13,8 @@ import li.cil.oc.util.InventoryUtils
 import net.minecraft.entity.player.{EntityPlayer, EntityPlayerMP}
 import net.minecraft.inventory
 import net.minecraft.inventory.{IInventory, InventoryCrafting}
+import net.minecraft.item.ItemStack
 import net.minecraft.item.crafting.CraftingManager
-import net.minecraft.item.{Item, ItemStack}
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.server.MinecraftServer
 import net.minecraft.world.WorldServer
@@ -26,8 +27,7 @@ import thaumcraft.api.ThaumcraftApi
 import thaumcraft.api.aspects.AspectList
 import thaumcraft.api.crafting.IArcaneRecipe
 import thaumcraft.common.Thaumcraft
-import thaumcraft.common.config.{Config, ConfigBlocks, ConfigItems}
-import thaumcraft.common.items.ItemEssence
+import thaumcraft.common.config.Config
 import thaumcraft.common.items.wands.ItemWandCasting
 import thaumcraft.common.lib.research.ResearchManager
 import thaumcraft.common.tiles.{TileMagicWorkbench, TileMagicWorkbenchCharger}
@@ -289,15 +289,24 @@ class UpgradeArcaneCrafting(val host: EnvironmentHost with internal.Robot) exten
   }
 
   private def getPlayerDir: File = {
-    val sh = host.world.getSaveHandler.asInstanceOf[SaveHandler]
-    ObfuscationReflectionHelper.getPrivateValue(classOf[SaveHandler], sh, "playersDirectory", "field_" + "75771_c")
+    try {
+      val sh = host.world.getSaveHandler.asInstanceOf[SaveHandler]
+      ObfuscationReflectionHelper.getPrivateValue(classOf[SaveHandler], sh, "playersDirectory", "field_" + "75771_c")
+    } catch {
+      case e: Exception =>
+        OpenComputers.log.warn("Failed to get player directory.", e)
+        null
+    }
   }
 
   override def load(nbt: NBTTagCompound): Unit = {
     super.load(nbt)
     cachedStickyWarp = nbt.getInteger("cachedStickyWarp")
     if (ResearchManager.getResearchForPlayerSafe(host.ownerName()) == null) {
-      Thaumcraft.instance.entityEventHandler.playerLoad(new LoadFromFile(ArcaneProxy, getPlayerDir, ""))
+      val playerDir = getPlayerDir
+      if (playerDir != null) {
+        Thaumcraft.instance.entityEventHandler.playerLoad(new LoadFromFile(ArcaneProxy, playerDir, ""))
+      }
     }
   }
 
