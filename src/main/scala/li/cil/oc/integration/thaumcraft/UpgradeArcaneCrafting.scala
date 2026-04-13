@@ -269,18 +269,6 @@ class UpgradeArcaneCrafting(val host: EnvironmentHost with internal.Robot) exten
   private def onCrafting(crafting: ItemStack): Unit = {
     val warp = ThaumcraftApi.getWarp(crafting)
     if (!Config.wuss && warp > 0) addStickyWarpToOwner(warp)
-    if ((crafting.getItem eq ConfigItems.itemResource) && crafting.getItemDamage == 13 && crafting.hasTagCompound) for (var2 <- 0 until 9) {
-      val var3 = CraftingInventory.getStackInSlot(var2)
-      if (var3 != null && var3.getItem.isInstanceOf[ItemEssence]) {
-        var3.stackSize += 1
-        CraftingInventory.setInventorySlotContents(var2, var3)
-      }
-    }
-    if ((crafting.getItem eq Item.getItemFromBlock(ConfigBlocks.blockMetalDevice)) && crafting.getItemDamage == 3) {
-      val var3 = CraftingInventory.getStackInSlot(4)
-      var3.stackSize += 1
-      CraftingInventory.setInventorySlotContents(4, var3)
-    }
   }
 
   object ArcaneProxy extends FakePlayer(host.world.asInstanceOf[WorldServer], new GameProfile(null, "ArcaneProxy")) {
