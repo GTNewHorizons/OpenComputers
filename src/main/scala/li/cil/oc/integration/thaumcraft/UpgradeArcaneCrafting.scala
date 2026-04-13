@@ -246,7 +246,7 @@ class UpgradeArcaneCrafting(val host: EnvironmentHost with internal.Robot) exten
   }
 
   private def consumeAllVis(is: ItemStack, aspects: AspectList, doit: Boolean): Boolean = {
-    if (aspects == null || aspects.size == 0) return false
+    if (aspects == null || aspects.size == 0) return true
     val wand = is.getItem match {
       case w: ItemWandCasting => w
       case _ => return false
