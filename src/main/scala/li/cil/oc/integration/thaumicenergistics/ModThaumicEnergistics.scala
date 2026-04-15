@@ -11,7 +11,6 @@ object ModThaumicEnergistics extends ModProxy {
   override def initialize(): Unit = {
     AEStackFactory.register[AEEssentiaStack](AEEssentiaStackType.ESSENTIA_STACK_TYPE, ConvertAEEssentiaStack.convert, ConvertAEEssentiaStack.parse)
 
-    Driver.add(ConvertAEEssentiaStack)
     Driver.add(DriverController)
     Driver.add(DriverBlockInterface)
     Driver.add(DriverEssentiaExportBus)
