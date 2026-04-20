@@ -8,6 +8,7 @@ import cpw.mods.fml.common.event._
 import cpw.mods.fml.common.network.FMLEventChannel
 import li.cil.oc.common.IMC
 import li.cil.oc.common.Proxy
+import li.cil.oc.common.asm.template.StaticSimpleEnvironment
 import li.cil.oc.server.command.CommandHandler
 import li.cil.oc.util.ThreadPoolFactory
 import org.apache.logging.log4j.LogManager
@@ -91,6 +92,7 @@ object OpenComputers {
   @EventHandler
   def serverStop(e: FMLServerStoppedEvent): Unit = {
     ThreadPoolFactory.safePools.foreach(_.waitForCompletion())
+    StaticSimpleEnvironment.onServerStopped()
   }
 
   @EventHandler
