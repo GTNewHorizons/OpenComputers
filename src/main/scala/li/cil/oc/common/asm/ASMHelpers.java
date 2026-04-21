@@ -1,5 +1,6 @@
 package li.cil.oc.common.asm;
 
+import com.gtnewhorizon.gtnhlib.asm.ASMUtil;
 import cpw.mods.fml.common.asm.transformers.deobf.FMLDeobfuscatingRemapper;
 import net.minecraft.launchwrapper.LaunchClassLoader;
 import org.apache.commons.lang3.ArrayUtils;
@@ -20,6 +21,7 @@ import java.util.function.Predicate;
 public final class ASMHelpers {
 
   private static final Logger log = LogManager.getLogger("OpenComputers");
+  private static final boolean dumpASMClass = Boolean.getBoolean("opencomputers.dumpClass");
 
   @Nullable
   public static byte[] insertInto(LaunchClassLoader loader, ClassNode classNode, String[] methodNames, String[] methodDescs, Predicate<InsnList> inserter) {
@@ -109,6 +111,13 @@ public final class ASMHelpers {
     ClassNode node = new ClassNode();
     new ClassReader(data).accept(node, 0);
     return node;
+  }
+
+  public static void dumpClass(String className, byte[] originalBytes, byte[] transformedBytes, Object transformer) {
+    if (dumpASMClass) {
+      ASMUtil.saveAsRawClassFile(originalBytes, className + "_PRE", transformer);
+      ASMUtil.saveAsRawClassFile(transformedBytes, className + "_POST", transformer);
+    }
   }
 
   public static MethodNode copyMethodNode(MethodNode methodNode) {

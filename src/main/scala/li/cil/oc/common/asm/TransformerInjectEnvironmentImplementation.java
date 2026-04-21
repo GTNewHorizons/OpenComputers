@@ -24,7 +24,7 @@ public final class TransformerInjectEnvironmentImplementation {
   @Nullable
   private static ClassNode template = null;
 
-  @Nonnull
+  @Nullable
   public static byte[] transform(LaunchClassLoader loader, byte[] classBytes) throws Exception {
     ClassNode classNode = ASMHelpers.newClassNode(classBytes);
     log.trace("Injecting methods from Environment interface into {}.", classNode.name);
@@ -33,7 +33,7 @@ public final class TransformerInjectEnvironmentImplementation {
       for (AnnotationNode annotation : classNode.visibleAnnotations) {
         if (annotation != null && annotation.desc.equals("Lli/cil/oc/api/network/SimpleComponent$SkipInjection;")) {
           log.trace("Detected @SimpleComponent.SkipInjection annotation, skipping the class");
-          return classBytes;
+          return null;
         }
       }
     }

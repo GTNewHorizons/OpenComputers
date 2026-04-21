@@ -28,6 +28,7 @@ public class ClassTransformer implements IClassTransformer {
       if (transformedName.equals("net.minecraft.entity.EntityLiving")) {
         byte[] patched = TransformerEntityLiving.transform(loader, basicClass);
         if (patched != null) {
+          ASMHelpers.dumpClass(transformedName, basicClass, patched, TransformerEntityLiving.class);
           return patched;
         }
 
@@ -38,6 +39,7 @@ public class ClassTransformer implements IClassTransformer {
       if (transformedName.equals("net.minecraft.client.renderer.entity.RenderLiving")) {
         byte[] patched = TransformerRenderLiving.transform(loader, basicClass);
         if (patched != null) {
+          ASMHelpers.dumpClass(transformedName, basicClass, patched, TransformerRenderLiving.class);
           return patched;
         }
 
@@ -56,7 +58,11 @@ public class ClassTransformer implements IClassTransformer {
 
       if (name.startsWith("li.cil.oc.")) {
         if (name.startsWith("li.cil.oc.common")) {
-          return TransformerInjectInterfaces.transform(loader, name, basicClass);
+          byte[] patched = TransformerInjectInterfaces.transform(loader, name, basicClass);
+          if (patched != null) {
+            ASMHelpers.dumpClass(transformedName, basicClass, patched, TransformerInjectInterfaces.class);
+            return patched;
+          }
         }
 
         return basicClass;
@@ -65,9 +71,12 @@ public class ClassTransformer implements IClassTransformer {
       boolean hasSimpleComponent = simpleComponentParser.find(basicClass);
       if (hasSimpleComponent) {
         try {
-          byte[] transformedClass = TransformerInjectEnvironmentImplementation.transform(loader, basicClass);
-          log.info("Successfully injected component logic into class {}.", name);
-          return transformedClass;
+          byte[] patched = TransformerInjectEnvironmentImplementation.transform(loader, basicClass);
+          if (patched != null) {
+            ASMHelpers.dumpClass(transformedName, basicClass, patched, TransformerInjectEnvironmentImplementation.class);
+            log.info("Successfully injected component logic into class {}.", name);
+            return patched;
+          }
         } catch (Throwable e) {
           log.warn("Failed injecting component logic into class {}.", name, e);
           hadSimpleComponentErrors = true;

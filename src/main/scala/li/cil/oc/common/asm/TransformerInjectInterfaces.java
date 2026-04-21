@@ -10,6 +10,8 @@ import org.objectweb.asm.tree.AnnotationNode;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.MethodNode;
 
+import javax.annotation.Nullable;
+
 public final class TransformerInjectInterfaces {
 
   private static final Logger log = LogManager.getLogger("OpenComputers");
@@ -17,10 +19,11 @@ public final class TransformerInjectInterfaces {
     new ClassConstantPoolParser("li/cil/oc/common/asm/Injectable$Interface", "li/cil/oc/common/asm/Injectable$InterfaceList");
 
   // Inject available interfaces where requested.
+  @Nullable
   public static byte[] transform(LaunchClassLoader loader, String name, byte[] classBytes) {
     boolean hasInjectableAnnotations = injectableAnnotationParser.find(classBytes);
     if (!hasInjectableAnnotations) {
-      return classBytes;
+      return null;
     }
 
     ClassNode classNode = ASMHelpers.newClassNode(classBytes);
@@ -50,7 +53,7 @@ public final class TransformerInjectInterfaces {
     if (injected) {
       return ASMHelpers.writeClass(loader, classNode, ClassWriter.COMPUTE_MAXS);
     }
-    return classBytes;
+    return null;
   }
 
   private static boolean injectInterface(LaunchClassLoader loader, String ownerName, ClassNode classNode,
