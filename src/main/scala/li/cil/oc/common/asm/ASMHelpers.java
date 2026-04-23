@@ -15,6 +15,7 @@ import org.objectweb.asm.tree.MethodNode;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.io.File;
 import java.io.IOException;
 import java.util.function.Predicate;
 
@@ -113,10 +114,11 @@ public final class ASMHelpers {
     return node;
   }
 
-  public static void dumpClass(String className, byte[] originalBytes, byte[] transformedBytes, Object transformer) {
+  public static void dumpClass(String className, byte[] originalBytes, byte[] transformedBytes, Class<?> transformer) {
     if (dumpASMClass) {
-      ASMUtil.saveAsRawClassFile(originalBytes, className + "_PRE", transformer);
-      ASMUtil.saveAsRawClassFile(transformedBytes, className + "_POST", transformer);
+      final String fileName = transformer.getSimpleName().toUpperCase() + File.separatorChar + className.replace('.', File.separatorChar);
+      ASMUtil.saveAsRawClassFile(originalBytes, fileName + "_PRE", fileName + "_PRE");
+      ASMUtil.saveAsRawClassFile(transformedBytes, fileName + "_POST", fileName + "_POST");
     }
   }
 
