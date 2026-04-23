@@ -4,14 +4,16 @@ import net.minecraft.launchwrapper.IClassTransformer;
 import net.minecraft.launchwrapper.LaunchClassLoader;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.objectweb.asm.tree.AnnotationNode;
-import org.objectweb.asm.tree.ClassNode;
+import com.gtnewhorizon.gtnhlib.asm.ClassConstantPoolParser;
 
 public class ClassTransformer implements IClassTransformer {
 
   private static final Logger log = LogManager.getLogger("OpenComputers");
   private final LaunchClassLoader loader =
     (LaunchClassLoader) ClassTransformer.class.getClassLoader();
+
+  private final ClassConstantPoolParser simpleComponentParser =
+    new ClassConstantPoolParser("li/cil/oc/api/network/SimpleComponent");
 
   public static boolean hadErrors = false;
   public static boolean hadSimpleComponentErrors = false;
@@ -26,6 +28,7 @@ public class ClassTransformer implements IClassTransformer {
       if (transformedName.equals("net.minecraft.entity.EntityLiving")) {
         byte[] patched = TransformerEntityLiving.transform(loader, basicClass);
         if (patched != null) {
+          ASMHelpers.dumpClass(transformedName, basicClass, patched, TransformerEntityLiving.class);
           return patched;
         }
 
@@ -36,6 +39,7 @@ public class ClassTransformer implements IClassTransformer {
       if (transformedName.equals("net.minecraft.client.renderer.entity.RenderLiving")) {
         byte[] patched = TransformerRenderLiving.transform(loader, basicClass);
         if (patched != null) {
+          ASMHelpers.dumpClass(transformedName, basicClass, patched, TransformerRenderLiving.class);
           return patched;
         }
 
@@ -48,47 +52,42 @@ public class ClassTransformer implements IClassTransformer {
         name.startsWith("net.minecraftforge.") ||
         name.startsWith("cpw.mods.fml.") ||
         // We're using apache's ArrayUtils here, so we need to avoid circular transforms of this class
-        name.startsWith("org.apache.") ||
-        name.startsWith("li.cil.oc.common.asm.") ||
-        name.startsWith("li.cil.oc.integration.")) {
+        name.startsWith("org.apache.")) {
         return basicClass;
       }
 
-      byte[] transformedClass = basicClass;
-
       if (name.startsWith("li.cil.oc.")) {
-        transformedClass = TransformerStripMissingClasses.transform(loader, name, transformedClass);
-        transformedClass = TransformerInjectInterfaces.transform(loader, name, transformedClass);
-      }
-
-      ClassNode classNode = ASMHelpers.newClassNode(transformedClass);
-      boolean hasSimpleComponent = classNode.interfaces.contains("li/cil/oc/api/network/SimpleComponent");
-      boolean hasSkipAnnotation = false;
-
-      if (classNode.visibleAnnotations != null) {
-        for (AnnotationNode annotation : classNode.visibleAnnotations) {
-          if (annotation != null && annotation.desc.equals("Lli/cil/oc/api/network/SimpleComponent$SkipInjection;")) {
-            hasSkipAnnotation = true;
-            break;
+        if (name.startsWith("li.cil.oc.common")) {
+          byte[] patched = TransformerInjectInterfaces.transform(loader, name, basicClass);
+          if (patched != null) {
+            ASMHelpers.dumpClass(transformedName, basicClass, patched, TransformerInjectInterfaces.class);
+            return patched;
           }
         }
+
+        return basicClass;
       }
 
-      if (hasSimpleComponent && !hasSkipAnnotation) {
+      boolean hasSimpleComponent = simpleComponentParser.find(basicClass);
+      if (hasSimpleComponent) {
         try {
-          transformedClass = TransformerInjectEnvironmentImplementation.transform(loader, classNode);
-          log.info("Successfully injected component logic into class {}.", name);
+          byte[] patched = TransformerInjectEnvironmentImplementation.transform(loader, basicClass);
+          if (patched != null) {
+            ASMHelpers.dumpClass(transformedName, basicClass, patched, TransformerInjectEnvironmentImplementation.class);
+            log.info("Successfully injected component logic into class {}.", name);
+            return patched;
+          }
         } catch (Throwable e) {
           log.warn("Failed injecting component logic into class {}.", name, e);
           hadSimpleComponentErrors = true;
+          return basicClass;
         }
       }
-
-      return transformedClass;
     } catch (Throwable t) {
       log.warn("Something went wrong!", t);
       hadErrors = true;
-      return basicClass;
     }
+
+    return basicClass;
   }
 }

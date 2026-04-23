@@ -1,5 +1,6 @@
 package li.cil.oc.common.asm;
 
+import com.gtnewhorizon.gtnhlib.asm.ASMUtil;
 import cpw.mods.fml.common.asm.transformers.deobf.FMLDeobfuscatingRemapper;
 import net.minecraft.launchwrapper.LaunchClassLoader;
 import org.apache.commons.lang3.ArrayUtils;
@@ -14,12 +15,14 @@ import org.objectweb.asm.tree.MethodNode;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.io.File;
 import java.io.IOException;
 import java.util.function.Predicate;
 
 public final class ASMHelpers {
 
   private static final Logger log = LogManager.getLogger("OpenComputers");
+  private static final boolean dumpASMClass = Boolean.getBoolean("opencomputers.dumpClass");
 
   @Nullable
   public static byte[] insertInto(LaunchClassLoader loader, ClassNode classNode, String[] methodNames, String[] methodDescs, Predicate<InsnList> inserter) {
@@ -73,25 +76,35 @@ public final class ASMHelpers {
   }
 
   @Nullable
-  public static ClassNode classNodeFor(LaunchClassLoader loader, String internalName) {
+  public static byte[] classBytesFor(LaunchClassLoader loader, String internalName) {
     try {
       // internalName is slash-form, e.g. "net/minecraft/tileentity/TileEntity"
       String namePlain = internalName.replace('/', '.');
 
-      byte[] bytes = loader.getClassBytes(namePlain);
+      final byte[] bytes = loader.getClassBytes(namePlain);
       if (bytes != null) {
-        return newClassNode(bytes);
+        return bytes;
       }
 
-      String nameObfed = FMLDeobfuscatingRemapper.INSTANCE.unmap(internalName).replace('/', '.');
-      bytes = loader.getClassBytes(nameObfed);
-      if (bytes == null) {
+      String nameObf = FMLDeobfuscatingRemapper.INSTANCE.unmap(internalName).replace('/', '.');
+      if (nameObf.equals(namePlain)) {
         return null;
       }
-      return newClassNode(bytes);
+
+      return loader.getClassBytes(nameObf);
     } catch (IOException ignored) {
       return null;
     }
+  }
+
+  @Nullable
+  public static ClassNode classNodeFor(LaunchClassLoader loader, String internalName) {
+    final byte[] bytes = classBytesFor(loader, internalName);
+    if (bytes == null) {
+      return null;
+    }
+
+    return newClassNode(bytes);
   }
 
   @Nonnull
@@ -101,15 +114,21 @@ public final class ASMHelpers {
     return node;
   }
 
-  public static boolean classExists(LaunchClassLoader loader, String name) {
-    try {
-      if (loader.getClassBytes(name) != null) return true;
-      if (loader.getClassBytes(FMLDeobfuscatingRemapper.INSTANCE.unmap(name)) != null) return true;
-
-      return loader.findClass(name.replace('/', '.')) != null;
-    } catch (IOException | ClassNotFoundException ignored) {
-      return false;
+  public static void dumpClass(String className, byte[] originalBytes, byte[] transformedBytes, Class<?> transformer) {
+    if (dumpASMClass) {
+      final String fileName = transformer.getSimpleName().toUpperCase() + File.separatorChar + className.replace('.', File.separatorChar);
+      ASMUtil.saveAsRawClassFile(originalBytes, fileName + "_PRE", fileName + "_PRE");
+      ASMUtil.saveAsRawClassFile(transformedBytes, fileName + "_POST", fileName + "_POST");
     }
+  }
+
+  public static MethodNode copyMethodNode(MethodNode methodNode) {
+    MethodNode newMethodNode = new MethodNode(
+      methodNode.access, methodNode.name, methodNode.desc, methodNode.signature,
+      methodNode.exceptions == null ? null : methodNode.exceptions.toArray(new String[0])
+    );
+    methodNode.accept(newMethodNode); // clones instructions/labels/etc
+    return newMethodNode;
   }
 
   public static boolean isAssignable(LaunchClassLoader loader, ClassNode parent, ClassNode child) {
