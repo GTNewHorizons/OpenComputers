@@ -6,29 +6,47 @@ import net.minecraft.launchwrapper.LaunchClassLoader;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.tree.AnnotationNode;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.MethodNode;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.function.Predicate;
 
 public final class TransformerInjectEnvironmentImplementation {
 
   private static final Logger log = LogManager.getLogger("OpenComputers");
 
-  @Nonnull
-  public static byte[] transform(LaunchClassLoader loader, ClassNode classNode) throws Exception {
+  @Nullable
+  private static ClassNode template = null;
+
+  @Nullable
+  public static byte[] transform(LaunchClassLoader loader, byte[] classBytes) throws Exception {
+    ClassNode classNode = ASMHelpers.newClassNode(classBytes);
     log.trace("Injecting methods from Environment interface into {}.", classNode.name);
 
-    if (!isTileEntity(loader, classNode)) {
+    if (classNode.visibleAnnotations != null) {
+      for (AnnotationNode annotation : classNode.visibleAnnotations) {
+        if (annotation != null && annotation.desc.equals("Lli/cil/oc/api/network/SimpleComponent$SkipInjection;")) {
+          log.trace("Detected @SimpleComponent.SkipInjection annotation, skipping the class");
+          return null;
+        }
+      }
+    }
+
+    if (!isTileEntity(loader, classNode.name, classNode.superName)) {
       throw new Exception("Found SimpleComponent on something that isn't a tile entity, ignoring.");
     }
 
-    ClassNode template = ASMHelpers.classNodeFor(loader, "li/cil/oc/common/asm/template/SimpleEnvironment");
     if (template == null) {
-      throw new Exception("Could not find SimpleComponent template!");
+      template = ASMHelpers.classNodeFor(loader, "li/cil/oc/common/asm/template/SimpleEnvironment");
+      if (template == null) {
+        throw new Exception("Could not find SimpleComponent template!");
+      }
     }
 
     injectMethodIfMissing(classNode, template, "node", "()Lli/cil/oc/api/network/Node;", true);
@@ -50,11 +68,15 @@ public final class TransformerInjectEnvironmentImplementation {
     return ASMHelpers.writeClass(loader, classNode, ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES);
   }
 
-  private static boolean isTileEntity(LaunchClassLoader loader, ClassNode classNode) {
-    if (classNode == null) return false;
-    log.trace("Checking if class {} is a TileEntity...", classNode.name);
-    if (ArrayUtils.contains(ObfNames.CLASS_TILE_ENTITY, classNode.name)) return true;
-    return classNode.superName != null && isTileEntity(loader, ASMHelpers.classNodeFor(loader, classNode.superName));
+  private static boolean isTileEntity(LaunchClassLoader loader, String className, String superName) {
+    if (ArrayUtils.contains(ObfNames.CLASS_TILE_ENTITY, className)) return true;
+    if (superName == null || superName.equals("java/lang/Object")) return false;
+
+    final byte[] bytes = ASMHelpers.classBytesFor(loader, superName);
+    if (bytes == null) return false;
+
+    ClassReader classReader = new ClassReader(bytes);
+    return isTileEntity(loader, superName, classReader.getSuperName());
   }
 
   private static void injectMethodIfMissing(ClassNode classNode, ClassNode template, String methodName, String desc,
@@ -72,22 +94,22 @@ public final class TransformerInjectEnvironmentImplementation {
       throw new AssertionError("Template missing method " + methodName + desc);
     }
 
-    classNode.methods.add(methodNode);
+    classNode.methods.add(ASMHelpers.copyMethodNode(methodNode));
   }
 
   private static void replaceTileMethod(LaunchClassLoader loader, ClassNode classNode, ClassNode template,
    String methodNamePlain, String methodNameSrg, String desc) throws Exception {
 
-    FMLDeobfuscatingRemapper mapper = FMLDeobfuscatingRemapper.INSTANCE;
+    final FMLDeobfuscatingRemapper mapper = FMLDeobfuscatingRemapper.INSTANCE;
 
     Predicate<MethodNode> filter = method -> {
-      String descDeObf = mapper.mapMethodDesc(method.desc);
-      String methodNameDeObf = mapper.mapMethodName(ObfNames.CLASS_TILE_ENTITY[1], method.name, method.desc);
+      if (!methodNamePlain.equals(method.name)) {
+        final String methodNameDeObf = mapper.mapMethodName(ObfNames.CLASS_TILE_ENTITY[1], method.name, method.desc);
+        if (!methodNameSrg.equals(methodNameDeObf)) return false;
+      }
 
-      boolean samePlain = (method.name + descDeObf).equals(methodNamePlain + desc);
-      boolean sameDeObf = (methodNameDeObf + descDeObf).equals(methodNameSrg + desc);
-
-      return samePlain || sameDeObf;
+      final String descDeObf = mapper.mapMethodDesc(method.desc);
+      return desc.equals(descDeObf);
     };
 
     for (MethodNode method : classNode.methods) {
@@ -117,7 +139,7 @@ public final class TransformerInjectEnvironmentImplementation {
       if (delegator == null) {
         throw new AssertionError("Couldn't find '" + (methodNamePlain + SimpleComponentImpl.PostFix) + "' in template implementation.");
       }
-      classNode.methods.add(delegator);
+      classNode.methods.add(ASMHelpers.copyMethodNode(delegator));
     }
 
     MethodNode override = null;
@@ -130,7 +152,7 @@ public final class TransformerInjectEnvironmentImplementation {
     if (override == null) {
       throw new AssertionError("Couldn't find '" + methodNamePlain + "' in template implementation.");
     }
-    classNode.methods.add(override);
+    classNode.methods.add(ASMHelpers.copyMethodNode(override));
   }
 
   private static void ensureNonFinalInHierarchy(LaunchClassLoader loader, String internalSuperName,

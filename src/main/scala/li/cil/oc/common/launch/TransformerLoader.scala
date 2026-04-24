@@ -9,7 +9,6 @@ import cpw.mods.fml.relauncher.IFMLLoadingPlugin.TransformerExclusions
 @TransformerExclusions(Array("li.cil.oc.common.asm"))
 @MCVersion("1.7.10")
 class TransformerLoader extends IFMLLoadingPlugin {
-  val instance = this
 
   override def getModContainerClass = "li.cil.oc.common.launch.CoreModContainer"
 
