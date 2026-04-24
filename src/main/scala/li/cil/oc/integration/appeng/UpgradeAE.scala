@@ -21,6 +21,7 @@ import li.cil.oc.api.prefab.ManagedEnvironment
 import li.cil.oc.common.item.Delegator
 import li.cil.oc.integration.appeng
 import li.cil.oc.util.DatabaseAccess
+import li.cil.oc.util.ExtendedArguments.extendedArguments
 import li.cil.oc.util.ResultWrapper.result
 import net.minecraft.item.ItemStack
 import net.minecraftforge.common.util.ForgeDirection
@@ -206,6 +207,7 @@ class UpgradeAE(val host: EnvironmentHost, val tier: Int) extends ManagedEnviron
       else AEApi.instance.storage.createItemStack(DatabaseAccess.getStackFromDatabase(node, args, 0))
     }
     if (aestack == null) return result(0)
+    if (!args.isInteger(2)) aestack.setStackSize(64)
     val set_stack = aestack.getItemStack
     val currentStackOpt = Option(invRobot.getStackInSlot(agent.selectedSlot))
     val inSlot = currentStackOpt.map(_.stackSize).getOrElse(0)
@@ -267,10 +269,11 @@ class UpgradeAE(val host: EnvironmentHost, val tier: Int) extends ManagedEnviron
       else {
         val stack = DatabaseAccess.getStackFromDatabase(node, args, 0)
         val fluid = FluidContainerRegistry.getFluidForFilledItem(stack)
-        fluid.amount = args.optInteger(2, FluidContainerRegistry.BUCKET_VOLUME)
         AEApi.instance.storage.createFluidStack(fluid)
       }
     }
+    if (aefluid == null) return result(0)
+    if (!args.isInteger(2)) aefluid.setStackSize(FluidContainerRegistry.BUCKET_VOLUME)
     val amount = tank.fill(aefluid.getFluidStack, false)
     if (amount == 0) return result(0)
     aefluid.setStackSize(amount)
