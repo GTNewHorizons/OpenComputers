@@ -208,13 +208,13 @@ class UpgradeAE(val host: EnvironmentHost, val tier: Int) extends ManagedEnviron
     }
     if (aestack == null) return result(0)
     if (!args.isInteger(2)) aestack.setStackSize(64)
-    val set_stack = aestack.getItemStack
+    val setStack = aestack.getItemStack
     val currentStackOpt = Option(invRobot.getStackInSlot(agent.selectedSlot))
-    val inSlot = currentStackOpt.map(_.stackSize).getOrElse(0)
-    val maxSize = currentStackOpt.map(_.getMaxStackSize).getOrElse(64)
-    aestack.setStackSize(Math.min(set_stack.stackSize, maxSize - inSlot))
     if (currentStackOpt.exists(!aestack.isSameType(_)))
       return result(0)
+    val inSlot = currentStackOpt.map(_.stackSize).getOrElse(0)
+    val maxSize = currentStackOpt.map(_.getMaxStackSize).getOrElse(64)
+    aestack.setStackSize(Math.min(setStack.stackSize, maxSize - inSlot))
     val extracted = inv.extractItems(
       aestack,
       Actionable.MODULATE,
@@ -222,8 +222,8 @@ class UpgradeAE(val host: EnvironmentHost, val tier: Int) extends ManagedEnviron
     )
     if (extracted == null) return result(0)
     val ext = extracted.getStackSize.toInt
-    set_stack.stackSize = inSlot + ext
-    invRobot.setInventorySlotContents(agent.selectedSlot, set_stack)
+    setStack.stackSize = inSlot + ext
+    invRobot.setInventorySlotContents(agent.selectedSlot, setStack)
     result(ext)
   }
 
