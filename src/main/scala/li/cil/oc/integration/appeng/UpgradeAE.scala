@@ -274,8 +274,8 @@ Example: {name = "minecraft:bucket", size = 1} OR {id = 1}
   @Callback(doc =
     """function(database:address, entry:number[, number:amount]):number OR function(detail:table):number
 Detail keys: 'name' (string), 'size' (number), 'id' (number).
-Required: name OR id. Optional: size
-Example: {name = "water", size = 1} OR {id = 1}
+Required: name OR id. Optional: size (Note: 1000 = 1 bucket)
+Example: {name = "water", size = 1000} OR {id = 1}
 -- Get fluid from your ae system.""")
   def requestFluids(context: Context, args: Arguments): Array[AnyRef] = {
     val tanks = agent.tank
