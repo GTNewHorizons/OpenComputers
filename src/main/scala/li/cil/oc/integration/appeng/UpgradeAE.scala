@@ -20,6 +20,7 @@ import li.cil.oc.api.network._
 import li.cil.oc.api.prefab.ManagedEnvironment
 import li.cil.oc.common.item.Delegator
 import li.cil.oc.integration.appeng
+import li.cil.oc.integration.util.MapUtils.MapWrapper
 import li.cil.oc.util.DatabaseAccess
 import li.cil.oc.util.ResultWrapper.result
 import net.minecraft.item.ItemStack
@@ -208,11 +209,21 @@ Example: {name = "minecraft:bucket", size = 1} OR {id = 1}
     if (inv == null) return result(0)
 
     val aestack = {
-      if (args.isTable(0)) AEStackFactory.parse[IAEItemStack](args.checkTable(0))
-      else AEApi.instance.storage.createItemStack(DatabaseAccess.getStackFromDatabase(node, args, 0))
+      if (args.isTable(0)) {
+        val t = args.checkTable(0)
+        Option(AEStackFactory.parse[IAEItemStack](t)).map { s =>
+          if (t.getInt("size").isEmpty) s.setStackSize(64)
+          s
+        }.orNull
+      }
+      else {
+        Option(DatabaseAccess.getStackFromDatabase(node, args, 0)).map { s =>
+          if (!args.isInteger(2)) s.stackSize = math.min(64, s.getMaxStackSize)
+          AEApi.instance.storage.createItemStack(s)
+        }.orNull
+      }
     }
     if (aestack == null) return result(0)
-    if (!args.isInteger(2)) aestack.setStackSize(64)
     val setStack = aestack.getItemStack
     val currentStackOpt = Option(invRobot.getStackInSlot(agent.selectedSlot))
     if (currentStackOpt.exists(!aestack.isSameType(_)))
@@ -275,15 +286,23 @@ Example: {name = "water", size = 1} OR {id = 1}
     if (tank == null || inv == null) return result(0)
 
     val aefluid = {
-      if (args.isTable(0)) AEStackFactory.parse[IAEFluidStack](args.checkTable(0))
+      if (args.isTable(0)) {
+        val t = args.checkTable(0)
+        Option(AEStackFactory.parse[IAEFluidStack](t)).map { s =>
+          if (t.getInt("size").isEmpty) s.setStackSize(FluidContainerRegistry.BUCKET_VOLUME)
+          s
+        }.orNull
+      }
       else {
-        val stack = DatabaseAccess.getStackFromDatabase(node, args, 0)
-        val fluid = FluidContainerRegistry.getFluidForFilledItem(stack)
-        AEApi.instance.storage.createFluidStack(fluid)
+        Option(DatabaseAccess.getStackFromDatabase(node, args, 0)).flatMap { s =>
+          Option(FluidContainerRegistry.getFluidForFilledItem(s))
+        }.map { fluid =>
+          fluid.amount = args.optInteger(2, FluidContainerRegistry.BUCKET_VOLUME)
+          AEApi.instance.storage.createFluidStack(fluid)
+        }.orNull
       }
     }
     if (aefluid == null) return result(0)
-    if (!args.isInteger(2)) aefluid.setStackSize(FluidContainerRegistry.BUCKET_VOLUME)
     val amount = tank.fill(aefluid.getFluidStack, false)
     if (amount == 0) return result(0)
     aefluid.setStackSize(amount)
