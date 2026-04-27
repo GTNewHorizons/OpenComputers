@@ -1,108 +1,30 @@
 package li.cil.oc.client.renderer
 
-import java.util.concurrent.Callable
-import java.util.concurrent.TimeUnit
-
-import com.google.common.cache.CacheBuilder
-import com.google.common.cache.RemovalListener
-import com.google.common.cache.RemovalNotification
-import cpw.mods.fml.common.eventhandler.SubscribeEvent
-import cpw.mods.fml.common.gameevent.TickEvent.ClientTickEvent
 import li.cil.oc.Settings
 import li.cil.oc.client.renderer.font.TextBufferRenderData
 import li.cil.oc.util.RenderState
-import net.minecraft.client.renderer.GLAllocation
-import net.minecraft.tileentity.TileEntity
-import org.lwjgl.opengl.GL11
 
-object TextBufferRenderCache extends Callable[Int] with RemovalListener[TileEntity, Int] {
+object TextBufferRenderCache {
   val renderer =
     if (Settings.get.fontRenderer == "texture") new font.StaticFontRenderer()
     else new font.DynamicFontRenderer()
-
-  private val cache = com.google.common.cache.CacheBuilder.newBuilder().
-    expireAfterAccess(2, TimeUnit.SECONDS).
-    removalListener(this).
-    asInstanceOf[CacheBuilder[TextBufferRenderData, Int]].
-    build[TextBufferRenderData, Int]()
-
-  // To allow access in cache entry init.
-  private var currentBuffer: TextBufferRenderData = _
 
   // ----------------------------------------------------------------------- //
   // Rendering
   // ----------------------------------------------------------------------- //
 
   def render(buffer: TextBufferRenderData) {
-    currentBuffer = buffer
-    compileOrDraw(cache.get(currentBuffer, this))
-  }
+    RenderState.checkError(getClass.getName + ".render: entering (aka: wasntme)")
 
-  private def compileOrDraw(list: Int) = {
-    if (currentBuffer.dirty) {
-      RenderState.checkError(getClass.getName + ".compileOrDraw: entering (aka: wasntme)")
-
-      for (line <- currentBuffer.data.buffer) {
+    if (buffer.dirty) {
+      for (line <- buffer.data.buffer) {
         renderer.generateChars(line)
       }
-
-      val doCompile = !RenderState.compilingDisplayList
-      if (doCompile) {
-        currentBuffer.dirty = false
-        GL11.glNewList(list, GL11.GL_COMPILE_AND_EXECUTE)
-
-        RenderState.checkError(getClass.getName + ".compileOrDraw: glNewList")
-      }
-
-      renderer.drawBuffer(currentBuffer.data, currentBuffer.viewport._1, currentBuffer.viewport._2)
-
-      RenderState.checkError(getClass.getName + ".compileOrDraw: drawString")
-
-      if (doCompile) {
-        GL11.glEndList()
-
-        RenderState.checkError(getClass.getName + ".compileOrDraw: glEndList")
-
-      }
-
-      RenderState.checkError(getClass.getName + ".compileOrDraw: leaving")
-
-      true
+      buffer.dirty = false
     }
-    else {
-      GL11.glCallList(list)
 
-      RenderState.checkError(getClass.getName + ".compileOrDraw: glCallList")
-    }
+    renderer.drawBuffer(buffer.data, buffer.viewport._1, buffer.viewport._2)
+
+    RenderState.checkError(getClass.getName + ".render: leaving")
   }
-
-  // ----------------------------------------------------------------------- //
-  // Cache
-  // ----------------------------------------------------------------------- //
-
-  def call = {
-    RenderState.checkError(getClass.getName + ".call: entering (aka: wasntme)")
-
-    val list = GLAllocation.generateDisplayLists(1)
-    currentBuffer.dirty = true // Force compilation.
-
-    RenderState.checkError(getClass.getName + ".call: leaving")
-
-    list
-  }
-
-  def onRemoval(e: RemovalNotification[TileEntity, Int]) {
-    RenderState.checkError(getClass.getName + ".onRemoval: entering (aka: wasntme)")
-
-    GLAllocation.deleteDisplayLists(e.getValue)
-
-    RenderState.checkError(getClass.getName + ".onRemoval: leaving")
-  }
-
-  // ----------------------------------------------------------------------- //
-  // ITickHandler
-  // ----------------------------------------------------------------------- //
-
-  @SubscribeEvent
-  def onTick(e: ClientTickEvent) = cache.cleanUp()
 }
