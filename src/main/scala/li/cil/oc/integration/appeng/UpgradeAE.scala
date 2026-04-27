@@ -14,13 +14,15 @@ import li.cil.oc.Constants
 import li.cil.oc.api.Network
 import li.cil.oc.api.driver.DeviceInfo
 import li.cil.oc.api.driver.DeviceInfo.{DeviceAttribute, DeviceClass}
-import li.cil.oc.api.internal.{Agent, Database, Drone, Robot}
+import li.cil.oc.api.internal.{Agent, Drone, Robot}
 import li.cil.oc.api.machine.{Arguments, Callback, Context}
 import li.cil.oc.api.network._
 import li.cil.oc.api.prefab.ManagedEnvironment
 import li.cil.oc.common.item.Delegator
 import li.cil.oc.integration.appeng
-import li.cil.oc.server.network.Component
+import li.cil.oc.integration.util.MapUtils.MapWrapper
+import li.cil.oc.util.DatabaseAccess
+import li.cil.oc.util.ResultWrapper.result
 import net.minecraft.item.ItemStack
 import net.minecraftforge.common.util.ForgeDirection
 import net.minecraftforge.fluids.FluidContainerRegistry
@@ -73,69 +75,38 @@ class UpgradeAE(val host: EnvironmentHost, val tier: Int) extends ManagedEnviron
   }
 
   def checkRange(stack: ItemStack, sec: IGridHost): Boolean = {
-    if (sec == null) return false
-    val gridNode: IGridNode = sec.getGridNode(ForgeDirection.UNKNOWN)
-    if (gridNode == null) return false
-    val grid = gridNode.getGrid
-    if (grid == null) return false
-    stack.getItemDamage match {
-      case 0 =>
-        val gridBlock = gridNode.getGridBlock
-        if (gridBlock == null) return false
-        val loc = gridBlock.getLocation
-        if (loc == null) return false
-        for (
-          node <- grid.getMachines(
-            AEApi.instance.definitions.blocks.wireless.maybeEntity.get
-              .asInstanceOf[Class[_ <: IGridHost]]
-          )
-        ) {
-          val accessPoint: IWirelessAccessPoint =
-            node.getMachine.asInstanceOf[IWirelessAccessPoint]
-          val distance: WorldCoord = accessPoint.getLocation.subtract(
-            agent.xPosition.toInt,
-            agent.yPosition.toInt,
-            agent.zPosition.toInt
-          )
-          val squaredDistance: Int =
-            distance.x * distance.x + distance.y * distance.y + distance.z * distance.z
-          val range = accessPoint.getRange / 2
-          if (squaredDistance <= range * range) return true
-        }
-        false
-      case 1 =>
-        val gridBlock = gridNode.getGridBlock
-        if (gridBlock == null) return false
-        val loc = gridBlock.getLocation
-        if (loc == null) return false
-        for (
-          node <- grid.getMachines(
-            AEApi.instance.definitions.blocks.wireless.maybeEntity.get
-              .asInstanceOf[Class[_ <: IGridHost]]
-          )
-        ) {
-          val accessPoint: IWirelessAccessPoint =
-            node.getMachine.asInstanceOf[IWirelessAccessPoint]
-          val distance: WorldCoord = accessPoint.getLocation.subtract(
-            agent.xPosition.toInt,
-            agent.yPosition.toInt,
-            agent.zPosition.toInt
-          )
-          val squaredDistance: Int =
-            distance.x * distance.x + distance.y * distance.y + distance.z * distance.z
-          val range = accessPoint.getRange
-          if (squaredDistance <= range * range) return true
-        }
-        false
-      case _ =>
-        grid
-          .getMachines(
-            AEApi.instance.definitions.blocks.wireless.maybeEntity.get
-              .asInstanceOf[Class[_ <: IGridHost]]
-          )
-          .iterator
-          .hasNext
+    val result = for {
+      sec_ <- Option(sec)
+      gridNode <- Option(sec_.getGridNode(ForgeDirection.UNKNOWN))
+      grid <- Option(gridNode.getGrid)
+    } yield {
+      val wirelessClass = AEApi.instance.definitions.blocks.wireless.maybeEntity.get
+      val accessPoints = grid.getMachines(wirelessClass.asInstanceOf[Class[_ <: IGridHost]])
+      stack.getItemDamage match {
+        case 0 | 1 =>
+          val gridBlock = gridNode.getGridBlock
+          if (gridBlock == null || gridBlock.getLocation == null)
+            false
+          else {
+            val rangeMultiplier = if (stack.getItemDamage == 0) 0.5 else 1
+            accessPoints.exists { node =>
+              val accessPoint = node.getMachine.asInstanceOf[IWirelessAccessPoint]
+              val distance: WorldCoord = accessPoint.getLocation.subtract(
+                agent.xPosition.toInt,
+                agent.yPosition.toInt,
+                agent.zPosition.toInt
+              )
+              val squaredDistance: Int =
+                distance.x * distance.x + distance.y * distance.y + distance.z * distance.z
+              val range = accessPoint.getRange * rangeMultiplier
+              squaredDistance <= range * range
+            }
+          }
+        case _ =>
+          accessPoints.iterator.hasNext
+      }
     }
+    result.getOrElse(false)
   }
 
   def getGrid: IGrid = {
@@ -190,7 +161,8 @@ class UpgradeAE(val host: EnvironmentHost, val tier: Int) extends ManagedEnviron
     storage.getItemInventory
   }
 
-  @Callback(doc = """function([number:amount]):number -- Transfer selected items to your ae system.""")
+  @Callback(doc =
+    """function([number:amount]):number -- Transfer selected items to your ae system.""")
   def sendItems(context: Context, args: Arguments): Array[AnyRef] = {
     val selected = agent.selectedSlot
     val invRobot = agent.mainInventory
@@ -224,60 +196,51 @@ class UpgradeAE(val host: EnvironmentHost, val tier: Int) extends ManagedEnviron
     }
   }
 
-  @Callback(doc = """function(database:address, entry:number[, number:amount]):number -- Get items from your ae system.""")
+  @Callback(doc =
+    """function(database:address, entry:number[, number:amount]):number OR function(detail:table):number
+Detail keys: 'name' (string), 'damage' (number), 'size' (number), 'id' (number).
+Required: name OR id. Optional: damage, size
+Example: {name = "minecraft:bucket", size = 1} OR {id = 1}
+-- Get items from your ae system.""")
   def requestItems(context: Context, args: Arguments): Array[AnyRef] = {
-
-    val address = args.checkString(0)
-    val entry = args.checkInteger(1)
-    val amount = args.optInteger(2, 64)
-    val selected = agent.selectedSlot
     val invRobot = agent.mainInventory
-    if (invRobot.getSizeInventory <= 0) return Array(0.underlying)
+    if (invRobot.getSizeInventory <= 0) return result(0)
     val inv = getItemInventory
-    if (inv == null) return Array(0.underlying)
-    val n: Node = node.network.node(address)
-    if (n == null) throw new IllegalArgumentException("no such component")
-    if (!n.isInstanceOf[Component])
-      throw new IllegalArgumentException("no such component")
-    val env: Environment = n.host
-    if (!env.isInstanceOf[Database])
-      throw new IllegalArgumentException("not a database")
-    val database: Database = env.asInstanceOf[Database]
-    val sel = invRobot.getStackInSlot(selected)
-    val inSlot =
-      if (sel == null)
-        0
-      else
-        sel.stackSize
-    val maxSize =
-      if (sel == null)
-        64
-      else
-        sel.getMaxStackSize
-    val stack = database.getStackInSlot(entry - 1)
-    if (stack == null) return Array(0.underlying)
-    stack.stackSize = Math.min(amount, maxSize - inSlot)
-    val stack2 = stack.copy
-    stack2.stackSize = 1
-    val sel2 =
-      if (sel != null) {
-        val sel3 = sel.copy
-        sel3.stackSize = 1
-        sel3
-      } else
-        null
-    if (sel != null && !ItemStack.areItemStacksEqual(sel2, stack2))
-      return Array(0.underlying)
+    if (inv == null) return result(0)
+
+    val aestack = {
+      if (args.isTable(0)) {
+        val t = args.checkTable(0)
+        Option(AEStackFactory.parse[IAEItemStack](t)).map { s =>
+          if (t.getInt("size").isEmpty) s.setStackSize(64)
+          s
+        }.orNull
+      }
+      else {
+        Option(DatabaseAccess.getStackFromDatabase(node, args, 0)).map { s =>
+          if (!args.isInteger(2)) s.stackSize = math.min(64, s.getMaxStackSize)
+          AEApi.instance.storage.createItemStack(s)
+        }.orNull
+      }
+    }
+    if (aestack == null) return result(0)
+    val setStack = aestack.getItemStack
+    val currentStackOpt = Option(invRobot.getStackInSlot(agent.selectedSlot))
+    if (currentStackOpt.exists(!aestack.isSameType(_)))
+      return result(0)
+    val inSlot = currentStackOpt.map(_.stackSize).getOrElse(0)
+    val maxSize = currentStackOpt.map(_.getMaxStackSize).getOrElse(64)
+    aestack.setStackSize(Math.min(setStack.stackSize, maxSize - inSlot))
     val extracted = inv.extractItems(
-      AEApi.instance.storage.createItemStack(stack),
+      aestack,
       Actionable.MODULATE,
       new MachineSource(tile)
     )
-    if (extracted == null) return Array(0.underlying)
+    if (extracted == null) return result(0)
     val ext = extracted.getStackSize.toInt
-    stack.stackSize = inSlot + ext
-    invRobot.setInventorySlotContents(selected, stack)
-    Array(ext.underlying)
+    setStack.stackSize = inSlot + ext
+    invRobot.setInventorySlotContents(agent.selectedSlot, setStack)
+    result(ext)
   }
 
   @Callback(doc = """function([number:amount]):number -- Transfer selected fluid to your ae system.""")
@@ -308,39 +271,48 @@ class UpgradeAE(val host: EnvironmentHost, val tier: Int) extends ManagedEnviron
     }
   }
 
-  @Callback(doc = """function(database:address, entry:number[, number:amount]):number -- Get fluid from your ae system.""")
+  @Callback(doc =
+    """function(database:address, entry:number[, number:amount]):number OR function(detail:table):number
+Detail keys: 'name' (string), 'size' (number), 'id' (number).
+Required: name OR id. Optional: size (Note: 1000 = 1 bucket)
+Example: {name = "water", size = 1000} OR {id = 1}
+-- Get fluid from your ae system.""")
   def requestFluids(context: Context, args: Arguments): Array[AnyRef] = {
-    val address = args.checkString(0)
-    val entry = args.checkInteger(1)
-    val amount = args.optInteger(2, FluidContainerRegistry.BUCKET_VOLUME)
     val tanks = agent.tank
-    val selected = agent.selectedTank
-    if (tanks.tankCount <= 0) return Array(0.underlying)
-    val tank = tanks.getFluidTank(selected)
+    if (tanks.tankCount <= 0) return result(0)
+
+    val tank = tanks.getFluidTank(agent.selectedTank)
     val inv = getFluidInventory
-    if (tank == null || inv == null) return Array(0.underlying)
-    val n: Node = node.network.node(address)
-    if (n == null) throw new IllegalArgumentException("no such component")
-    if (!n.isInstanceOf[Component])
-      throw new IllegalArgumentException("no such component")
-    val env: Environment = n.host
-    if (!env.isInstanceOf[Database])
-      throw new IllegalArgumentException("not a database")
-    val database: Database = env.asInstanceOf[Database]
-    val fluid = FluidContainerRegistry.getFluidForFilledItem(
-      database.getStackInSlot(entry - 1)
-    )
-    fluid.amount = amount
-    val fluid2 = fluid.copy()
-    fluid2.amount = tank.fill(fluid, false)
-    if (fluid2.amount == 0) return Array(0.underlying)
+    if (tank == null || inv == null) return result(0)
+
+    val aefluid = {
+      if (args.isTable(0)) {
+        val t = args.checkTable(0)
+        Option(AEStackFactory.parse[IAEFluidStack](t)).map { s =>
+          if (t.getInt("size").isEmpty) s.setStackSize(FluidContainerRegistry.BUCKET_VOLUME)
+          s
+        }.orNull
+      }
+      else {
+        Option(DatabaseAccess.getStackFromDatabase(node, args, 0)).flatMap { s =>
+          Option(FluidContainerRegistry.getFluidForFilledItem(s))
+        }.map { fluid =>
+          fluid.amount = args.optInteger(2, FluidContainerRegistry.BUCKET_VOLUME)
+          AEApi.instance.storage.createFluidStack(fluid)
+        }.orNull
+      }
+    }
+    if (aefluid == null) return result(0)
+    val amount = tank.fill(aefluid.getFluidStack, false)
+    if (amount == 0) return result(0)
+    aefluid.setStackSize(amount)
     val extracted = inv.extractItems(
-      AEApi.instance.storage.createFluidStack(fluid2),
+      aefluid,
       Actionable.MODULATE,
       new MachineSource(tile)
     )
-    if (extracted == null) return Array(0.underlying)
-    Array(tank.fill(extracted.getFluidStack, true).underlying)
+    if (extracted == null) return result(0)
+    result(tank.fill(extracted.getFluidStack, true))
   }
 
 

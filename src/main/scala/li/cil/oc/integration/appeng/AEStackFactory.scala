@@ -27,7 +27,7 @@ object AEStackFactory {
     classRegistry.get(tag.runtimeClass) match {
       case Some(entry) =>
         val result = entry.parser(map).asInstanceOf[T]
-        result.setStackSize(map.getLong("size").get)
+        result.setStackSize(map.getLong("size").getOrElse(1))
         result
       case None => throw new UnregisteredAETypeException(s"Type ${tag.runtimeClass} hasn't been registered");
     }
@@ -37,7 +37,7 @@ object AEStackFactory {
     idRegistry.get(key) match {
       case Some(entry) =>
         val result = entry.parser(map)
-        result.setStackSize(map.getLong("size").get)
+        result.setStackSize(map.getLong("size").getOrElse(1))
         result
       case None => throw new UnregisteredAETypeException(s"Type $key hasn't been registered");
     }

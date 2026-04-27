@@ -344,13 +344,13 @@ object NetworkControl extends AETypes {
     @Callback(doc = "function():table -- Returns the item stack representation of the crafting result.")
     def getStack(context: Context, args: Arguments): Array[AnyRef] = result(stack)
 
-    @Callback(doc = "function([amount:int[, prioritizePower:boolean[, cpuName:string]]]):userdata -- Requests the item to be crafted, returning an object that allows tracking the crafting status.")
+    @Callback(doc = "function([amount:number[, prioritizePower:boolean[, cpuName:string]]]):userdata -- Requests the item to be crafted, returning an object that allows tracking the crafting status.")
     def request(context: Context, args: Arguments): Array[AnyRef] = {
       if (controller == null || controller.isInvalid) {
         return result(Unit, "no controller")
       }
 
-      val count = args.optInteger(0, 1)
+      val count = args.optLong(0, 1)
       val request = stack.copy
       request.setStackSize(count)
 

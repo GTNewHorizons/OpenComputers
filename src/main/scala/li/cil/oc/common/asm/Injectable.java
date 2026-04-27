@@ -11,6 +11,8 @@ import java.lang.annotation.Target;
  * Instead of stripping interfaces if they are not present, it will inject them
  * when they <em>are</em> present. This helps with some strange cases where
  * stripping does not work as it should.
+ * <br>
+ * NOTE: For performance reasons injecting only applies for classes in li/cil/oc/common folder
  */
 public final class Injectable {
     /**

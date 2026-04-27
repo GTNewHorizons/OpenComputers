@@ -13,6 +13,7 @@ import net.minecraft.item.ItemStack
 import net.minecraft.util.MovingObjectPosition
 import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
+import net.minecraft.util.StatCollector
 import net.minecraftforge.common.util.ForgeDirection
 
 import java.text.NumberFormat
@@ -69,7 +70,7 @@ class Transposer(protected implicit val tileTag: ClassTag[tileentity.Transposer]
       else
         Settings.get.transposerFluidTransferRate
 
-    tooltip.add(s"Transfers up to ${NumberFormat.getIntegerInstance.format(transferRate)}L/s.")
+    tooltip.add(StatCollector.translateToLocalFormatted("tile.oc.transposer.tooltip", NumberFormat.getIntegerInstance.format(transferRate)))
     super.tooltipBody(metadata, stack, player, tooltip, advanced)
   }
 }
