@@ -129,7 +129,7 @@ object Player {
 }
 
 class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanceOf[WorldServer], Player.profileFor(agent)) {
-  playerNetServerHandler = new NetHandlerPlayServer(mcServer, FakeNetworkManager, this)
+  playerNetServerHandler = new NetHandlerPlayServer(mcServer, new FakeNetworkManager(), this)
 
   capabilities.allowFlying = true
   capabilities.disableDamage = true
