@@ -1,7 +1,7 @@
 package li.cil.oc.client
 
 import cpw.mods.fml.client.FMLClientHandler
-import cpw.mods.fml.common.eventhandler.SubscribeEvent
+import cpw.mods.fml.common.eventhandler.{EventPriority, SubscribeEvent}
 import cpw.mods.fml.common.gameevent.TickEvent.{ClientTickEvent, Phase}
 import li.cil.oc.{OpenComputers, Settings}
 import net.minecraft.client.Minecraft
@@ -25,9 +25,9 @@ object Sound {
   private var lastVolume = FMLClientHandler.instance.getClient.gameSettings.getSoundLevel(SoundCategory.BLOCKS)
 
   // Set in init event.
-  var manager: SoundManager = _
+  private var manager: SoundManager = _
 
-  def soundSystem = if (manager != null) manager.sndSystem else null
+  private def soundSystem = if (manager != null) manager.sndSystem else null
 
   private def updateVolume() {
     val volume =
@@ -61,7 +61,7 @@ object Sound {
   }
 
   def startLoop(tileEntity: TileEntity, name: String, volume: Float = 1f, delay: Long = 0) {
-    if (Settings.get.soundVolume > 0) {
+    if (Settings.get.soundVolume > 0 && Minecraft.getMinecraft.theWorld != null) {
       commandQueue.synchronized {
         commandQueue += new StartCommand(System.currentTimeMillis() + delay, tileEntity, name, volume)
       }
@@ -69,7 +69,7 @@ object Sound {
   }
 
   def stopLoop(tileEntity: TileEntity) {
-    if (Settings.get.soundVolume > 0) {
+    if (Settings.get.soundVolume > 0 && Minecraft.getMinecraft.theWorld != null) {
       commandQueue.synchronized {
         commandQueue += new StopCommand(tileEntity)
       }
@@ -77,7 +77,7 @@ object Sound {
   }
 
   def updatePosition(tileEntity: TileEntity) {
-    if (Settings.get.soundVolume > 0) {
+    if (Settings.get.soundVolume > 0 && Minecraft.getMinecraft.theWorld != null) {
       commandQueue.synchronized {
         commandQueue += new UpdatePositionCommand(tileEntity)
       }
@@ -105,13 +105,13 @@ object Sound {
     }
   }
 
-  @SubscribeEvent
+  @SubscribeEvent(priority = EventPriority.LOWEST)
   def onWorldUnload(event: WorldEvent.Unload) {
-    commandQueue.synchronized(commandQueue.clear())
     sources.synchronized(try sources.foreach(_._2.stop()) catch {
       case _: Throwable => // Ignore.
     })
-    sources.clear()
+    sources.synchronized(sources.clear())
+    commandQueue.synchronized(commandQueue.clear())
   }
 
   private abstract class Command(val when: Long, val tileEntity: TileEntity) extends Ordered[Command] {
