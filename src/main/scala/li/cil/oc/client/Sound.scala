@@ -1,22 +1,11 @@
 package li.cil.oc.client
 
-import java.net.MalformedURLException
-import java.net.URL
-import java.net.URLConnection
-import java.net.URLStreamHandler
-import java.util.Timer
-import java.util.TimerTask
-import java.util.UUID
-
 import cpw.mods.fml.client.FMLClientHandler
 import cpw.mods.fml.common.eventhandler.SubscribeEvent
-import cpw.mods.fml.common.gameevent.TickEvent.ClientTickEvent
-import li.cil.oc.OpenComputers
-import li.cil.oc.Settings
+import cpw.mods.fml.common.gameevent.TickEvent.{ClientTickEvent, Phase}
+import li.cil.oc.{OpenComputers, Settings}
 import net.minecraft.client.Minecraft
-import net.minecraft.client.audio.SoundCategory
-import net.minecraft.client.audio.SoundManager
-import net.minecraft.client.audio.SoundPoolEntry
+import net.minecraft.client.audio.{SoundCategory, SoundManager, SoundPoolEntry}
 import net.minecraft.server.MinecraftServer
 import net.minecraft.server.integrated.IntegratedServer
 import net.minecraft.tileentity.TileEntity
@@ -25,28 +14,15 @@ import net.minecraftforge.client.event.sound.SoundLoadEvent
 import net.minecraftforge.event.world.WorldEvent
 import paulscode.sound.SoundSystemConfig
 
+import java.net.{MalformedURLException, URL, URLConnection, URLStreamHandler}
+import java.util.UUID
 import scala.collection.mutable
 
 object Sound {
+
   private val sources = mutable.Map.empty[TileEntity, PseudoLoopingStream]
-
   private val commandQueue = mutable.PriorityQueue.empty[Command]
-
   private var lastVolume = FMLClientHandler.instance.getClient.gameSettings.getSoundLevel(SoundCategory.BLOCKS)
-
-  private val updateTimer = new Timer("OpenComputers-SoundUpdater", true)
-  if (Settings.get.soundVolume > 0) {
-    updateTimer.scheduleAtFixedRate(new TimerTask {
-      override def run() {
-        sources.synchronized(updateCallable = Some(() => {
-          updateVolume()
-          processQueue()
-        }))
-      }
-    }, 500, 50)
-  }
-
-  private var updateCallable = None: Option[() => Unit]
 
   // Set in init event.
   var manager: SoundManager = _
@@ -113,12 +89,18 @@ object Sound {
     manager = event.manager
   }
 
+  private var tickCount = 0;
+
   @SubscribeEvent
   def onTick(e: ClientTickEvent) {
-    if (soundSystem != null) {
-      sources.synchronized {
-        updateCallable.foreach(_())
-        updateCallable = None
+    if (e.phase == Phase.START) return
+    if (soundSystem != null && Minecraft.getMinecraft.theWorld != null && Settings.get.soundVolume > 0) {
+      tickCount = tickCount + 1
+      if (tickCount % 10 == 0) {
+        sources.synchronized {
+          updateVolume()
+          processQueue()
+        }
       }
     }
   }
