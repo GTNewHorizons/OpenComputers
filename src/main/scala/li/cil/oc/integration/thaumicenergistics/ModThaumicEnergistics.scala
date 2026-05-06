@@ -8,9 +8,11 @@ import thaumicenergistics.common.storage.{AEEssentiaStack, AEEssentiaStackType}
 object ModThaumicEnergistics extends ModProxy {
   override def getMod: Mod = Mods.ThaumicEnergistics
 
-  override def initialize(): Unit = {
+  private lazy val lazyRegister = new {
     AEStackFactory.register[AEEssentiaStack](AEEssentiaStackType.ESSENTIA_STACK_TYPE, ConvertAEEssentiaStack.convert, ConvertAEEssentiaStack.parse)
-
+  }
+  override def initialize(): Unit = {
+    lazyRegister
     Driver.add(DriverController)
     Driver.add(DriverBlockInterface)
     Driver.add(DriverEssentiaExportBus)
