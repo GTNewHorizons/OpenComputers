@@ -19,10 +19,13 @@ import net.minecraft.world.World
 object ModAppEng extends ModProxy {
   override def getMod = Mods.AppliedEnergistics2
 
-  override def initialize() {
+  private lazy val lazyRegister = new {
     AEStackFactory.register[IAEFluidStack](AEFluidStackType.FLUID_STACK_TYPE, ConverterAEFluidStack.convert, ConverterAEFluidStack.parse)
     AEStackFactory.register[IAEItemStack](AEItemStackType.ITEM_STACK_TYPE, ConverterAEItemStack.convert, ConverterAEItemStack.parse)
+  }
 
+  override def initialize() {
+    lazyRegister
     api.IMC.registerWrenchTool("li.cil.oc.integration.appeng.EventHandlerAE2.useWrench")
     api.IMC.registerWrenchToolCheck("li.cil.oc.integration.appeng.EventHandlerAE2.isWrench")
 
