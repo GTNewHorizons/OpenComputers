@@ -306,6 +306,22 @@ class DebugCard(host: EnvironmentHost) extends prefab.ManagedEnvironment with De
   override def load(nbt: NBTTagCompound): Unit = {
     super.load(nbt)
     access = AccessContext.load(nbt)
+
+    // Attempt eager migration of legacy name-based cards to UUID-based format.
+    access match {
+      case Some(ctx) if ctx.uuid.isEmpty =>
+        val name = ctx.player
+        Option(MinecraftServer.getServer).flatMap(s => Option(s.getConfigurationManager.func_152612_a(name))) match {
+          case Some(playerEntity) =>
+            val uuid = playerEntity.getGameProfile.getId.toString
+            OpenComputers.log.info(s"[DebugCard] Migrated legacy card for '$name' → UUID $uuid. Card will use UUID on next save.")
+            access = Some(ctx.copy(uuid = uuid))
+          case None =>
+            OpenComputers.log.warn(s"[DebugCard] Legacy card bound to '$name' could not be migrated (player offline or server unavailable). Card will be inaccessible until migration succeeds. Have the player log in and re-bind, or re-insert the card while they are online.")
+        }
+      case _ => // New format or unbound — nothing to do
+    }
+
     if (nbt.hasKey(Settings.namespace + "remoteX")) {
       val x = nbt.getInteger(Settings.namespace + "remoteX")
       val y = nbt.getInteger(Settings.namespace + "remoteY")
@@ -313,6 +329,7 @@ class DebugCard(host: EnvironmentHost) extends prefab.ManagedEnvironment with De
       remoteNodePosition = Some((x, y, z))
     }
   }
+
 
   override def save(nbt: NBTTagCompound): Unit = {
     super.save(nbt)
@@ -333,24 +350,40 @@ object DebugCard {
 
   object AccessContext {
     def remove(nbt: NBTTagCompound): Unit = {
+      nbt.removeTag(Settings.namespace + "playerUuid")
       nbt.removeTag(Settings.namespace + "player")
       nbt.removeTag(Settings.namespace + "accessNonce")
     }
 
     def load(nbt: NBTTagCompound): Option[AccessContext] = {
-      if (nbt.hasKey(Settings.namespace + "player"))
+      if (nbt.hasKey(Settings.namespace + "playerUuid")) {
+        // New UUID-based format
         Some(AccessContext(
-          nbt.getString(Settings.namespace + "player"),
-          nbt.getString(Settings.namespace + "accessNonce")
+          uuid  = nbt.getString(Settings.namespace + "playerUuid"),
+          player = nbt.getString(Settings.namespace + "player"),
+          nonce = nbt.getString(Settings.namespace + "accessNonce")
         ))
-      else
+      } else if (nbt.hasKey(Settings.namespace + "player")) {
+        // Old name-only format — uuid is empty, migration attempted at use time
+        Some(AccessContext(
+          uuid  = "",
+          player = nbt.getString(Settings.namespace + "player"),
+          nonce = nbt.getString(Settings.namespace + "accessNonce")
+        ))
+      } else {
         None
+      }
     }
   }
 
-  case class AccessContext(player: String, nonce: String) {
+  /** @param uuid   Mojang UUID string (stable across name changes). Empty string signals a legacy card needing migration.
+    * @param player Display name at bind time (informational only).
+    * @param nonce  Anti-forgery nonce matched against the server whitelist.
+    */
+  case class AccessContext(uuid: String, player: String, nonce: String) {
     def save(nbt: NBTTagCompound): Unit = {
-      nbt.setString(Settings.namespace + "player", player)
+      nbt.setString(Settings.namespace + "playerUuid", uuid)
+      nbt.setString(Settings.namespace + "player", player)  // kept for display + legacy migration
       nbt.setString(Settings.namespace + "accessNonce", nonce)
     }
   }
