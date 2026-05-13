@@ -694,21 +694,26 @@ object Settings {
   }
 
   sealed trait DebugCardAccess {
-    def checkAccess(ctx: Option[DebugCard.AccessContext]): Option[String]
+    /** Returns Some(errorMessage) if the call should be denied, None if permitted.
+      * @param ctx  The access context stored in the card (player name + nonce).
+      * @param fn   Namespaced function name being invoked, e.g. "runCommand" or "world.setBlock".
+      */
+    def checkAccess(ctx: Option[DebugCard.AccessContext], fn: String): Option[String]
   }
 
   object DebugCardAccess {
     case object Forbidden extends DebugCardAccess {
-      override def checkAccess(ctx: Option[AccessContext]): Option[String] =
+      override def checkAccess(ctx: Option[AccessContext], fn: String): Option[String] =
         Some("debug card is disabled")
     }
 
     case object Allowed extends DebugCardAccess {
-      override def checkAccess(ctx: Option[AccessContext]): Option[String] = None
+      override def checkAccess(ctx: Option[AccessContext], fn: String): Option[String] = None
     }
 
     case class Whitelist(noncesFile: File) extends DebugCardAccess {
-      private val values = mutable.Map.empty[String, String]
+      // Value: (nonce, allowedFunctions) — None means wildcard (*), Some(set) is an explicit allowlist.
+      private val values = mutable.Map.empty[String, (String, Option[Set[String]])]
       private val rng = SecureRandom.getInstance("SHA1PRNG")
 
       load()
@@ -720,8 +725,13 @@ object Settings {
 
         val writer = new PrintWriter(new OutputStreamWriter(new FileOutputStream(noncesFile), StandardCharsets.UTF_8), false)
         try {
-          for ((p, n) <- values)
-            writer.println(s"$p $n")
+          for ((p, (n, fns)) <- values) {
+            val fnCol = fns match {
+              case None => "*"
+              case Some(set) => set.mkString(",")
+            }
+            writer.println(s"$p $n $fnCol")
+          }
         } finally writer.close()
       }
 
@@ -732,13 +742,24 @@ object Settings {
           return
 
         val reader = new BufferedReader(new InputStreamReader(new FileInputStream(noncesFile), StandardCharsets.UTF_8))
-        Iterator.continually(reader.readLine())
-          .takeWhile(_ != null)
-          .map(_.split(" ", 2))
-          .flatMap {
-            case Array(p, n) => Seq(p -> n)
-            case _ => Nil
-          }.foreach(values += _)
+        try {
+          Iterator.continually(reader.readLine())
+            .takeWhile(_ != null)
+            .map(_.trim)
+            .filterNot(line => line.isEmpty || line.startsWith("#"))
+            .map(_.split(" ", 3))
+            .foreach {
+              case Array(p, n, fnsCol) =>
+                val fns: Option[Set[String]] =
+                  if (fnsCol.trim == "*") None
+                  else Some(fnsCol.split(",").map(_.trim).filter(_.nonEmpty).toSet)
+                values.put(p.toLowerCase, (n, fns))
+              case Array(p, n) =>
+                // Backward compat: two-column lines get wildcard access.
+                values.put(p.toLowerCase, (n, None))
+              case _ => // malformed line, skip
+            }
+        } finally reader.close()
       }
 
       private def generateNonce(): String = {
@@ -747,16 +768,52 @@ object Settings {
         new String(Hex.encodeHex(buf, true))
       }
 
-      def nonce(player: String) = values.get(player.toLowerCase)
+      /** Returns the stored nonce for a player if they are whitelisted, for use at bind time. */
+      def nonce(player: String): Option[String] = values.get(player.toLowerCase).map(_._1)
 
-      def isWhitelisted(player: String) = values.contains(player.toLowerCase)
+      def isWhitelisted(player: String): Boolean = values.contains(player.toLowerCase)
 
       def whitelist: collection.Set[String] = values.keySet
 
+      /** Adds a player with wildcard (*) function access. */
       def add(player: String): Unit = {
         if (!values.contains(player.toLowerCase)) {
-          values.put(player.toLowerCase, generateNonce())
+          values.put(player.toLowerCase, (generateNonce(), None))
           save()
+        }
+      }
+
+      /** Adds a player with an explicit set of permitted function names. */
+      def add(player: String, allowedFunctions: Set[String]): Unit = {
+        if (!values.contains(player.toLowerCase)) {
+          values.put(player.toLowerCase, (generateNonce(), Some(allowedFunctions)))
+          save()
+        }
+      }
+
+      /** Grants additional functions to an already-whitelisted player. No-op if player is wildcard or unknown. */
+      def allow(player: String, fns: Set[String]): Unit = {
+        values.get(player.toLowerCase) match {
+          case Some((n, Some(existing))) =>
+            values.put(player.toLowerCase, (n, Some(existing ++ fns)))
+            save()
+          case Some((_, None)) => // already wildcard, nothing to do
+          case None => // not whitelisted
+        }
+      }
+
+      /** Revokes specific functions from a whitelisted player. Converts wildcard to explicit set minus the denied fns.
+        * Since the full function set is not enumerable, wildcard revocation is a no-op with a warning logged. */
+      def deny(player: String, fns: Set[String]): Boolean = {
+        values.get(player.toLowerCase) match {
+          case Some((n, Some(existing))) =>
+            values.put(player.toLowerCase, (n, Some(existing -- fns)))
+            save()
+            true
+          case Some((_, None)) =>
+            // Cannot revoke specific functions from a wildcard grant without knowing the full set.
+            false
+          case None => false
         }
       }
 
@@ -766,17 +823,28 @@ object Settings {
       }
 
       def invalidate(player: String): Unit = {
-        if (values.contains(player.toLowerCase)) {
-          values.put(player.toLowerCase, generateNonce())
-          save()
+        values.get(player.toLowerCase) match {
+          case Some((_, fns)) =>
+            values.put(player.toLowerCase, (generateNonce(), fns))
+            save()
+          case None => // not whitelisted
         }
       }
 
-      def checkAccess(ctxOpt: Option[DebugCard.AccessContext]): Option[String] = ctxOpt match {
+      /** Returns the allowed function set for a player (Some(None) = wildcard), or None if not whitelisted. */
+      def allowedFunctions(player: String): Option[Option[Set[String]]] =
+        values.get(player.toLowerCase).map(_._2)
+
+      override def checkAccess(ctxOpt: Option[DebugCard.AccessContext], fn: String): Option[String] = ctxOpt match {
         case Some(ctx) => values.get(ctx.player.toLowerCase) match {
-          case Some(x) =>
-            if (x == ctx.nonce) None
-            else Some("debug card is invalidated, please re-bind it to yourself")
+          case Some((storedNonce, allowedFns)) =>
+            if (storedNonce != ctx.nonce)
+              Some("debug card is invalidated, please re-bind it to yourself")
+            else allowedFns match {
+              case None => None  // wildcard: all functions permitted
+              case Some(fns) if fns.contains(fn) => None
+              case _ => Some(s"debug card: function '$fn' is not permitted for your account")
+            }
           case None => Some("you are not whitelisted to use debug card")
         }
 

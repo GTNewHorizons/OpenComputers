@@ -86,57 +86,57 @@ class DebugCard(host: EnvironmentHost) extends prefab.ManagedEnvironment with De
 
   @Callback(doc = """function(value:number):number -- Changes the component network's energy buffer by the specified delta.""")
   def changeBuffer(context: Context, args: Arguments): Array[AnyRef] = {
-    checkAccess()
+    checkAccess("changeBuffer")
     result(node.changeBuffer(args.checkDouble(0)))
   }
 
   @Callback(doc = """function():number -- Get the container's X position in the world.""")
   def getX(context: Context, args: Arguments): Array[AnyRef] = {
-    checkAccess()
+    checkAccess("getPosition")
     result(host.xPosition)
   }
 
   @Callback(doc = """function():number -- Get the container's Y position in the world.""")
   def getY(context: Context, args: Arguments): Array[AnyRef] = {
-    checkAccess()
+    checkAccess("getPosition")
     result(host.yPosition)
   }
 
   @Callback(doc = """function():number -- Get the container's Z position in the world.""")
   def getZ(context: Context, args: Arguments): Array[AnyRef] = {
-    checkAccess()
+    checkAccess("getPosition")
     result(host.zPosition)
   }
 
   @Callback(doc = """function([id:number]):userdata -- Get the world object for the specified dimension ID, or the container's.""")
   def getWorld(context: Context, args: Arguments): Array[AnyRef] = {
-    checkAccess()
+    checkAccess("getWorld")
     if (args.count() > 0) result(new DebugCard.WorldValue(DimensionManager.getWorld(args.checkInteger(0))))
     else result(new DebugCard.WorldValue(host.world))
   }
 
   @Callback(doc = """function():table -- Get a list of all world IDs, loaded and unloaded.""")
   def getWorlds(context: Context, args: Arguments): Array[AnyRef] = {
-    checkAccess()
+    checkAccess("getWorlds")
     result(DimensionManager.getStaticDimensionIDs)
   }
 
   @Callback(doc = """function(name:string):userdata -- Get the entity of a player.""")
   def getPlayer(context: Context, args: Arguments): Array[AnyRef] = {
-    checkAccess()
+    checkAccess("getPlayer")
     result(new DebugCard.PlayerValue(args.checkString(0)))
   }
 
   @Callback(doc = """function():table -- Get a list of currently logged-in players.""")
   def getPlayers(context: Context, args: Arguments): Array[AnyRef] = {
-    checkAccess()
+    checkAccess("getPlayers")
     result(MinecraftServer.getServer.getAllUsernames)
   }
 
 
   @Callback(doc = "function(x: number, y: number, z: number[, worldId: number]):boolean, string, table -- returns contents at the location in world by id (default host world)")
   def scanContentsAt(context: Context, args: Arguments): Array[AnyRef] = {
-    checkAccess()
+    checkAccess("scanContentsAt")
     val x = args.checkInteger(0)
     val y = args.checkInteger(1)
     val z = args.checkInteger(2)
@@ -179,14 +179,14 @@ class DebugCard(host: EnvironmentHost) extends prefab.ManagedEnvironment with De
 
   @Callback(doc = """function(name:string):boolean -- Get whether a mod or API is loaded.""")
   def isModLoaded(context: Context, args: Arguments): Array[AnyRef] = {
-    checkAccess()
+    checkAccess("isModLoaded")
     val name = args.checkString(0)
     result(Loader.isModLoaded(name) || ModAPIManager.INSTANCE.hasAPI(name))
   }
 
   @Callback(doc = """function(command:string):number -- Runs an arbitrary command using a fake player.""")
   def runCommand(context: Context, args: Arguments): Array[AnyRef] = {
-    checkAccess()
+    checkAccess("runCommand")
     val commands =
       if (args.isTable(0)) collectionAsScalaIterable(args.checkTable(0).values())
       else Iterable(args.checkString(0))
@@ -203,7 +203,7 @@ class DebugCard(host: EnvironmentHost) extends prefab.ManagedEnvironment with De
 
   @Callback(doc = """function(x:number, y:number, z:number):boolean -- Add a component block at the specified coordinates to the computer network.""")
   def connectToBlock(context: Context, args: Arguments): Array[AnyRef] = {
-    checkAccess()
+    checkAccess("connectToBlock")
     val x = args.checkInteger(0)
     val y = args.checkInteger(1)
     val z = args.checkInteger(2)
@@ -231,7 +231,7 @@ class DebugCard(host: EnvironmentHost) extends prefab.ManagedEnvironment with De
 
   @Callback(doc = """function():userdata -- Test method for user-data and general value conversion.""")
   def test(context: Context, args: Arguments): Array[AnyRef] = {
-    checkAccess()
+    checkAccess("test")
 
     val v1 = mutable.Map("a" -> true, "b" -> "test")
     val v2 = Map(10 -> "zxc", false -> v1)
@@ -244,7 +244,7 @@ class DebugCard(host: EnvironmentHost) extends prefab.ManagedEnvironment with De
 
   @Callback(doc = """function(player:string, text:string) -- Sends text to the specified player's clipboard if possible.""")
   def sendToClipboard(context: Context, args: Arguments): Array[AnyRef] = {
-    checkAccess()
+    checkAccess("sendToClipboard")
     Option(MinecraftServer.getServer.getConfigurationManager.func_152612_a(args.checkString(0))) match {
       case Some(player) =>
         PacketSender.sendClipboard(player, args.checkString(1))
@@ -256,7 +256,7 @@ class DebugCard(host: EnvironmentHost) extends prefab.ManagedEnvironment with De
 
   @Callback(doc = """function(address:string, data...) -- Sends data to the debug card with the specified address.""")
   def sendToDebugCard(context: Context, args: Arguments): Array[AnyRef] = {
-    checkAccess()
+    checkAccess("sendToDebugCard")
     val destination = args.checkString(0)
     DebugNetwork.getEndpoint(destination).filter(_ != this).foreach{endpoint =>
       val packet = Network.newPacket(node.address, destination, 0, args.drop(1).toArray)
@@ -327,8 +327,8 @@ class DebugCard(host: EnvironmentHost) extends prefab.ManagedEnvironment with De
 }
 
 object DebugCard {
-  def checkAccess()(implicit ctx: Option[AccessContext]) =
-    for (msg <- Settings.get.debugCardAccess.checkAccess(ctx))
+  def checkAccess(fn: String)(implicit ctx: Option[AccessContext]) =
+    for (msg <- Settings.get.debugCardAccess.checkAccess(ctx, fn))
       throw new Exception(msg)
 
   object AccessContext {
@@ -360,8 +360,8 @@ object DebugCard {
 
     // ----------------------------------------------------------------------- //
 
-    def withPlayer(f: (EntityPlayerMP) => Array[AnyRef]) = {
-      checkAccess()
+    private def withPlayer(fn: String)(f: (EntityPlayerMP) => Array[AnyRef]) = {
+      checkAccess(fn)
       MinecraftServer.getServer.getConfigurationManager.func_152612_a(name) match {
         case player: EntityPlayerMP => f(player)
         case _ => result(Unit, "player is offline")
@@ -369,17 +369,16 @@ object DebugCard {
     }
 
     @Callback(doc = """function():userdata -- Get the player's world object.""")
-    def getWorld(context: Context, args: Arguments): Array[AnyRef] = {
-      withPlayer(player => result(new DebugCard.WorldValue(player.getEntityWorld)))
-    }
+    def getWorld(context: Context, args: Arguments): Array[AnyRef] =
+      withPlayer("player.getWorld")(player => result(new DebugCard.WorldValue(player.getEntityWorld)))
 
     @Callback(doc = """function():string -- Get the player's game type.""")
     def getGameType(context: Context, args: Arguments): Array[AnyRef] =
-      withPlayer(player => result(player.theItemInWorldManager.getGameType.getName))
+      withPlayer("player.getGameType")(player => result(player.theItemInWorldManager.getGameType.getName))
 
     @Callback(doc = """function(gametype:string) -- Set the player's game type (survival, creative, adventure).""")
     def setGameType(context: Context, args: Arguments): Array[AnyRef] =
-      withPlayer(player => {
+      withPlayer("player.setGameType")(player => {
         val gametype = args.checkString(0)
         player.setGameType(GameType.values.find(_.getName == gametype).getOrElse(GameType.SURVIVAL))
         null
@@ -387,26 +386,26 @@ object DebugCard {
 
     @Callback(doc = """function():number, number, number -- Get the player's position.""")
     def getPosition(context: Context, args: Arguments): Array[AnyRef] =
-      withPlayer(player => result(player.posX, player.posY, player.posZ))
+      withPlayer("player.getPosition")(player => result(player.posX, player.posY, player.posZ))
 
     @Callback(doc = """function(x:number, y:number, z:number) -- Set the player's position.""")
     def setPosition(context: Context, args: Arguments): Array[AnyRef] =
-      withPlayer(player => {
+      withPlayer("player.setPosition")(player => {
         player.setPositionAndUpdate(args.checkDouble(0), args.checkDouble(1), args.checkDouble(2))
         null
       })
 
     @Callback(doc = """function():number -- Get the player's health.""")
     def getHealth(context: Context, args: Arguments): Array[AnyRef] =
-      withPlayer(player => result(player.getHealth))
+      withPlayer("player.getHealth")(player => result(player.getHealth))
 
     @Callback(doc = """function():number -- Get the player's max health.""")
     def getMaxHealth(context: Context, args: Arguments): Array[AnyRef] =
-      withPlayer(player => result(player.getMaxHealth))
+      withPlayer("player.getMaxHealth")(player => result(player.getMaxHealth))
 
     @Callback(doc = """function(health:number) -- Set the player's health.""")
     def setHealth(context: Context, args: Arguments): Array[AnyRef] =
-      withPlayer(player => {
+      withPlayer("player.setHealth")(player => {
         player.setHealth(args.checkDouble(0).toFloat)
         null
       })
@@ -433,77 +432,77 @@ object DebugCard {
 
     @Callback(doc = """function():number -- Gets the numeric id of the current dimension.""")
     def getDimensionId(context: Context, args: Arguments): Array[AnyRef] = {
-      checkAccess()
+      checkAccess("world.getDimension")
       result(world.provider.dimensionId)
     }
 
     @Callback(doc = """function():string -- Gets the name of the current dimension.""")
     def getDimensionName(context: Context, args: Arguments): Array[AnyRef] = {
-      checkAccess()
+      checkAccess("world.getDimension")
       result(world.provider.getDimensionName)
     }
 
     @Callback(doc = """function():number -- Gets the seed of the world.""")
     def getSeed(context: Context, args: Arguments): Array[AnyRef] = {
-      checkAccess()
+      checkAccess("world.getSeed")
       result(world.getSeed)
     }
 
     @Callback(doc = """function():boolean -- Returns whether it is currently raining.""")
     def isRaining(context: Context, args: Arguments): Array[AnyRef] = {
-      checkAccess()
+      checkAccess("world.getWeather")
       result(world.isRaining)
     }
 
     @Callback(doc = """function(value:boolean) -- Sets whether it is currently raining.""")
     def setRaining(context: Context, args: Arguments): Array[AnyRef] = {
-      checkAccess()
+      checkAccess("world.setWeather")
       world.getWorldInfo.setRaining(args.checkBoolean(0))
       null
     }
 
     @Callback(doc = """function():boolean -- Returns whether it is currently thundering.""")
     def isThundering(context: Context, args: Arguments): Array[AnyRef] = {
-      checkAccess()
+      checkAccess("world.getWeather")
       result(world.isThundering)
     }
 
     @Callback(doc = """function(value:boolean) -- Sets whether it is currently thundering.""")
     def setThundering(context: Context, args: Arguments): Array[AnyRef] = {
-      checkAccess()
+      checkAccess("world.setWeather")
       world.getWorldInfo.setThundering(args.checkBoolean(0))
       null
     }
 
     @Callback(doc = """function():number -- Get the current world time.""")
     def getTime(context: Context, args: Arguments): Array[AnyRef] = {
-      checkAccess()
+      checkAccess("world.getTime")
       result(world.getWorldTime)
     }
 
     @Callback(doc = """function(value:number) -- Set the current world time.""")
     def setTime(context: Context, args: Arguments): Array[AnyRef] = {
-      checkAccess()
+      checkAccess("world.setTime")
       world.setWorldTime(args.checkDouble(0).toLong)
       null
     }
 
     @Callback(doc = """function():number, number, number -- Get the current spawn point coordinates.""")
     def getSpawnPoint(context: Context, args: Arguments): Array[AnyRef] = {
-      checkAccess()
+      checkAccess("world.getSpawnPoint")
       result(world.getWorldInfo.getSpawnX, world.getWorldInfo.getSpawnY, world.getWorldInfo.getSpawnZ)
     }
 
     @Callback(doc = """function(x:number, y:number, z:number) -- Set the spawn point coordinates.""")
     def setSpawnPoint(context: Context, args: Arguments): Array[AnyRef] = {
-      checkAccess()
+      checkAccess("world.setSpawnPoint")
       world.getWorldInfo.setSpawnPosition(args.checkInteger(0), args.checkInteger(1), args.checkInteger(2))
       null
     }
 
     @Callback(doc = """function(x:number, y:number, z:number, sound:string, range:number) -- Play a sound at the specified coordinates.""")
     def playSoundAt(context: Context, args: Arguments): Array[AnyRef] = {
-      checkAccess()
+      checkAccess("world.playSoundAt")
       val (x, y, z) = (args.checkInteger(0), args.checkInteger(1), args.checkInteger(2))
       val sound = args.checkString(3)
       val range = args.checkInteger(4)
@@ -515,25 +514,25 @@ object DebugCard {
 
     @Callback(doc = """function(x:number, y:number, z:number):number -- Get the ID of the block at the specified coordinates.""")
     def getBlockId(context: Context, args: Arguments): Array[AnyRef] = {
-      checkAccess()
+      checkAccess("world.getBlock")
       result(Block.getIdFromBlock(world.getBlock(args.checkInteger(0), args.checkInteger(1), args.checkInteger(2))))
     }
 
     @Callback(doc = """function(x:number, y:number, z:number):number -- Get the metadata of the block at the specified coordinates.""")
     def getMetadata(context: Context, args: Arguments): Array[AnyRef] = {
-      checkAccess()
+      checkAccess("world.getBlock")
       result(world.getBlockMetadata(args.checkInteger(0), args.checkInteger(1), args.checkInteger(2)))
     }
 
     @Callback(doc = """function(x:number, y:number, z:number):number -- Check whether the block at the specified coordinates is loaded.""")
     def isLoaded(context: Context, args: Arguments): Array[AnyRef] = {
-      checkAccess()
+      checkAccess("world.getBlock")
       result(world.blockExists(args.checkInteger(0), args.checkInteger(1), args.checkInteger(2)))
     }
 
     @Callback(doc = """function(x:number, y:number, z:number):number -- Check whether the block at the specified coordinates has a tile entity.""")
     def hasTileEntity(context: Context, args: Arguments): Array[AnyRef] = {
-      checkAccess()
+      checkAccess("world.getBlock")
       val (x, y, z) = (args.checkInteger(0), args.checkInteger(1), args.checkInteger(2))
       val block = world.getBlock(x, y, z)
       result(block != null && block.hasTileEntity(world.getBlockMetadata(x, y, z)))
@@ -541,7 +540,7 @@ object DebugCard {
 
     @Callback(doc = """function(x:number, y:number, z:number):table -- Get the NBT of the block at the specified coordinates.""")
     def getTileNBT(context: Context, args: Arguments): Array[AnyRef] = {
-      checkAccess()
+      checkAccess("world.getTileNBT")
       val (x, y, z) = (args.checkInteger(0), args.checkInteger(1), args.checkInteger(2))
       world.getTileEntity(x, y, z) match {
         case tileEntity: TileEntity => result(toNbt(tileEntity.writeToNBT _).toTypedMap)
@@ -551,7 +550,7 @@ object DebugCard {
 
     @Callback(doc = """function(x:number, y:number, z:number, nbt:table):boolean -- Set the NBT of the block at the specified coordinates.""")
     def setTileNBT(context: Context, args: Arguments): Array[AnyRef] = {
-      checkAccess()
+      checkAccess("world.setTileNBT")
       val (x, y, z) = (args.checkInteger(0), args.checkInteger(1), args.checkInteger(2))
       world.getTileEntity(x, y, z) match {
         case tileEntity: TileEntity =>
@@ -569,25 +568,25 @@ object DebugCard {
 
     @Callback(doc = """function(x:number, y:number, z:number):number -- Get the light opacity of the block at the specified coordinates.""")
     def getLightOpacity(context: Context, args: Arguments): Array[AnyRef] = {
-      checkAccess()
+      checkAccess("world.getBlock")
       result(world.getBlockLightOpacity(args.checkInteger(0), args.checkInteger(1), args.checkInteger(2)))
     }
 
     @Callback(doc = """function(x:number, y:number, z:number):number -- Get the light value (emission) of the block at the specified coordinates.""")
     def getLightValue(context: Context, args: Arguments): Array[AnyRef] = {
-      checkAccess()
+      checkAccess("world.getBlock")
       result(world.getBlockLightValue(args.checkInteger(0), args.checkInteger(1), args.checkInteger(2)))
     }
 
     @Callback(doc = """function(x:number, y:number, z:number):number -- Get whether the block at the specified coordinates is directly under the sky.""")
     def canSeeSky(context: Context, args: Arguments): Array[AnyRef] = {
-      checkAccess()
+      checkAccess("world.getBlock")
       result(world.canBlockSeeTheSky(args.checkInteger(0), args.checkInteger(1), args.checkInteger(2)))
     }
 
     @Callback(doc = """function(x:number, y:number, z:number, id:number or string, meta:number):number -- Set the block at the specified coordinates.""")
     def setBlock(context: Context, args: Arguments): Array[AnyRef] = {
-      checkAccess()
+      checkAccess("world.setBlock")
       val block = if (args.isInteger(3)) Block.getBlockById(args.checkInteger(3)) else Block.getBlockFromName(args.checkString(3))
       val metadata = args.checkInteger(4)
       result(world.setBlock(args.checkInteger(0), args.checkInteger(1), args.checkInteger(2), block, metadata, 3))
@@ -595,7 +594,7 @@ object DebugCard {
 
     @Callback(doc = """function(x1:number, y1:number, z1:number, x2:number, y2:number, z2:number, id:number or string, meta:number):number -- Set all blocks in the area defined by the two corner points (x1, y1, z1) and (x2, y2, z2).""")
     def setBlocks(context: Context, args: Arguments): Array[AnyRef] = {
-      checkAccess()
+      checkAccess("world.setBlocks")
       val (xMin, yMin, zMin) = (args.checkInteger(0), args.checkInteger(1), args.checkInteger(2))
       val (xMax, yMax, zMax) = (args.checkInteger(3), args.checkInteger(4), args.checkInteger(5))
       val block = if (args.isInteger(6)) Block.getBlockById(args.checkInteger(6)) else Block.getBlockFromName(args.checkString(6))
@@ -614,7 +613,7 @@ object DebugCard {
 
     @Callback(doc = """function(id:string, count:number, damage:number, nbt:string, x:number, y:number, z:number, side:number):boolean - Insert an item stack into the inventory at the specified location. NBT tag is expected in JSON format.""")
     def insertItem(context: Context, args: Arguments): Array[AnyRef] = {
-      checkAccess()
+      checkAccess("world.insertItem")
       val item = Item.itemRegistry.getObject(args.checkString(0)).asInstanceOf[Item]
       if (item == null) {
         throw new IllegalArgumentException("invalid item id")
@@ -651,7 +650,7 @@ object DebugCard {
 
     @Callback(doc = """function(x:number, y:number, z:number, slot:number[, count:number]):number - Reduce the size of an item stack in the inventory at the specified location.""")
     def removeItem(context: Context, args: Arguments): Array[AnyRef] = {
-      checkAccess()
+      checkAccess("world.removeItem")
       val position = BlockPosition(args.checkDouble(0), args.checkDouble(1), args.checkDouble(2), world)
       InventoryUtils.inventoryAt(position) match {
         case Some(inventory) =>
@@ -666,7 +665,7 @@ object DebugCard {
 
     @Callback(doc = """function(id:string, amount:number, x:number, y:number, z:number, side:number):boolean - Insert some fluid into the tank at the specified location.""")
     def insertFluid(context: Context, args: Arguments): Array[AnyRef] = {
-      checkAccess()
+      checkAccess("world.insertFluid")
       val fluid = FluidRegistry.getFluid(args.checkString(0))
       if (fluid == null) {
         throw new IllegalArgumentException("invalid fluid id")
@@ -682,7 +681,7 @@ object DebugCard {
 
     @Callback(doc = """function(amount:number, x:number, y:number, z:number, side:number):boolean - Remove some fluid from a tank at the specified location.""")
     def removeFluid(context: Context, args: Arguments): Array[AnyRef] = {
-      checkAccess()
+      checkAccess("world.removeFluid")
       val amount = args.checkInteger(0)
       val position = BlockPosition(args.checkDouble(1), args.checkDouble(2), args.checkDouble(3), world)
       val side = args.checkSideAny(4)
