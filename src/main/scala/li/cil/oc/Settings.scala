@@ -11,6 +11,7 @@ import li.cil.oc.common.Tier
 import li.cil.oc.server.component.DebugCard
 import li.cil.oc.server.component.DebugCard.AccessContext
 import li.cil.oc.util.{InetAddressRange, InternetFilteringRule}
+import net.minecraft.server.MinecraftServer
 import org.apache.commons.codec.binary.Hex
 import org.apache.commons.lang3.StringEscapeUtils
 
@@ -458,6 +459,7 @@ class Settings(val config: Config) {
   val debugCardAccess = config.getValue("debug.debugCardAccess").unwrapped() match {
     case "true" | "allow" | java.lang.Boolean.TRUE => DebugCardAccess.Allowed
     case "false" | "deny" | java.lang.Boolean.FALSE => DebugCardAccess.Forbidden
+    case "op" => DebugCardAccess.OpOnly
     case "whitelist" =>
       val wlFile = new File(Loader.instance.getConfigDir + File.separator + "opencomputers" + File.separator +
                               "debug_card_whitelist.txt")
@@ -465,7 +467,7 @@ class Settings(val config: Config) {
       DebugCardAccess.Whitelist(wlFile)
 
     case _ => // Fallback to most secure configuration
-      OpenComputers.log.warn("Unknown debug card access type, falling back to `deny`. Allowed values: `allow`, `deny`, `whitelist`.")
+      OpenComputers.log.warn("Unknown debug card access type, falling back to `deny`. Allowed values: `allow`, `deny`, `whitelist`, `op`.")
       DebugCardAccess.Forbidden
   }
 
@@ -781,6 +783,24 @@ object Settings {
         }
 
         case None => Some("debug card is whitelisted, Shift+Click with it to bind card to yourself")
+      }
+    }
+
+    case object OpOnly extends DebugCardAccess {
+      override def checkAccess(ctxOpt: Option[AccessContext]): Option[String] = ctxOpt match {
+        case Some(ctx) =>
+          // see Machine#canInteract
+          val server = MinecraftServer.getServer
+          if (server.isSinglePlayer) None
+          else {
+            val config = server.getConfigurationManager
+            val entity = config.func_152612_a(ctx.player)
+            if (entity != null && config.func_152596_g(entity.getGameProfile)) None
+            else Some("you are not an operator")
+          }
+        case None =>
+          if (MinecraftServer.getServer.isSinglePlayer) None
+          else Some("debug card is restricted to operators, Shift+Click with it to bind card to yourself if you are")
       }
     }
   }
