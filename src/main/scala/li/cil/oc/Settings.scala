@@ -694,24 +694,34 @@ object Settings {
   }
 
   sealed trait DebugCardAccess {
-    def checkAccess(ctx: Option[DebugCard.AccessContext]): Option[String]
+    /** Returns Some(errorMessage) if the call should be denied, None if permitted.
+      * @param ctx  The access context stored in the card (player name + nonce).
+      * @param fn   Namespaced function name being invoked, e.g. "runCommand" or "world.setBlock".
+      */
+    def checkAccess(ctx: Option[DebugCard.AccessContext], fn: String): Option[String]
   }
 
   object DebugCardAccess {
     case object Forbidden extends DebugCardAccess {
-      override def checkAccess(ctx: Option[AccessContext]): Option[String] =
+      override def checkAccess(ctx: Option[AccessContext], fn: String): Option[String] =
         Some("debug card is disabled")
     }
 
     case object Allowed extends DebugCardAccess {
-      override def checkAccess(ctx: Option[AccessContext]): Option[String] = None
+      override def checkAccess(ctx: Option[AccessContext], fn: String): Option[String] = None
     }
 
     case class Whitelist(noncesFile: File) extends DebugCardAccess {
-      private val values = mutable.Map.empty[String, String]
+      // Primary key: UUID (lowercase). Value: (displayName, nonce, Option[Set[String]]).
+      // None for the function set means wildcard (*).
+      private val values = mutable.Map.empty[String, (String, String, Option[Set[String]])]
+      // Secondary index for admin commands and legacy-card migration: displayName.toLowerCase → UUID.
+      private val nameIndex = mutable.Map.empty[String, String]
       private val rng = SecureRandom.getInstance("SHA1PRNG")
 
       load()
+
+      private val uuidPattern = """^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$""".r
 
       def save(): Unit = {
         val noncesDir = noncesFile.getParentFile
@@ -720,25 +730,50 @@ object Settings {
 
         val writer = new PrintWriter(new OutputStreamWriter(new FileOutputStream(noncesFile), StandardCharsets.UTF_8), false)
         try {
-          for ((p, n) <- values)
-            writer.println(s"$p $n")
+          writer.println("# Fields: uuid  displayname  nonce  allowed-functions (* or comma-separated)")
+          for ((uuid, (displayName, n, fns)) <- values) {
+            val fnCol = fns match {
+              case None      => "*"
+              case Some(set) => set.mkString(",")
+            }
+            writer.println(s"$uuid $displayName $n $fnCol")
+          }
         } finally writer.close()
       }
 
       def load(): Unit = {
         values.clear()
+        nameIndex.clear()
 
-        if (!noncesFile.exists())
-          return
+        if (!noncesFile.exists()) return
 
         val reader = new BufferedReader(new InputStreamReader(new FileInputStream(noncesFile), StandardCharsets.UTF_8))
-        Iterator.continually(reader.readLine())
-          .takeWhile(_ != null)
-          .map(_.split(" ", 2))
-          .flatMap {
-            case Array(p, n) => Seq(p -> n)
-            case _ => Nil
-          }.foreach(values += _)
+        try {
+          Iterator.continually(reader.readLine())
+            .takeWhile(_ != null)
+            .map(_.trim)
+            .filterNot(line => line.isEmpty || line.startsWith("#"))
+            .map(_.split(" ", 4))
+            .foreach {
+              case Array(uuid, displayName, n, fnsCol) if uuidPattern.findFirstIn(uuid.toLowerCase).isDefined =>
+                val fns: Option[Set[String]] =
+                  if (fnsCol.trim == "*") None
+                  else Some(fnsCol.split(",").map(_.trim).filter(_.nonEmpty).toSet)
+                val uuidKey = uuid.toLowerCase
+                values.put(uuidKey, (displayName, n, fns))
+                nameIndex.put(displayName.toLowerCase, uuidKey)
+              case Array(uuid, displayName, n) if uuidPattern.findFirstIn(uuid.toLowerCase).isDefined =>
+                // Three-column UUID format without fn column — treat as wildcard
+                val uuidKey = uuid.toLowerCase
+                values.put(uuidKey, (displayName, n, None))
+                nameIndex.put(displayName.toLowerCase, uuidKey)
+              case cols =>
+                // Old name-based format or malformed — skip and warn.
+                OpenComputers.log.warn(s"[DebugCard] Skipping whitelist entry '${cols.mkString(" ")}': " +
+                  "does not start with a UUID. Remove this entry and re-add the player with " +
+                  "/oc_debugWhitelist add <player> while they are online.")
+            }
+        } finally reader.close()
       }
 
       private def generateNonce(): String = {
@@ -747,43 +782,130 @@ object Settings {
         new String(Hex.encodeHex(buf, true))
       }
 
-      def nonce(player: String) = values.get(player.toLowerCase)
+      /** Returns the nonce for a UUID (used at card bind time). */
+      def nonce(uuid: String): Option[String] = values.get(uuid.toLowerCase).map(_._2)
 
-      def isWhitelisted(player: String) = values.contains(player.toLowerCase)
+      /** Resolves a display name to a UUID via the secondary index (for admin commands). */
+      def uuidForName(name: String): Option[String] = nameIndex.get(name.toLowerCase)
 
-      def whitelist: collection.Set[String] = values.keySet
+      def isWhitelisted(uuid: String): Boolean = values.contains(uuid.toLowerCase)
+      def isWhitelistedByName(name: String): Boolean = nameIndex.contains(name.toLowerCase)
 
-      def add(player: String): Unit = {
-        if (!values.contains(player.toLowerCase)) {
-          values.put(player.toLowerCase, generateNonce())
+      /** All whitelisted entries as (uuid, displayName) pairs. */
+      def whitelist: Iterable[(String, String)] = values.map { case (uuid, (name, _, _)) => (uuid, name) }
+
+      /** Adds a player with wildcard (*) function access. */
+      def add(uuid: String, displayName: String): Unit = {
+        val key = uuid.toLowerCase
+        if (!values.contains(key)) {
+          values.put(key, (displayName, generateNonce(), None))
+          nameIndex.put(displayName.toLowerCase, key)
           save()
         }
       }
 
-      def remove(player: String): Unit = {
-        if (values.remove(player.toLowerCase).isDefined)
-          save()
-      }
-
-      def invalidate(player: String): Unit = {
-        if (values.contains(player.toLowerCase)) {
-          values.put(player.toLowerCase, generateNonce())
+      /** Adds a player with an explicit set of permitted function names. */
+      def add(uuid: String, displayName: String, allowedFunctions: Set[String]): Unit = {
+        val key = uuid.toLowerCase
+        if (!values.contains(key)) {
+          values.put(key, (displayName, generateNonce(), Some(allowedFunctions)))
+          nameIndex.put(displayName.toLowerCase, key)
           save()
         }
       }
 
-      def checkAccess(ctxOpt: Option[DebugCard.AccessContext]): Option[String] = ctxOpt match {
-        case Some(ctx) => values.get(ctx.player.toLowerCase) match {
-          case Some(x) =>
-            if (x == ctx.nonce) None
-            else Some("debug card is invalidated, please re-bind it to yourself")
-          case None => Some("you are not whitelisted to use debug card")
+      /** Grants additional functions to a whitelisted player (by UUID). No-op if wildcard or unknown. */
+      def allow(uuid: String, fns: Set[String]): Unit = {
+        values.get(uuid.toLowerCase) match {
+          case Some((name, n, Some(existing))) =>
+            values.put(uuid.toLowerCase, (name, n, Some(existing ++ fns)))
+            save()
+          case Some((_, _, None)) => // already wildcard
+          case None               =>
         }
+      }
+
+      /** Revokes specific functions. Returns false if the player has wildcard access (cannot enumerate). */
+      def deny(uuid: String, fns: Set[String]): Boolean = {
+        values.get(uuid.toLowerCase) match {
+          case Some((name, n, Some(existing))) =>
+            values.put(uuid.toLowerCase, (name, n, Some(existing -- fns)))
+            save()
+            true
+          case Some((_, _, None)) => false
+          case None               => false
+        }
+      }
+
+      def remove(uuid: String): Unit = {
+        values.remove(uuid.toLowerCase).foreach { case (name, _, _) =>
+          nameIndex.remove(name.toLowerCase)
+          save()
+        }
+      }
+
+      def invalidate(uuid: String): Unit = {
+        values.get(uuid.toLowerCase) match {
+          case Some((name, _, fns)) =>
+            values.put(uuid.toLowerCase, (name, generateNonce(), fns))
+            save()
+          case None =>
+        }
+      }
+
+      /** Returns the allowed function set for a UUID (Some(None) = wildcard), or None if not whitelisted. */
+      def allowedFunctions(uuid: String): Option[Option[Set[String]]] =
+        values.get(uuid.toLowerCase).map(_._3)
+
+      override def checkAccess(ctxOpt: Option[DebugCard.AccessContext], fn: String): Option[String] = ctxOpt match {
+        case Some(ctx) if ctx.uuid.nonEmpty =>
+          // Normal UUID-based lookup.
+          values.get(ctx.uuid.toLowerCase) match {
+            case Some((_, storedNonce, allowedFns)) =>
+              if (storedNonce != ctx.nonce)
+                Some("debug card is invalidated, please re-bind it to yourself")
+              else allowedFns match {
+                case None                           => None  // wildcard
+                case Some(fns) if fns.contains(fn) => None
+                case _                              => Some(s"debug card: function '$fn' is not permitted for your account")
+              }
+            case None => Some("you are not whitelisted to use debug card")
+          }
+
+        case Some(ctx) =>
+          // Legacy name-based card (uuid is empty). Attempt migration via nameIndex at use time.
+          nameIndex.get(ctx.player.toLowerCase) match {
+            case Some(resolvedUuid) =>
+              values.get(resolvedUuid) match {
+                case Some((_, storedNonce, allowedFns)) =>
+                  OpenComputers.log.warn(
+                    s"[DebugCard] Player '${ctx.player}' ($resolvedUuid) is using a legacy name-based card. " +
+                    "Shift+Right-Click the card to re-bind it with secure UUID authentication.")
+                  // Nonce on legacy card will not match the UUID-keyed nonce after whitelist migration.
+                  if (storedNonce != ctx.nonce)
+                    Some("debug card is outdated: please Shift+Right-Click to re-bind with UUID authentication")
+                  else allowedFns match {
+                    case None                           => None
+                    case Some(fns) if fns.contains(fn) => None
+                    case _                              => Some(s"debug card: function '$fn' is not permitted for your account")
+                  }
+                case None =>
+                  OpenComputers.log.warn(
+                    s"[DebugCard] Legacy card migration failed for '${ctx.player}': resolved UUID $resolvedUuid but no whitelist entry found.")
+                  Some("you are not whitelisted to use debug card")
+              }
+            case None =>
+              OpenComputers.log.warn(
+                s"[DebugCard] Legacy card migration failed for '${ctx.player}': name not found in whitelist. " +
+                "Re-add the player via /oc_debugWhitelist add while they are online, then have them re-bind the card.")
+              Some("debug card: legacy format — ask an admin to re-add you, then Shift+Right-Click to re-bind")
+          }
 
         case None => Some("debug card is whitelisted, Shift+Click with it to bind card to yourself")
       }
     }
   }
+
 
   def getIntList(config: Config, path: String, default: Option[java.util.List[Integer]] = None): java.util.List[Integer] = {
     if (config.hasPath(path))
