@@ -94,19 +94,27 @@ object Sound {
   @SubscribeEvent
   def onTick(e: ClientTickEvent) {
     if (e.phase == Phase.START) return
+    tickCount = tickCount + 1
     if (soundSystem != null && Minecraft.getMinecraft.theWorld != null && Settings.get.soundVolume > 0) {
-      tickCount = tickCount + 1
       if (tickCount % 10 == 0) {
         sources.synchronized {
           updateVolume()
           processQueue()
         }
       }
+    } else if (Minecraft.getMinecraft.theWorld == null && tickCount % 50 == 0) {
+      clearSounds()
     }
   }
 
   @SubscribeEvent(priority = EventPriority.LOWEST)
   def onWorldUnload(event: WorldEvent.Unload) {
+    if (event.world.isRemote) {
+      clearSounds()
+    }
+  }
+
+  private def clearSounds(): Unit = {
     sources.synchronized(try sources.foreach(_._2.stop()) catch {
       case _: Throwable => // Ignore.
     })
