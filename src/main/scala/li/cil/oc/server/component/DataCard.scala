@@ -24,7 +24,8 @@ import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network.Visibility
 import li.cil.oc.api.prefab
-import net.minecraft.nbt.NBTTagCompound
+import li.cil.oc.integration.vanilla.ConverterNBT
+import net.minecraft.nbt.{JsonToNBT, NBTTagCompound}
 import org.apache.commons.codec.binary.Base64
 import org.apache.commons.io.output.ByteArrayOutputStream
 
@@ -38,13 +39,17 @@ abstract class DataCard extends prefab.ManagedEnvironment with DeviceInfo {
 
   // ----------------------------------------------------------------------- //
 
-  protected def checkCost(context: Context, args: Arguments, baseCost: Double, byteCost: Double): Array[Byte] = {
-    val data = args.checkByteArray(0)
+  protected def checkCost(context: Context, data: Array[Byte], baseCost: Double, byteCost: Double): Array[Byte] = {
     if (data.length > Settings.get.dataCardHardLimit) throw new IllegalArgumentException("data size limit exceeded")
     val cost = baseCost + data.length * byteCost
     if (!node.tryChangeBuffer(-cost)) throw new Exception("not enough energy")
     if (data.length > Settings.get.dataCardSoftLimit) context.pause(Settings.get.dataCardTimeout)
     data
+  }
+
+  protected def checkCost(context: Context, args: Arguments, baseCost: Double, byteCost: Double): Array[Byte] = {
+    val data = args.checkByteArray(0)
+    checkCost(context, data, baseCost, byteCost)
   }
 
   protected def checkCost(baseCost: Double): Unit = {
@@ -59,6 +64,9 @@ abstract class DataCard extends prefab.ManagedEnvironment with DeviceInfo {
 
   protected def complexCost(context: Context, args: Arguments) =
     checkCost(context, args, Settings.get.dataCardComplex, Settings.get.dataCardComplexByte)
+
+  protected def complexCost(context: Context, data: Array[Byte]) =
+    checkCost(context, data, Settings.get.dataCardComplex, Settings.get.dataCardComplexByte)
 
   protected def asymmetricCost(context: Context, args: Arguments) =
     checkCost(context, args, Settings.get.dataCardAsymmetric, Settings.get.dataCardComplexByte)
@@ -135,11 +143,37 @@ object DataCard {
       val data = complexCost(context, args)
       result(Hashing.sha256().hashBytes(data).asBytes())
     }
-	
+
     @Callback(direct = true, limit = 32, doc = """function(data:string):table -- Decode gzipped binary NBT data. Return NBT data as table.""")
     def decodeNBT(context: Context, args: Arguments): Array[AnyRef] = {
       val data = complexCost(context, args)
-      result(net.minecraft.nbt.CompressedStreamTools.func_152457_a(data,net.minecraft.nbt.NBTSizeTracker.field_152451_a))
+      val nbt = net.minecraft.nbt.CompressedStreamTools.func_152457_a(data, net.minecraft.nbt.NBTSizeTracker.field_152451_a)
+      result(ConverterNBT.convertWithType(nbt))
+    }
+
+    @Callback(direct = true, limit = 32, doc = """function(nbt:table):string -- Encode a table into gzipped binary NBT data. Returns the binary data as a string.""")
+    def encodeNBT(context: Context, args: Arguments): Array[AnyRef] = ConverterNBT.parseWithType(args.checkTable(0)) match {
+      case nbt: NBTTagCompound =>
+        val data = net.minecraft.nbt.CompressedStreamTools.compress(nbt)
+        complexCost(context, data)
+        result(data)
+      case _ => result(null)
+    }
+
+    @Callback(direct = true, limit = 32, doc = """function(data:string):string -- Decodes gzipped binary NBT data into an SNBT string.""")
+    def decodeNBTStr(context: Context, args: Arguments): Array[AnyRef] = {
+      val data = complexCost(context, args)
+      val nbt = net.minecraft.nbt.CompressedStreamTools.func_152457_a(data, net.minecraft.nbt.NBTSizeTracker.field_152451_a)
+      result(nbt.toString)
+    }
+
+    @Callback(direct = true, limit = 32, doc = """function(nbt:string):string -- Encodes an SNBT string into gzipped binary NBT data.""")
+    def encodeNBTStr(context: Context, args: Arguments): Array[AnyRef] = JsonToNBT.func_150315_a(args.checkString(0)) match {
+      case nbt: NBTTagCompound =>
+        val data = net.minecraft.nbt.CompressedStreamTools.compress(nbt)
+        complexCost(context, data)
+        result(data)
+      case _ => result(null)
     }
   }
 
