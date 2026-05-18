@@ -20,9 +20,11 @@ object TextBufferRenderCache {
       for (line <- buffer.data.buffer) {
         renderer.generateChars(line)
       }
+      RenderState.checkError(getClass.getName + ".render: generateChars")
       buffer.dirty = false
     }
 
+    // Keep this uncached: display lists do not replay Tessellator vertex state reliably under Angelica.
     renderer.drawBuffer(buffer.data, buffer.viewport._1, buffer.viewport._2)
 
     RenderState.checkError(getClass.getName + ".render: leaving")
