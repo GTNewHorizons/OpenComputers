@@ -7,6 +7,7 @@ import li.cil.oc.Settings.DebugCardAccess
 import li.cil.oc.common.item.data.DebugCardData
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
+import net.minecraft.server.MinecraftServer
 import net.minecraft.world.World
 import li.cil.oc.server.command.string2text
 import li.cil.oc.server.component.{DebugCard => CDebugCard}
@@ -33,7 +34,13 @@ class DebugCard(val parent: Delegator) extends traits.Delegate {
               player.swingItem()
               return stack
           }
-
+          case DebugCardAccess.OpOnly =>
+            if (MinecraftServer.getServer.getConfigurationManager.func_152596_g(player.getGameProfile)) ""
+            else {
+              player.addChatComponentMessage("§cYou are not whitelisted to use debug card")
+              player.swingItem()
+              return stack
+            }
           case _ => ""
         }))
 
