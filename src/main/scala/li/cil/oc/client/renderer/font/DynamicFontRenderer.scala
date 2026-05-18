@@ -5,6 +5,7 @@ import li.cil.oc.client.renderer.font.DynamicFontRenderer.CharTexture
 import li.cil.oc.util.FontUtils
 import li.cil.oc.util.RenderState
 import net.minecraft.client.Minecraft
+import net.minecraft.client.renderer.Tessellator
 import net.minecraft.client.resources.IReloadableResourceManager
 import net.minecraft.client.resources.IResourceManager
 import net.minecraft.client.resources.IResourceManagerReloadListener
@@ -149,14 +150,11 @@ object DynamicFontRenderer {
 
   class CharIcon(val texture: CharTexture, val w: Int, val h: Int, val u1: Double, val v1: Double, val u2: Double, val v2: Double) {
     def draw(tx: Float, ty: Float) {
-      GL11.glTexCoord2d(u1, v2)
-      GL11.glVertex2f(tx, ty + h)
-      GL11.glTexCoord2d(u2, v2)
-      GL11.glVertex2f(tx + w, ty + h)
-      GL11.glTexCoord2d(u2, v1)
-      GL11.glVertex2f(tx + w, ty)
-      GL11.glTexCoord2d(u1, v1)
-      GL11.glVertex2f(tx, ty)
+      val t = Tessellator.instance
+      t.addVertexWithUV(tx, ty + h, 0, u1, v2)
+      t.addVertexWithUV(tx + w, ty + h, 0, u2, v2)
+      t.addVertexWithUV(tx + w, ty, 0, u2, v1)
+      t.addVertexWithUV(tx, ty, 0, u1, v1)
     }
   }
 

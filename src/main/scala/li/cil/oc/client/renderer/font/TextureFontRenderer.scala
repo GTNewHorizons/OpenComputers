@@ -2,6 +2,7 @@ package li.cil.oc.client.renderer.font
 
 import li.cil.oc.Settings
 import li.cil.oc.util.{ExtendedUnicodeHelper, PackedColor, RenderState, TextBuffer}
+import net.minecraft.client.renderer.Tessellator
 import org.lwjgl.opengl.GL11
 
 /**
@@ -36,6 +37,7 @@ abstract class TextureFontRenderer {
 
   def drawBuffer(buffer: TextBuffer, viewportWidth: Int, viewportHeight: Int) {
     val format = buffer.format
+    val t = Tessellator.instance
 
     GL11.glPushMatrix()
     GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS)
@@ -49,7 +51,7 @@ abstract class TextureFontRenderer {
 
     // Background first. We try to merge adjacent backgrounds of the same
     // color to reduce the number of quads we have to draw.
-    GL11.glBegin(GL11.GL_QUADS)
+    t.startDrawingQuads()
     for (y <- 0 until (viewportHeight min buffer.height)) {
       val color = buffer.color(y)
       var cbg = 0x000000
@@ -66,7 +68,7 @@ abstract class TextureFontRenderer {
       }
       drawQuad(cbg, x, y, width)
     }
-    GL11.glEnd()
+    t.draw()
 
     RenderState.checkError(getClass.getName + ".drawBuffer: background")
 
@@ -84,7 +86,7 @@ abstract class TextureFontRenderer {
       val ty = y * charHeight
       for (i <- 0 until textureCount) {
         bindTexture(i)
-        GL11.glBegin(GL11.GL_QUADS)
+        t.startDrawingQuads()
         var cfg = -1
         var tx = 0f
         for (n <- 0 until viewportWidth) {
@@ -93,10 +95,7 @@ abstract class TextureFontRenderer {
           // Check if color changed.
           if (col != cfg) {
             cfg = col
-            GL11.glColor3ub(
-              ((cfg & 0xFF0000) >> 16).toByte,
-              ((cfg & 0x00FF00) >> 8).toByte,
-              ((cfg & 0x0000FF) >> 0).toByte)
+            t.setColorOpaque_I(cfg)
           }
           // Don't render whitespace.
           if (ch != ' ') {
@@ -104,7 +103,7 @@ abstract class TextureFontRenderer {
           }
           tx += charWidth
         }
-        GL11.glEnd()
+        t.draw()
       }
     }
 
@@ -116,8 +115,11 @@ abstract class TextureFontRenderer {
     RenderState.checkError(getClass.getName + ".drawBuffer: leaving")
   }
 
-  def drawString(s: String, x: Int, y: Int): Unit = {
+  def drawString(s: String, x: Int, y: Int): Unit = drawString(s, x, y, 0xFFFFFF)
+
+  def drawString(s: String, x: Int, y: Int, color: Int): Unit = {
     val sLength = ExtendedUnicodeHelper.length(s)
+    val t = Tessellator.instance
 
     GL11.glPushMatrix()
     GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS)
@@ -125,10 +127,12 @@ abstract class TextureFontRenderer {
     GL11.glTranslatef(x, y, 0)
     GL11.glScalef(0.5f, 0.5f, 1)
     GL11.glDepthMask(false)
+    GL11.glEnable(GL11.GL_TEXTURE_2D)
 
     for (i <- 0 until textureCount) {
       bindTexture(i)
-      GL11.glBegin(GL11.GL_QUADS)
+      t.startDrawingQuads()
+      t.setColorOpaque_I(color)
       var tx = 0f
       var cx = 0
       for (n <- 0 until sLength) {
@@ -140,7 +144,7 @@ abstract class TextureFontRenderer {
         tx += charWidth
         cx = s.offsetByCodePoints(cx, 1)
       }
-      GL11.glEnd()
+      t.draw()
     }
 
     GL11.glPopAttrib()
@@ -160,14 +164,15 @@ abstract class TextureFontRenderer {
   protected def drawChar(tx: Float, ty: Float, char: Int): Unit
 
   private def drawQuad(color: Int, x: Int, y: Int, width: Int) = if (color != 0 && width > 0) {
+    val t = Tessellator.instance
     val x0 = x * charWidth
     val x1 = (x + width) * charWidth
     val y0 = y * charHeight
     val y1 = (y + 1) * charHeight
-    GL11.glColor3ub(((color >> 16) & 0xFF).toByte, ((color >> 8) & 0xFF).toByte, (color & 0xFF).toByte)
-    GL11.glVertex3d(x0, y1, 0)
-    GL11.glVertex3d(x1, y1, 0)
-    GL11.glVertex3d(x1, y0, 0)
-    GL11.glVertex3d(x0, y0, 0)
+    t.setColorOpaque_I(color)
+    t.addVertex(x0, y1, 0)
+    t.addVertex(x1, y1, 0)
+    t.addVertex(x1, y0, 0)
+    t.addVertex(x0, y0, 0)
   }
 }
