@@ -1,11 +1,14 @@
 package li.cil.oc.integration.thaumicenergistics
 
 import appeng.api.networking.security.IActionHost
+import appeng.api.storage.IMEMonitor
 import appeng.api.storage.data.IItemList
 import appeng.me.helpers.IGridProxyable
+import appeng.util.IterationCounter
 import li.cil.oc.api.Persistable
 import li.cil.oc.api.machine.{Arguments, Callback, Context}
 import li.cil.oc.api.network.{ManagedEnvironment, Node}
+import li.cil.oc.integration.appeng.AEStackFactory
 import li.cil.oc.integration.appeng.internal.SubscriptionBase
 import li.cil.oc.util.ResultWrapper._
 import net.minecraft.nbt.NBTTagCompound
@@ -22,14 +25,19 @@ trait NetworkControl[AETile >: Null <: TileEntity with IGridProxyable with IActi
 
   def node: Node
 
-  @Callback(doc = "function([filter: string]):table -- Get a list of the stored essentia in the network.")
+  @Callback(doc = "function([filter: string]|detail:table):table -- Get a list of the stored essentia in the network, or a single requested essentia if a descriptor table is provided.")
   def getEssentiaInNetwork(context: Context, args: Arguments): Array[AnyRef] = {
-    val monitor = tile.getProxy.getStorage.getMEMonitor(ESSENTIA_STACK_TYPE)
+    val monitor = tile.getProxy.getStorage.getMEMonitor(ESSENTIA_STACK_TYPE).asInstanceOf[IMEMonitor[AEEssentiaStack]]
     if (monitor == null) {
       result(null)
     }
+    else if (args.isTable(0)) {
+      val aeEssentiaStack = AEStackFactory.parse[AEEssentiaStack](args.checkTable(0))
+      val availableItem = monitor.getAvailableItem(aeEssentiaStack, IterationCounter.fetchNewId())
+      result(if (availableItem != null) availableItem else null)
+    }
     else {
-      val list = monitor.getStorageList.asInstanceOf[IItemList[AEEssentiaStack]].asScala
+      val list = monitor.getStorageList.asScala
       val filtered = if (args.isString(0)) {
         val filter = args.checkString(0)
         list.filter(_.getUnlocalizedName == filter)

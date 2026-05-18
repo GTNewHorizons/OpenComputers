@@ -125,23 +125,27 @@ trait NetworkControl[AETile >: Null <: TileEntity with IGridProxyable with IActi
       .toArray)
   }
 
-  @Callback(doc = "function(name:string|id:number[, damage:number[, nbt:string]]):table -- Retrieves the stored item in the network by its unlocalized name.")
+  @Callback(doc = "function(name:string|id:number[, damage:number[, nbt:string]]):table OR function(detail:table):table -- Retrieves the stored item in the network by its unlocalized name.")
   def getItemInNetwork(context: Context, args: Arguments): Array[AnyRef] = {
-    val item = if (args.isString(0)) Item.itemRegistry.getObject(args.checkString(0))
-    else Item.itemRegistry.getObjectById(args.checkInteger(0))
-    if (item == null) {
-      return result(null)
+    val aeItemStack = if (args.isTable(0)) {
+      AEStackFactory.parse[IAEItemStack](args.checkTable(0))
     }
+    else {
+      val item = if (args.isString(0)) Item.itemRegistry.getObject(args.checkString(0))
+      else Item.itemRegistry.getObjectById(args.checkInteger(0))
+      if (item == null) {
+        return result(null)
+      }
 
-    val itemStack = new ItemStack(item.asInstanceOf[Item])
-    itemStack.setItemDamage(args.optInteger(1, 0))
+      val itemStack = new ItemStack(item.asInstanceOf[Item])
+      itemStack.setItemDamage(args.optInteger(1, 0))
 
-    // The obfuscated method turns a json string into an NBTBase.
-    val nbtBase = JsonToNBT.func_150315_a(args.optString(2, "{}"))
-    itemStack.setTagCompound(nbtBase.asInstanceOf[NBTTagCompound])
-
-    val aeItemStack = AEItemStack.create(itemStack)
-    val availableItem = getAvailableItem(aeItemStack, IterationCounter.fetchNewId())
+      // The obfuscated method turns a json string into an NBTBase.
+      val nbtBase = JsonToNBT.func_150315_a(args.optString(2, "{}"))
+      itemStack.setTagCompound(nbtBase.asInstanceOf[NBTTagCompound])
+      AEItemStack.create(itemStack)
+    }
+    val availableItem = getAvailableItem(aeItemStack)
     result(if (availableItem != null) convert(availableItem, tile) else null)
   }
 
@@ -164,16 +168,17 @@ trait NetworkControl[AETile >: Null <: TileEntity with IGridProxyable with IActi
       .toArray)
   }
 
-  @Callback(doc = "function([name:string]):table -- Get a list of the stored fluids in the network.")
+  @Callback(doc = "function([name:string]):table OR function(detail:table):table -- Get a list of the stored fluids in the network.")
   def getFluidInNetwork(context: Context, args: Arguments): Array[AnyRef] = {
-    FluidRegistry.getFluid(args.checkString(0)) match {
-      case null => result(null)
-      case fluid =>
-        getAvailableFluid(AEFluidStack.create(new FluidStack(fluid, 0))) match {
-          case null => result(null)
-          case fluid => result(convert(fluid, tile))
-        }
+    val aeFluidStack = if (args.isTable(0)) {
+      AEStackFactory.parse[IAEFluidStack](args.checkTable(0))
+    } else {
+      val fluid = FluidRegistry.getFluid(args.checkString(0))
+      if (fluid == null) return null
+      AEFluidStack.create(new FluidStack(fluid, 0))
     }
+    val availableItem = getAvailableFluid(aeFluidStack)
+    result(if (availableItem != null) convert(availableItem, tile) else null)
   }
 
   @Callback(doc = "function():userdata -- Get an iterator object for the list of the items in the network. ")

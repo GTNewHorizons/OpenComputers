@@ -36,5 +36,10 @@ object MapUtils {
       case value: java.util.Map[_,_] => Some(value)
       case _ => None
     }
+
+    def getBytes(key: String): Option[Array[Byte]] = map.get(key) match {
+      case value: Array[Byte] => Some(value)
+      case _ => None
+    }
   }
 }
