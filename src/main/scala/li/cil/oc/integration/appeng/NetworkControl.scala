@@ -7,7 +7,7 @@ import appeng.api.networking.crafting.{CraftingItemList, ICraftingLink, ICraftin
 import appeng.api.networking.security.{BaseActionSource, IActionHost, MachineSource}
 import appeng.api.networking.storage.IBaseMonitor
 import appeng.api.storage.data.{IAEFluidStack, IAEItemStack, IAEStack, IItemList}
-import appeng.api.storage.{IMEMonitor, IMEMonitorHandlerReceiver}
+import appeng.api.storage.{IMEInventory, IMEMonitor, IMEMonitorHandlerReceiver}
 import appeng.api.util.AECableType
 import appeng.me.cluster.implementations.CraftingCPUCluster
 import appeng.me.helpers.IGridProxyable
@@ -82,6 +82,22 @@ trait NetworkControl[AETile >: Null <: TileEntity with IGridProxyable with IActi
       index += 1
     })
     result(buffer.toArray)
+  }
+
+  @Callback(doc = "function([detail:table, type:string]):table -- Get a known recipe. This can be used to issue crafting requests.")
+  def getCraftable(context: Context, args: Arguments): Array[AnyRef] = {
+    val table = args.checkTable(0)
+    val tp = args.checkString(1)
+    val stack = AEStackFactory.parse(tp, table).asInstanceOf[AEStack]
+    val monitor = tile.getProxy.getStorage.getMEMonitor(stack.getStackType).asInstanceOf[IMEMonitor[AEStack]]
+    if (monitor != null) {
+      val s = monitor.getAvailableItem(stack, IterationCounter.fetchNewId())
+      if (s != null && s.isCraftable) result(new Craftable(tile, asCraft(s, tile)))
+      else result(null)
+    }
+    else {
+      result(null)
+    }
   }
 
   @Callback(doc = "function([filter:table]):table -- Get a list of known item recipes. These can be used to issue crafting requests.")
