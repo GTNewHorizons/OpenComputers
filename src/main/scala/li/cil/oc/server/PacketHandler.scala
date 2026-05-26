@@ -37,6 +37,14 @@ object PacketHandler extends CommonPacketHandler {
 
   private def isFinite(f: Float): Boolean = !f.isNaN && !f.isInfinity
 
+  private def isPlayerWatchingHost(player: EntityPlayerMP, host: api.network.EnvironmentHost): Boolean = host.world match {
+    case world: WorldServer if player.worldObj == world =>
+      val chunkX = math.floor(host.xPosition).toInt >> 4
+      val chunkZ = math.floor(host.zPosition).toInt >> 4
+      world.getPlayerManager.isPlayerWatchingChunk(player, chunkX, chunkZ)
+    case _ => false
+  }
+
   private def logForgedPacket(player: EntityPlayerMP) =
     OpenComputers.log.warn(securityMarker, "Player {} tried to send GUI packets without opening them", player.getGameProfile)
 
@@ -351,7 +359,7 @@ object PacketHandler extends CommonPacketHandler {
     p.player match {
       case entity: EntityPlayerMP =>
         ComponentTracker.get(p.player.worldObj, address) match {
-          case Some(buffer: TextBuffer) if buffer.isUseableByPlayer(entity) =>
+          case Some(buffer: TextBuffer) if isPlayerWatchingHost(entity, buffer.host) =>
             if (buffer.host match {
               case screen: Screen if !screen.isOrigin => false
               case _ => true
