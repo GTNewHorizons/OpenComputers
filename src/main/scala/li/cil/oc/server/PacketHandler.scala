@@ -222,7 +222,7 @@ object PacketHandler extends CommonPacketHandler {
     val address = p.readUTF()
     val fileName = p.readUTF()
     val fileContent = p.readUTF()
-    if (fileName.length + fileContent.length > maxClientTextLength) return // Oversized; likely a forged client.
+    if (fileName.length.toLong + fileContent.length > maxClientTextLength) return // Oversized; likely a forged client.
     ComponentTracker.get(p.player.worldObj, address) match {
       case Some(buffer: api.internal.TextBuffer) => buffer.dropFile(fileName, fileContent, p.player.asInstanceOf[EntityPlayer])
       case _ => // Invalid Packet
