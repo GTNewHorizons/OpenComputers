@@ -837,7 +837,8 @@ object TextBuffer {
     }
 
     override def clipboard(value: String, player: EntityPlayer) {
-      sendToKeyboards("keyboard.clipboard", player, value)
+      if (owner.isUseableByPlayer(player))
+        sendToKeyboards("keyboard.clipboard", player, value)
     }
 
     override def dropFile(fileName: String, fileContent: String, player: EntityPlayer): Unit = {
