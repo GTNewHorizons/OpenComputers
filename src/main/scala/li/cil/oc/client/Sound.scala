@@ -61,7 +61,7 @@ object Sound {
   }
 
   def startLoop(tileEntity: TileEntity, name: String, volume: Float = 1f, delay: Long = 0) {
-    if (Settings.get.soundVolume > 0 && Minecraft.getMinecraft.theWorld != null) {
+    if (Settings.get.soundVolume > 0) {
       commandQueue.synchronized {
         commandQueue += new StartCommand(System.currentTimeMillis() + delay, tileEntity, name, volume)
       }
@@ -69,7 +69,7 @@ object Sound {
   }
 
   def stopLoop(tileEntity: TileEntity) {
-    if (Settings.get.soundVolume > 0 && Minecraft.getMinecraft.theWorld != null) {
+    if (Settings.get.soundVolume > 0) {
       commandQueue.synchronized {
         commandQueue += new StopCommand(tileEntity)
       }
@@ -77,7 +77,7 @@ object Sound {
   }
 
   def updatePosition(tileEntity: TileEntity) {
-    if (Settings.get.soundVolume > 0 && Minecraft.getMinecraft.theWorld != null) {
+    if (Settings.get.soundVolume > 0) {
       commandQueue.synchronized {
         commandQueue += new UpdatePositionCommand(tileEntity)
       }
@@ -107,11 +107,11 @@ object Sound {
 
   @SubscribeEvent(priority = EventPriority.LOWEST)
   def onWorldUnload(event: WorldEvent.Unload) {
+    commandQueue.synchronized(commandQueue.clear())
     sources.synchronized(try sources.foreach(_._2.stop()) catch {
       case _: Throwable => // Ignore.
     })
-    sources.synchronized(sources.clear())
-    commandQueue.synchronized(commandQueue.clear())
+    sources.clear()
   }
 
   private abstract class Command(val when: Long, val tileEntity: TileEntity) extends Ordered[Command] {
