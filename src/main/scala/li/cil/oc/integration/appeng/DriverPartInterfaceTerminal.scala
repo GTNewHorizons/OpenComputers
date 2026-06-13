@@ -1,8 +1,8 @@
 package li.cil.oc.integration.appeng
 
+import appeng.api.AEApi
 import appeng.api.parts.IPartHost
 import appeng.api.util.{DimensionalCoord, IInterfaceViewable}
-import appeng.core.features.registries.InterfaceTerminalRegistry
 import appeng.parts.AEBasePart
 import appeng.parts.p2p.PartP2PTunnel
 import appeng.parts.reporting.PartInterfaceTerminal
@@ -180,7 +180,7 @@ object DriverPartInterfaceTerminal extends driver.SidedBlock {
     private def allMachines: Iterable[IInterfaceViewable] = {
       val grid = getGrid
       if (grid == null) return Array.empty[IInterfaceViewable]
-      InterfaceTerminalRegistry.instance.getSupportedClasses.view
+      AEApi.instance().registries().interfaceTerminal().getSupportedClasses.view
         .flatMap(c => grid.getMachines(c).asScala)
         .map(_.getMachine.asInstanceOf[IInterfaceViewable])
         .filter { m =>
