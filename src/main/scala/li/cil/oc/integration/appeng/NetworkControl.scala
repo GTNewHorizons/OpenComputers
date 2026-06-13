@@ -141,7 +141,7 @@ trait NetworkControl[AETile >: Null <: TileEntity with IGridProxyable with IActi
       .toArray)
   }
 
-  @Callback(doc = "function(name:string|id:number[, damage:number[, nbt:string]]):table OR function(detail:table):table -- Retrieves the stored item in the network by its unlocalized name.")
+  @Callback(doc = "function(name:string|id:number[, damage:number[, nbt:string]]):table OR function(detail:table):table -- Retrieves the stored item in the network by its unlocalized name. For the first format, 'nbt' expects an SNBT string.")
   def getItemInNetwork(context: Context, args: Arguments): Array[AnyRef] = {
     val aeItemStack = if (args.isTable(0)) {
       AEStackFactory.parse[IAEItemStack](args.checkTable(0))

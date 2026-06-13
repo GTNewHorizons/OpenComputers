@@ -30,6 +30,21 @@ import org.apache.logging.log4j.MarkerManager
 object PacketHandler extends CommonPacketHandler {
   private val securityMarker = MarkerManager.getMarker("SuspiciousPackets")
 
+  // Server-side cap on client-supplied text (clipboard paste, dropped files).
+  // The client enforces the same 64KB limit, but a modified client can omit it,
+  // so we must re-check here rather than trust the sender.
+  private val maxClientTextLength = 64 * 1024
+
+  private def isFinite(f: Float): Boolean = !f.isNaN && !f.isInfinity
+
+  private def isPlayerWatchingHost(player: EntityPlayerMP, host: api.network.EnvironmentHost): Boolean = host.world match {
+    case world: WorldServer if player.worldObj == world =>
+      val chunkX = math.floor(host.xPosition).toInt >> 4
+      val chunkZ = math.floor(host.zPosition).toInt >> 4
+      world.getPlayerManager.isPlayerWatchingChunk(player, chunkX, chunkZ)
+    case _ => false
+  }
+
   private def logForgedPacket(player: EntityPlayerMP) =
     OpenComputers.log.warn(securityMarker, "Player {} tried to send GUI packets without opening them", player.getGameProfile)
 
@@ -196,6 +211,7 @@ object PacketHandler extends CommonPacketHandler {
   def onClipboard(p: PacketParser): Unit = {
     val address = p.readUTF()
     val copy = p.readUTF()
+    if (copy.length > maxClientTextLength) return // Oversized; likely a forged client.
     ComponentTracker.get(p.player.worldObj, address) match {
       case Some(buffer: api.internal.TextBuffer) => buffer.clipboard(copy, p.player.asInstanceOf[EntityPlayer])
       case _ => // Invalid Packet
@@ -206,6 +222,7 @@ object PacketHandler extends CommonPacketHandler {
     val address = p.readUTF()
     val fileName = p.readUTF()
     val fileContent = p.readUTF()
+    if (fileName.length.toLong + fileContent.length > maxClientTextLength) return // Oversized; likely a forged client.
     ComponentTracker.get(p.player.worldObj, address) match {
       case Some(buffer: api.internal.TextBuffer) => buffer.dropFile(fileName, fileContent, p.player.asInstanceOf[EntityPlayer])
       case _ => // Invalid Packet
@@ -218,6 +235,7 @@ object PacketHandler extends CommonPacketHandler {
     val y = p.readFloat()
     val dragging = p.readBoolean()
     val button = p.readByte()
+    if (!isFinite(x) || !isFinite(y)) return // Forged client; reject NaN/Infinity coordinates.
     ComponentTracker.get(p.player.worldObj, address) match {
       case Some(buffer: api.internal.TextBuffer) =>
         val player = p.player.asInstanceOf[EntityPlayer]
@@ -232,6 +250,7 @@ object PacketHandler extends CommonPacketHandler {
     val x = p.readFloat()
     val y = p.readFloat()
     val button = p.readByte()
+    if (!isFinite(x) || !isFinite(y)) return // Forged client; reject NaN/Infinity coordinates.
     ComponentTracker.get(p.player.worldObj, address) match {
       case Some(buffer: api.internal.TextBuffer) =>
         val player = p.player.asInstanceOf[EntityPlayer]
@@ -245,6 +264,7 @@ object PacketHandler extends CommonPacketHandler {
     val x = p.readFloat()
     val y = p.readFloat()
     val button = p.readByte()
+    if (!isFinite(x) || !isFinite(y)) return // Forged client; reject NaN/Infinity coordinates.
     ComponentTracker.get(p.player.worldObj, address) match {
       case Some(buffer: api.internal.TextBuffer) =>
         val player = p.player.asInstanceOf[EntityPlayer]
@@ -339,7 +359,7 @@ object PacketHandler extends CommonPacketHandler {
     p.player match {
       case entity: EntityPlayerMP =>
         ComponentTracker.get(p.player.worldObj, address) match {
-          case Some(buffer: TextBuffer) =>
+          case Some(buffer: TextBuffer) if isPlayerWatchingHost(entity, buffer.host) =>
             if (buffer.host match {
               case screen: Screen if !screen.isOrigin => false
               case _ => true
