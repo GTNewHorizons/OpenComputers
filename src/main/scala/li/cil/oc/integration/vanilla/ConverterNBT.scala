@@ -47,7 +47,7 @@ object ConverterNBT extends api.driver.Converter {
       Map("__nbt_type" -> "float", "__value" -> Float.box(tag.func_150288_h()))
     case tag: NBTTagDouble =>
       Map("__nbt_type" -> "double", "__value" -> Double.box(tag.func_150286_g()))
-    case tag: NBTTagByteArray => Map("__nbt_type" -> "byte_array", "__value" -> tag.func_150292_c())
+    case tag: NBTTagByteArray => Map("__nbt_type" -> "byte_array", "__value" -> tag.func_150292_c.map(_.toInt))
     case tag: NBTTagIntArray => Map("__nbt_type" -> "int_array", "__value" -> tag.func_150302_c())
     case tag: NBTTagList =>
       val copy = tag.copy().asInstanceOf[NBTTagList]
