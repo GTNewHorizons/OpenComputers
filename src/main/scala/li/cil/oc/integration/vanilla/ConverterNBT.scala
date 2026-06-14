@@ -90,7 +90,7 @@ object ConverterNBT extends api.driver.Converter {
         case ("list", arrMap: util.Map[_, _]) if isLuaArray(arrMap) =>
           val listTag = new NBTTagList()
           for (i <- 1 to arrMap.size()) {
-            val baseTag = parseWithType(arrMap.get(Double.box(i)))
+            val baseTag = parseWithType(arrMap.get(i))
             if (baseTag != null) {
               listTag.appendTag(baseTag)
             }
@@ -114,9 +114,7 @@ object ConverterNBT extends api.driver.Converter {
   = {
     if (map.isEmpty) true
     else {
-      (1 to map.size).forall { i =>
-        map.containsKey(Double.box(i)) || map.containsKey(Long.box(i))
-      }
+      (1 to map.size).forall(i => map.containsKey(i))
     }
   }
 }
