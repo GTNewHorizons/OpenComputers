@@ -19,7 +19,38 @@ local function wrap(data)
   proxy_cache[data] = proxy
   return proxy
 end
+local proxy_methods = {}
+local nbt_types = {
+  string = "string",
+  boolean = "boolean",
+  byte = "number",
+  short = "number",
+  int = "number",
+  long = "number",
+  float = "number",
+  double = "number",
+  byte_array = "table",
+  int_array = "table",
+  list = "table",
+  compound = "table"
+}
+for nbt_type, value_type in pairs(nbt_types) do
+  proxy_methods["set_" .. nbt_type] = function(t, k, v)
+    if type(v) ~= value_type then
+      error("value need to be a " .. value_type, 2)
+    end
+    local raw = unwrap(t).__value
+    if type(raw) ~= "table" then
+      error("target need to be a compound or list", 2)
+    end
+    raw[k] = { __nbt_type = nbt_type, __value = v }
+    return t
+  end
+end
 mt.__index = function(t, k)
+  if proxy_methods[k] then
+    return proxy_methods[k]
+  end
   local raw = unwrap(t).__value
   local v = raw[k]
   return wrap(v)
