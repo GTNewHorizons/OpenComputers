@@ -71,7 +71,7 @@ mt.__newindex = function(t, k, v)
       existing.__value = v
     end
   else
-    if type(v) == "string" or is_nbt_tag(v) then
+    if is_nbt_tag(v) then
       raw[k] = v
     elseif type(v) == "boolean" then
       raw[k] = { __nbt_type = "byte", __value = v }

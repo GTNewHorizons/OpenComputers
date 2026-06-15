@@ -34,8 +34,7 @@ object ConverterNBT extends api.driver.Converter {
   }
 
   def convertWithType(nbt: NBTBase): AnyRef = nbt match {
-    case tag: NBTTagString => tag.func_150285_a_()
-
+    case tag: NBTTagString => Map("__nbt_type" -> "string", "__value" -> tag.func_150285_a_())
     case tag: NBTTagByte => Map("__nbt_type" -> "byte", "__value" -> Byte.box(tag.func_150290_f()))
     case tag: NBTTagShort =>
       Map("__nbt_type" -> "short", "__value" -> Short.box(tag.func_150289_e()))
