@@ -1,5 +1,6 @@
 package li.cil.oc.client.renderer.font
 
+import gnu.trove.map.hash.TIntObjectHashMap
 import li.cil.oc.Settings
 import li.cil.oc.client.renderer.font.DynamicFontRenderer.CharTexture
 import li.cil.oc.util.FontUtils
@@ -25,7 +26,7 @@ class DynamicFontRenderer extends TextureFontRenderer with IResourceManagerReloa
 
   private val textures = mutable.ArrayBuffer.empty[CharTexture]
 
-  private val charMap = mutable.Map.empty[Int, DynamicFontRenderer.CharIcon]
+  private val charMap = new TIntObjectHashMap[DynamicFontRenderer.CharIcon]()
 
   private var activeTexture: CharTexture = _
 
@@ -65,20 +66,29 @@ class DynamicFontRenderer extends TextureFontRenderer with IResourceManagerReloa
   }
 
   override protected def generateChar(char: Int) {
-    charMap.getOrElseUpdate(char, createCharIcon(char))
+    getOrCreate(char)
   }
 
   override protected def drawChar(tx: Float, ty: Float, char: Int) {
-    charMap.get(char) match {
-      case Some(icon) if icon.texture == activeTexture => icon.draw(tx, ty)
-      case _ =>
+    val icon = charMap.get(char)
+    if (icon != null && icon.texture == activeTexture) {
+      icon.draw(tx, ty)
+    }
+  }
+
+  private def getOrCreate(char: Int): DynamicFontRenderer.CharIcon = {
+    if (charMap.containsKey(char)) charMap.get(char)
+    else {
+      val icon = createCharIcon(char)
+      charMap.put(char, icon)
+      icon
     }
   }
 
   private def createCharIcon(char: Int): DynamicFontRenderer.CharIcon = {
     if (FontUtils.wcwidth(char) < 1 || glyphProvider.getGlyph(char) == null) {
       if (char == '?') null
-      else charMap.getOrElseUpdate('?', createCharIcon('?'))
+      else getOrCreate('?')
     }
     else {
       if (textures.last.isFull(char)) {
