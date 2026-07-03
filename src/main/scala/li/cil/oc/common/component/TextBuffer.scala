@@ -400,6 +400,17 @@ class TextBuffer(val host: EnvironmentHost) extends prefab.ManagedEnvironment wi
     proxy.copyToAnalyzer(line, player)
   }
 
+  // Server-side reach check, mirroring Keyboard.isUseableByPlayer (8 block
+  // radius). Used to reject mouse/file/analyzer/init packets from clients that
+  // are nowhere near the screen. For multiblock screens any constituent block
+  // being in range is enough.
+  def isUseableByPlayer(player: EntityPlayer): Boolean = host match {
+    case screen: tileentity.Screen =>
+      screen.screens.exists(s => player.getDistanceSq(s.xPosition, s.yPosition, s.zPosition) <= 64)
+    case _ =>
+      player.getDistanceSq(host.xPosition, host.yPosition, host.zPosition) <= 64
+  }
+
   // ----------------------------------------------------------------------- //
 
   override def onConnect(node: Node) {
@@ -826,11 +837,13 @@ object TextBuffer {
     }
 
     override def clipboard(value: String, player: EntityPlayer) {
-      sendToKeyboards("keyboard.clipboard", player, value)
+      if (owner.isUseableByPlayer(player))
+        sendToKeyboards("keyboard.clipboard", player, value)
     }
 
     override def dropFile(fileName: String, fileContent: String, player: EntityPlayer): Unit = {
-      owner.node.sendToReachable("computer.checked_signal", player, "drop_file", fileName, fileContent)
+      if (owner.isUseableByPlayer(player))
+        owner.node.sendToReachable("computer.checked_signal", player, "drop_file", fileName, fileContent)
     }
 
     override def mouseDown(x: Double, y: Double, button: Int, player: EntityPlayer) {
@@ -850,6 +863,7 @@ object TextBuffer {
     }
 
     override def copyToAnalyzer(line: Int, player: EntityPlayer): Unit = {
+      if (!owner.isUseableByPlayer(player)) return
       val stack = player.getHeldItem
       if (stack != null) {
         if (!stack.hasTagCompound) {
@@ -870,7 +884,8 @@ object TextBuffer {
       }
     }
 
-    private def sendMouseEvent(player: EntityPlayer, name: String, x: Double, y: Double, data: Int) = {
+    private def sendMouseEvent(player: EntityPlayer, name: String, x: Double, y: Double, data: Int): Unit = {
+      if (!owner.isUseableByPlayer(player)) return
       val args = mutable.ArrayBuffer.empty[AnyRef]
 
       args += player
