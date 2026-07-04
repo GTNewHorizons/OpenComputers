@@ -1,22 +1,26 @@
 package li.cil.oc.integration.appeng.internal
 
 import appeng.api.config.Upgrades
+import appeng.api.networking.security.MachineSource
 import appeng.api.parts.{IPart, IPartHost}
-import appeng.api.storage.StorageName
 import appeng.api.storage.data.{IAEItemStack, IAEStack}
+import appeng.api.storage.{IMEMonitor, StorageName}
 import appeng.helpers.IOreFilterable
 import appeng.parts.automation.PartSharedItemBus
 import appeng.parts.misc.PartStorageBus
 import appeng.tile.inventory.IIAEStackInventory
 import appeng.util.item.AEItemStack
+import appeng.util.prioitylist.OreFilteredList
 import li.cil.oc.api.machine.{Arguments, Context}
 import li.cil.oc.api.network.ManagedEnvironment
 import li.cil.oc.integration.appeng.AEStackFactory
-import li.cil.oc.util.DatabaseAccess
 import li.cil.oc.util.ExtendedArguments._
 import li.cil.oc.util.ResultWrapper.result
+import li.cil.oc.util.{DatabaseAccess, ReflectionUtils}
 import net.minecraftforge.common.util.ForgeDirection
 
+import java.lang.invoke.MethodHandle
+import java.util.function.Predicate
 import scala.language.implicitConversions
 import scala.reflect.ClassTag
 
@@ -91,6 +95,9 @@ object PartEnvironmentBase {
 }
 
 trait PartSharedItemBusBase[PartType <: PartSharedItemBus[_]] extends PartEnvironmentBase[PartType] {
+
+  import PartSharedItemBusBase._
+
   implicit def tag: ClassTag[PartType]
 
   def getSlotSize(part: PartType): Int =
@@ -101,6 +108,45 @@ trait PartSharedItemBusBase[PartType <: PartSharedItemBus[_]] extends PartEnviro
     val part = getPart(side)
     result(getSlotSize(part))
   }
+
+  def getMonitor[T <: IAEStack[T]](part: PartType): IMEMonitor[T] = {
+    getMonitorHandle.invoke(part).asInstanceOf[IMEMonitor[T]]
+  }
+
+  def setFilterPredicate(part: PartType, filterPredicate: Predicate[IAEItemStack]): Unit = {
+    filterPredicateSetterHandle.invoke(part, filterPredicate)
+  }
+
+  def supportFuzzy(part: PartType): Boolean = {
+    supportFuzzyHandle.invoke(part).asInstanceOf[Boolean]
+  }
+
+  def supportOreDict(part: PartType): Boolean = {
+    supportOreDictHandle.invoke(part).asInstanceOf[Boolean]
+  }
+
+  def getMySrc(part: PartType): MachineSource = {
+    mySrcGetterHandle.invoke(part).asInstanceOf[MachineSource]
+  }
+
+  def getOreFilterPredicate(part: PartType): Predicate[IAEItemStack] = {
+    val oreFilterString = part.getFilter
+    var filterPredicate = filterPredicateGetterHandle.invoke(part).asInstanceOf[Predicate[IAEItemStack]]
+    if (filterPredicate == null) {
+      filterPredicate = OreFilteredList.makeFilter(oreFilterString)
+      setFilterPredicate(part, filterPredicate)
+    }
+    filterPredicate
+  }
+}
+
+object PartSharedItemBusBase {
+  private lazy val getMonitorHandle: MethodHandle = ReflectionUtils.getMethodHandle(classOf[PartSharedItemBus[_]], "getMonitor", allowSuper = false)
+  private lazy val supportFuzzyHandle: MethodHandle = ReflectionUtils.getMethodHandle(classOf[PartSharedItemBus[_]], "supportFuzzy", allowSuper = false)
+  private lazy val supportOreDictHandle: MethodHandle = ReflectionUtils.getMethodHandle(classOf[PartSharedItemBus[_]], "supportOreDict", allowSuper = false)
+  private lazy val filterPredicateGetterHandle: MethodHandle = ReflectionUtils.getFieldGetterHandle(classOf[PartSharedItemBus[_]], "filterPredicate", allowSuper = false)
+  private lazy val filterPredicateSetterHandle: MethodHandle = ReflectionUtils.getFieldSetterHandle(classOf[PartSharedItemBus[_]], "filterPredicate", allowSuper = false)
+  private lazy val mySrcGetterHandle: MethodHandle = ReflectionUtils.getFieldGetterHandle(classOf[PartSharedItemBus[_]], "mySrc", allowSuper = false)
 }
 
 object PartItemConfigurablePart {
