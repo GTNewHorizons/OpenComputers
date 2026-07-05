@@ -3,13 +3,14 @@ package li.cil.oc.integration.appeng
 import appeng.api.AEApi
 import appeng.api.config.Actionable
 import appeng.api.networking.IGridNode
-import appeng.api.networking.crafting.{CraftingItemList, ICraftingLink, ICraftingRequester}
+import appeng.api.networking.crafting._
 import appeng.api.networking.security.{BaseActionSource, IActionHost, MachineSource}
 import appeng.api.networking.storage.IBaseMonitor
 import appeng.api.storage.data.{IAEFluidStack, IAEItemStack, IAEStack, IItemList}
 import appeng.api.storage.{IMEMonitor, IMEMonitorHandlerReceiver}
 import appeng.api.util.AECableType
 import appeng.crafting.CraftingLink
+import appeng.crafting.v2.CraftingJobV2
 import appeng.me.GridAccessException
 import appeng.me.cache.CraftingGridCache
 import appeng.me.cluster.implementations.CraftingCPUCluster
@@ -47,8 +48,6 @@ import javax.annotation.Nonnull
 import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
 import scala.language.existentials
 import scala.reflect.ClassTag
 
@@ -458,7 +457,6 @@ object NetworkControl extends AETypes {
 
       val craftingGrid = controller.getProxy.getCrafting
       val source = new MachineSource(controller)
-      val future = craftingGrid.beginCraftingJob(controller.getWorldObj, controller.getProxy.getGrid, source, request, null)
       val prioritizePower = args.optBoolean(1, true)
       val cpuName = args.optString(2, "")
       val cpu = if (cpuName.nonEmpty) {
@@ -468,37 +466,28 @@ object NetworkControl extends AETypes {
       } else null
 
       val status = new CraftingStatus()
-      Future {
-        try {
-          while (!future.isDone) {
-            Thread.sleep(10)
-          }
-
-          val job = future.get()
-
-          if (future.isCancelled) {
-            status.fail("missing resources")
-          } else {
-            EventHandler.scheduleServer(() => {
-              val link = craftingGrid.submitJob(job, Craftable.this, cpu, prioritizePower, source)
-              if (link != null) {
-                status.setLink(link.getCraftingID)
-                links += link
-                CraftingLinkTracker.register(link)
-              }
+      craftingGrid.beginCraftingJob(controller.getWorldObj, controller.getProxy.getGrid, source, request, new ICraftingCallback {
+        @Override
+        override def calculationComplete(job: (ICraftingJob[StackType]) forSome {type StackType <: IAEStack[StackType]}): Unit = {
+          job match {
+            case craftingJobV2: CraftingJobV2[_] =>
+              if (craftingJobV2.isCancelled) status.fail(craftingJobV2.getErrorMessage)
+              else if (craftingJobV2.isSimulation) status.fail("missing resources")
               else {
-                status.fail("missing resources?")
+                val link = craftingGrid.submitJob(job, Craftable.this, cpu, prioritizePower, source)
+                if (link != null) {
+                  status.setLink(link.getCraftingID)
+                  links += link
+                  CraftingLinkTracker.register(link)
+                }
+                else {
+                  status.fail("no available cpu")
+                }
               }
-            })
+            case _ =>
           }
         }
-        catch {
-          case e: Exception =>
-            OpenComputers.log.debug("Error submitting job to AE2.", e)
-            status.fail(e.toString)
-        }
-      }
-
+      })
       result(status)
     }
 
