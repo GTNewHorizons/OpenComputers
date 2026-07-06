@@ -32,14 +32,12 @@ import li.cil.oc.integration.appeng.NetworkControl._
 import li.cil.oc.integration.appeng.internal.SubscriptionBase
 import li.cil.oc.integration.ec.ECUtil
 import li.cil.oc.util.ExtendedArguments._
-import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.ResultWrapper._
 import li.cil.oc.util.{AE2Bridge, DatabaseAccess}
 import net.minecraft.item.{Item, ItemStack}
 import net.minecraft.nbt.{JsonToNBT, NBTTagCompound}
 import net.minecraft.tileentity.TileEntity
 import net.minecraftforge.common.DimensionManager
-import net.minecraftforge.common.util.Constants.NBT
 import net.minecraftforge.common.util.ForgeDirection
 import net.minecraftforge.fluids.{FluidRegistry, FluidStack}
 
@@ -337,60 +335,7 @@ trait NetworkControl[AETile >: Null <: TileEntity with IGridProxyable with IActi
 }
 
 object NetworkControl extends AETypes {
-  private object CraftingLinkTracker {
-    private case class LinkEntry(var link: ICraftingLink, var count: Int)
-
-    private val links = mutable.HashMap[String, LinkEntry]()
-
-    def retain(id: String): Unit = {
-      if (id.nonEmpty)
-        links.get(id) match {
-          case Some(entry) =>
-            entry.count += 1
-          case None =>
-            links += id -> LinkEntry(null, 1)
-        }
-    }
-
-    def release(id: String): Unit = {
-      if (id.nonEmpty) links.get(id).foreach { entry =>
-        entry.count -= 1
-        if (entry.count == 0) links.remove(id)
-      }
-    }
-
-    def register(link: ICraftingLink): Unit = {
-      if (link != null) {
-        val id = link.getCraftingID
-        if (id.nonEmpty)
-          links.get(id) match {
-            case Some(entry) =>
-              entry.count += 1
-              entry.link = link
-            case None =>
-              links += id -> LinkEntry(link, 1)
-          }
-      }
-    }
-
-    def unregister(link: ICraftingLink): Unit = {
-      if (link != null) release(link.getCraftingID)
-    }
-
-    def getLink(id: String): Option[ICraftingLink] = {
-      if (id == null || id.isEmpty) None
-      else links.get(id).flatMap(l => Option(l.link))
-    }
-  }
-
-  //noinspection ScalaUnusedSymbol
-  private class Craftable(var controller: TileEntity with IGridProxyable with IActionHost, var stack: AEStack, var node: Node) extends AbstractValue with ICraftingRequester {
-    def this() = this(null, null, null)
-
-    // it's a hacky way to do this, but I think it's fine here
-    private var adapter: Option[Adapter] = Option(node).flatMap(findInNetwork(_, { case a if a.host.isInstanceOf[Adapter] => a.host.asInstanceOf[Adapter] }))
-    private var address: String = if (node != null) node.address() else null
-
+  private trait AdapterNode extends AbstractValue {
     private def findInNetwork[T](node: Node, f: PartialFunction[Node, T]): Option[T] = {
       val visited = mutable.HashSet[Node](node)
       var queue = List(node)
@@ -405,7 +350,12 @@ object NetworkControl extends AETypes {
       result
     }
 
-    private def getNode: Option[Node] = {
+    var node: Node
+    // it's a hacky way to do this, but I think it's fine here
+    private var adapter: Option[Adapter] = Option(node).flatMap(findInNetwork(_, { case a if a.host.isInstanceOf[Adapter] => a.host.asInstanceOf[Adapter] }))
+    private var address: String = if (node != null) node.address() else null
+
+    protected def getNode: Option[Node] = {
       Option(node).orElse {
         val found = adapter.flatMap(a => findInNetwork(a.node, { case n if n.address() == address =>
           n
@@ -415,32 +365,26 @@ object NetworkControl extends AETypes {
       }
     }
 
-    private val links = mutable.Set.empty[ICraftingLink]
-
-    // ----------------------------------------------------------------------- //
-
-    //noinspection RedundantCollectionConversion
-    override def getRequestedJobs: ImmutableSet[ICraftingLink] = ImmutableSet.copyOf(links.toIterable)
-
-    override def jobStateChange(link: ICraftingLink): Unit = {
-      links -= link
-      CraftingLinkTracker.unregister(link)
-      getNode.foreach { n =>
-        n.sendToReachable("computer.signal", "network_crafting_state_change", Boolean.box(link.isDone), link.getCraftingID)
-      }
+    abstract override def load(nbt: NBTTagCompound): Unit = {
+      if (nbt.hasKey("adapter")) loadTileEntity(nbt.getCompoundTag("adapter"), {
+        case a: Adapter => adapter = Some(a)
+      })
+      if (nbt.hasKey("address")) address = nbt.getString("address")
     }
 
-    override def injectCraftedItems(link: ICraftingLink, stack: IAEStack[_], p3: Actionable): IAEStack[_] = stack
+    abstract override def save(nbt: NBTTagCompound): Unit = {
+      adapter.foreach { a =>
+        val tag = new NBTTagCompound
+        saveTileEntity(a, tag)
+        nbt.setTag("adapter", tag)
+      }
+      if (address != null) nbt.setString("address", address)
+    }
+  }
 
-    override def getActionableNode: IGridNode = controller.getActionableNode
-
-    override def getCableConnectionType(side: ForgeDirection): AECableType = controller.getCableConnectionType(side)
-
-    override def securityBreak(): Unit = controller.securityBreak()
-
-    override def getGridNode(side: ForgeDirection): IGridNode = controller.getGridNode(side)
-
-    // ----------------------------------------------------------------------- //
+  //noinspection ScalaUnusedSymbol
+  private class Craftable(var controller: TileEntity with IGridProxyable with IActionHost, var stack: AEStack, var node: Node) extends AdapterNode {
+    def this() = this(null, null, null)
 
     @Callback(doc = "function():table -- Returns the item stack representation of the crafting result.")
     def getStack(context: Context, args: Arguments): Array[AnyRef] = result(stack)
@@ -464,31 +408,32 @@ object NetworkControl extends AETypes {
           case c if cpuName.equals(c.getName) => c
         }).orNull
       } else null
-
-      val status = new CraftingStatus()
-      craftingGrid.beginCraftingJob(controller.getWorldObj, controller.getProxy.getGrid, source, request, new ICraftingCallback {
-        @Override
-        override def calculationComplete(job: (ICraftingJob[StackType]) forSome {type StackType <: IAEStack[StackType]}): Unit = {
-          job match {
-            case craftingJobV2: CraftingJobV2[_] =>
-              if (craftingJobV2.isCancelled) status.fail(craftingJobV2.getErrorMessage)
-              else if (craftingJobV2.isSimulation) status.fail("missing resources")
-              else {
-                val link = craftingGrid.submitJob(job, Craftable.this, cpu, prioritizePower, source)
-                if (link != null) {
-                  status.setLink(link.getCraftingID)
-                  links += link
-                  CraftingLinkTracker.register(link)
-                }
-                else {
-                  status.fail("no available cpu")
-                }
+      getNode match {
+        case Some(n) =>
+          val status = new CraftingStatus(controller, n)
+          craftingGrid.beginCraftingJob(controller.getWorldObj, controller.getProxy.getGrid, source, request, new ICraftingCallback {
+            @Override
+            override def calculationComplete(job: (ICraftingJob[StackType]) forSome {type StackType <: IAEStack[StackType]}): Unit = {
+              job match {
+                case craftingJobV2: CraftingJobV2[_] =>
+                  if (craftingJobV2.isCancelled) status.fail(craftingJobV2.getErrorMessage)
+                  else if (craftingJobV2.isSimulation) status.fail("missing resources")
+                  else {
+                    val link = craftingGrid.submitJob(job, status, cpu, prioritizePower, source)
+                    if (link != null) {
+                      status.setLink(link)
+                    }
+                    else {
+                      status.fail("no available cpu")
+                    }
+                  }
+                case _ =>
               }
-            case _ =>
-          }
-        }
-      })
-      result(status)
+            }
+          })
+          result(status)
+        case None => result(null, "no network node")
+      }
     }
 
     // ----------------------------------------------------------------------- //
@@ -501,56 +446,12 @@ object NetworkControl extends AETypes {
       else {
         stack = AEItemStack.loadItemStackFromNBT(nbt)
       }
-      nbt.getTagList("links", NBT.TAG_COMPOUND).foreach {
-        tag: NBTTagCompound =>
-          val link = AEApi.instance.storage.loadCraftingLink(tag, this)
-          CraftingLinkTracker.register(link)
-          links += link
-      }
-      loadController(nbt, c => {
-        controller = c
-
-        def bindLinks(): Unit = {
-          try {
-            if (!controller.isInvalid)
-              controller.getProxy.getCrafting match {
-                case craftingGridCache: CraftingGridCache =>
-                  links.foreach {
-                    case c: CraftingLink =>
-                      craftingGridCache.addLink(c)
-                    case _ =>
-                  }
-                case _ =>
-              }
-          } catch {
-            case e: GridAccessException =>
-              EventHandler.scheduleServer(() => {
-                bindLinks()
-              })
-          }
-        }
-
-        bindLinks()
-      })
-      if (nbt.hasKey("adapter")) loadTileEntity(nbt.getCompoundTag("adapter"), {
-        case a: Adapter => adapter = Some(a)
-      })
-      if (nbt.hasKey("address")) address = nbt.getString("address")
     }
 
     override def save(nbt: NBTTagCompound): Unit = {
       super.save(nbt)
       Platform.writeStackNBT(stack, nbt, true)
       saveTileEntity(controller, nbt)
-      nbt.setNewTagList("links", links.map(link => link.writeToNBT _))
-      val tag = new NBTTagCompound
-      adapter.foreach(saveTileEntity(_, tag))
-      nbt.setTag("adapter", tag)
-      if (address != null) nbt.setString("address", address)
-    }
-
-    override def dispose(context: Context): Unit = {
-      links.foreach(CraftingLinkTracker.unregister)
     }
   }
 
@@ -642,20 +543,35 @@ object NetworkControl extends AETypes {
   }
 
   //noinspection ScalaUnusedSymbol
-  private class CraftingStatus extends AbstractValue {
+  private class CraftingStatus(var controller: TileEntity with IGridProxyable with IActionHost, var node: Node) extends AdapterNode with ICraftingRequester {
+    def this() = this(null, null)
+
+    override def getRequestedJobs: ImmutableSet[ICraftingLink] = ImmutableSet.of()
+
+    override def jobStateChange(link: ICraftingLink): Unit = {
+      getNode.foreach { n =>
+        n.sendToReachable("computer.signal", "network_crafting_state_change", Boolean.box(link.isDone), link.getCraftingID)
+      }
+    }
+
+    override def injectCraftedItems(link: ICraftingLink, stack: IAEStack[_], p3: Actionable): IAEStack[_] = stack
+
+    override def getActionableNode: IGridNode = controller.getActionableNode
+
+    override def getCableConnectionType(side: ForgeDirection): AECableType = controller.getCableConnectionType(side)
+
+    override def securityBreak(): Unit = controller.securityBreak()
+
+    override def getGridNode(side: ForgeDirection): IGridNode = controller.getGridNode(side)
+
     private var isComputing = true
     private var failed = false
     private var reason = "no link"
-    private var craftingID: Option[String] = None
+    private var link: Option[ICraftingLink] = None
 
-    def setLink(id: String): Unit = {
+    def setLink(l: ICraftingLink): Unit = {
       isComputing = false
-      craftingID = Option(id).filter(_.nonEmpty)
-      CraftingLinkTracker.retain(id)
-    }
-
-    private def getLink: Option[ICraftingLink] = {
-      craftingID.flatMap(CraftingLinkTracker.getLink)
+      link = Some(l)
     }
 
     def fail(reason: String): Unit = {
@@ -673,18 +589,18 @@ object NetworkControl extends AETypes {
     @Callback(doc = "function():boolean -- Get whether the crafting request has been canceled.")
     def isCanceled(context: Context, args: Arguments): Array[AnyRef] = {
       if (isComputing) return result(false, "computing")
-      getLink.fold(result(failed, reason))(l => result(l.isCanceled))
+      link.fold(result(failed, reason))(l => result(l.isCanceled))
     }
 
     @Callback(doc = "function():boolean -- Get whether the crafting request is done.")
     def isDone(context: Context, args: Arguments): Array[AnyRef] = {
       if (isComputing) return result(false, "computing")
-      getLink.fold(result(!failed, reason))(l => result(l.isDone))
+      link.fold(result(!failed, reason))(l => result(l.isDone))
     }
 
     @Callback(doc = "function():string -- Get Crafting ID.")
     def getCraftingID(context: Context, args: Arguments): Array[AnyRef] = {
-      result(craftingID.orNull)
+      link.fold(result(null))(l => result(l.getCraftingID))
     }
 
     override def save(nbt: NBTTagCompound): Unit = {
@@ -693,7 +609,12 @@ object NetworkControl extends AETypes {
       if (failed && reason != null) {
         nbt.setString("reason", reason)
       }
-      craftingID.foreach(nbt.setString("craftingID", _))
+      link.foreach(_.writeToNBT(nbt))
+      if (controller != null) {
+        val tag = new NBTTagCompound
+        saveTileEntity(controller, tag)
+        nbt.setTag("controller", tag)
+      }
     }
 
     override def load(nbt: NBTTagCompound): Unit = {
@@ -703,13 +624,32 @@ object NetworkControl extends AETypes {
       if (failed && nbt.hasKey("reason")) {
         reason = nbt.getString("reason")
       }
-      if (nbt.hasKey("craftingID")) {
-        setLink(nbt.getString("craftingID"))
-      }
-    }
+      if (nbt.hasKey("CraftID")) link = Some(AEApi.instance.storage.loadCraftingLink(nbt, this))
+      if (nbt.hasKey("controller")) loadController(nbt.getCompoundTag("controller"), c => {
+        controller = c
 
-    override def dispose(context: Context): Unit = {
-      craftingID.foreach(CraftingLinkTracker.release)
+        def bindLink(): Unit = {
+          try {
+            if (!c.isInvalid)
+              c.getProxy.getCrafting match {
+                case craftingGridCache: CraftingGridCache =>
+                  link.foreach {
+                    case c: CraftingLink =>
+                      craftingGridCache.addLink(c)
+                    case _ =>
+                  }
+                case _ =>
+              }
+          } catch {
+            case e: GridAccessException =>
+              EventHandler.scheduleServer(() => {
+                bindLink()
+              })
+          }
+        }
+
+        bindLink()
+      })
     }
   }
 
