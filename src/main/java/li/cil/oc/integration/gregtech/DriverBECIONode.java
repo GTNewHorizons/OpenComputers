@@ -3,6 +3,7 @@ package li.cil.oc.integration.gregtech;
 import gregtech.api.enums.NaniteTier;
 import gregtech.api.interfaces.metatileentity.IMetaTileEntity;
 import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
+import it.unimi.dsi.fastutil.objects.Object2LongMap;
 import li.cil.oc.api.Network;
 import li.cil.oc.api.driver.NamedBlock;
 import li.cil.oc.api.machine.Arguments;
@@ -14,7 +15,6 @@ import li.cil.oc.api.prefab.DriverSidedTileEntity;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
-import it.unimi.dsi.fastutil.objects.Object2LongMap;
 import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.FluidRegistry;
 import tectech.mechanics.boseEinsteinCondensate.CondensateList;
@@ -65,57 +65,57 @@ public final class DriverBECIONode extends DriverSidedTileEntity {
             return 0;
         }
 
-        @Callback(direct = true, doc = "function():table -- Returns the condensate types and amounts required for the current recipe, or nil.")
+        @Callback(doc = "function():table -- Returns the condensate types and amounts required for the current recipe, or nil. Amounts are doubles; precision loss above 2^53.")
         public Object[] getRequiredCondensate(Context context, Arguments args) {
             return new Object[] { condensateToMap(mte.getRequiredCondensate()) };
         }
 
-        @Callback(direct = true, doc = "function():table -- Returns the condensate types and amounts consumed so far in the current recipe, or nil.")
+        @Callback(doc = "function():table -- Returns the condensate types and amounts consumed so far in the current recipe, or nil. Amounts are doubles; precision loss above 2^53.")
         public Object[] getConsumedCondensate(Context context, Arguments args) {
             return new Object[] { condensateToMap(mte.getConsumedCondensate()) };
         }
 
-        @Callback(direct = true, doc = "function():table -- Returns the nanite tier this node provides as {name, tier}, or nil.")
+        @Callback(doc = "function():table -- Returns the nanite tier this node provides as {name, tier}, or nil.")
         public Object[] getProvidedTier(Context context, Arguments args) {
             return new Object[] { naniteTierToMap(mte.getProvidedTier()) };
         }
 
-        @Callback(direct = true, doc = "function():table -- Returns the nanite tier required by the current recipe as {name, tier}, or nil.")
+        @Callback(doc = "function():table -- Returns the nanite tier required by the current recipe as {name, tier}, or nil.")
         public Object[] getRequiredTier(Context context, Arguments args) {
             return new Object[] { naniteTierToMap(mte.getRequiredTier()) };
         }
 
-        @Callback(direct = true, doc = "function():number -- Returns the number of nanites available.")
+        @Callback(doc = "function():number -- Returns the number of nanites available.")
         public Object[] getAvailableNanites(Context context, Arguments args) {
             return new Object[] { mte.getAvailableNanites() };
         }
 
-        @Callback(direct = true, doc = "function():number -- Returns the number of slowdowns currently applied.")
+        @Callback(doc = "function():number -- Returns the number of slowdowns currently applied.")
         public Object[] getSlowdowns(Context context, Arguments args) {
             return new Object[] { mte.getSlowdowns() };
         }
 
-        @Callback(direct = true, doc = "function():number -- Returns the number of parallel recipes currently in progress.")
+        @Callback(doc = "function():number -- Returns the number of parallel recipes currently in progress.")
         public Object[] getParallelRecipesInProgress(Context context, Arguments args) {
             return new Object[] { mte.getParallelRecipesInProgress() };
         }
 
-        @Callback(direct = true, doc = "function():number -- Returns the minimum parallel recipe count.")
+        @Callback(doc = "function():number -- Returns the minimum parallel recipe count.")
         public Object[] getMinParallel(Context context, Arguments args) {
             return new Object[] { mte.getMinParallel() };
         }
 
-        @Callback(direct = true, doc = "function():number -- Returns the maximum parallel recipe count.")
+        @Callback(doc = "function():number -- Returns the maximum parallel recipe count.")
         public Object[] getMaxParallel(Context context, Arguments args) {
             return new Object[] { mte.getMaxParallel() };
         }
 
-        @Callback(direct = true, doc = "function():number -- Returns the manual slowdown value.")
+        @Callback(doc = "function():number -- Returns the manual slowdown value.")
         public Object[] getManualSlowdown(Context context, Arguments args) {
             return new Object[] { mte.getManualSlowdown() };
         }
 
-        @Callback(direct = true, doc = "function():table -- Returns an array of recipe steps. Each step has 'nanite' (table), 'start' (number), 'end' (number), and 'index' (number) fields.")
+        @Callback(doc = "function():table -- Returns an array of recipe steps. Each step has 'nanite' (table), 'start' (number), 'end' (number), and 'index' (number) fields.")
         public Object[] getRecipeSteps(Context context, Arguments args) {
             List<MTEBECIONode.RecipeStep> steps = mte.getRecipeSteps();
             if (steps == null) return new Object[] { null };
@@ -127,7 +127,7 @@ public final class DriverBECIONode extends DriverSidedTileEntity {
             return new Object[] { result };
         }
 
-        @Callback(direct = true, doc = "function():string -- Returns the machine state: 'idle', 'unpowered', 'assembler-offline', 'nanite-tier-too-low', 'paused-step', 'paused-immediate', 'crafting', or 'internal-error'.")
+        @Callback(doc = "function():string -- Returns the machine state: 'idle', 'unpowered', 'assembler-offline', 'nanite-tier-too-low', 'paused-step', 'paused-immediate', 'crafting', or 'internal-error'.")
         public Object[] getState(Context context, Arguments args) {
             return new Object[] { mte.getState() };
         }

@@ -61,18 +61,29 @@ public final class DriverBECStorage extends DriverSidedTileEntity {
             return 0;
         }
 
-        @Callback(direct = true, doc = "function():number -- Returns the field strength of this storage node.")
+        @Callback(doc = "function():number -- Returns the field strength of this storage node. Precision loss above 2^53; use getFieldStrengthString for exact value.")
         public Object[] getFieldStrength(Context context, Arguments args) {
             return new Object[] { mte.getFieldStrength() };
         }
 
-        @Callback(doc = "function(strength:number) -- Sets the field strength of this storage node.")
+        @Callback(doc = "function():string -- Returns the field strength of this storage node as a string for exact representation of large values.")
+        public Object[] getFieldStrengthString(Context context, Arguments args) {
+            return new Object[] { Long.toUnsignedString(mte.getFieldStrength()) };
+        }
+
+        @Callback(doc = "function(strength:number) -- Sets the field strength of this storage node. Precision loss above 2^53; use setFieldStrengthString for exact values.")
         public Object[] setFieldStrength(Context context, Arguments args) {
             mte.setFieldStrength(args.checkLong(0));
             return null;
         }
 
-        @Callback(direct = true, doc = "function():table -- Returns stored condensate as a table mapping fluid names to amounts.")
+        @Callback(doc = "function(strength:string) -- Sets the field strength of this storage node from a string for exact representation of large values.")
+        public Object[] setFieldStrengthString(Context context, Arguments args) {
+            mte.setFieldStrength(Long.parseUnsignedLong(args.checkString(0)));
+            return null;
+        }
+
+        @Callback(doc = "function():table -- Returns stored condensate as a table mapping fluid names to amounts. Amounts are doubles; precision loss above 2^53.")
         public Object[] getStoredCondensate(Context context, Arguments args) {
             List<Pair<String, Long>> stored = mte.getStoredCondensate();
 

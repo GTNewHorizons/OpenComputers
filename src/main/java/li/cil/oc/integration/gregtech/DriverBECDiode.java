@@ -58,7 +58,7 @@ public final class DriverBECDiode extends DriverSidedTileEntity {
             return 0;
         }
 
-        @Callback(direct = true, doc = "function():string -- Returns the name of the fluid used as condensate filter, or nil if no filter is set.")
+        @Callback(doc = "function():string -- Returns the name of the fluid used as condensate filter, or nil if no filter is set.")
         public Object[] getCondensateFilter(Context context, Arguments args) {
             Fluid filter = mte.getCondensateFilter();
             return new Object[] { filter == null ? null : FluidRegistry.getFluidName(filter) };
