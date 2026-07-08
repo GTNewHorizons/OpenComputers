@@ -18,6 +18,10 @@ object ModGregtech extends ModProxy {
     Driver.add(DriverLSC)
     Driver.add(new ConverterDataStick)
 
+    Driver.add(new DriverBECIONode)
+    Driver.add(new DriverBECStorage)
+    Driver.add(new DriverBECDiode)
+
     RecipeHandler.init()
   }
 }
