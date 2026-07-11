@@ -3,6 +3,7 @@ package li.cil.oc.integration.appeng.internal
 import appeng.api.implementations.tiles.ISegmentedInventory
 import appeng.api.parts.IPart
 import appeng.api.storage.data.IAEStack
+import appeng.parts.reporting.PartPatternTerminal
 import appeng.tile.misc.TileInterface
 import appeng.util.Platform
 import appeng.util.item.AEItemStack
@@ -22,17 +23,22 @@ trait PatternEnvironment extends Environment {
 
   protected def offset: Int = 0
 
-  private def getPatternNBT(context: Context, args: Arguments, tag: String) = {
-    val inv = getPatternInventory(context, args)
-    val slot = args.checkSlot(inv, offset)
-    val pattern = inv.getStackInSlot(args.checkSlot(inv, offset))
-    val index = args.checkInteger(offset + 1) - 1
+  protected def getPatternNBTInternal(inv: IInventory, slot: Int, index: Int, tag: String) = {
+    val pattern = inv.getStackInSlot(slot)
     if (index < 0 || index > 511)
       throw new IllegalArgumentException("Invalid index!")
     val encodedValue = pattern.getTagCompound
     if (encodedValue == null)
       throw new IllegalArgumentException("No pattern here!")
     val nbt = encodedValue.getTagList(tag, NBT.TAG_COMPOUND)
+    (pattern, encodedValue, nbt)
+  }
+
+  protected def getPatternNBT(context: Context, args: Arguments, tag: String) = {
+    val inv = getPatternInventory(context, args)
+    val slot = args.checkSlot(inv, offset)
+    val index = args.checkInteger(offset + 1) - 1
+    val (pattern, encodedValue, nbt) = getPatternNBTInternal(inv, slot, index, tag)
     (inv, index, slot, pattern, encodedValue, nbt)
   }
 
@@ -49,11 +55,8 @@ trait PatternEnvironment extends Environment {
     })
   }
 
-  // function(slot:number, index:number[, database:address, entry:number, size:number]):boolean
-  // function(slot:number, index:number[, detail:table, type:string]):boolean
-  def setPatternSlot(context: Context, args: Arguments, tag: String): Array[AnyRef] = {
-    val (inv, index, slot, pattern, encodedValue, inTag) = getPatternNBT(context, args, tag)
-    val stack: IAEStack[_] = if (args.count() <= offset + 2) null
+  def getAEStack(context: Context, args: Arguments, offset: Int): IAEStack[_] = {
+    if (args.count() <= offset + 2) null
     else if (args.isTable(offset + 2)) {
       val table = args.checkTable(offset + 2)
       val tp = args.checkString(offset + 3)
@@ -62,6 +65,13 @@ trait PatternEnvironment extends Environment {
     else {
       AEItemStack.create(DatabaseAccess.getStackFromDatabase(node, args, offset + 2))
     }
+  }
+
+  // function(slot:number, index:number[, database:address, entry:number, size:number]):boolean
+  // function(slot:number, index:number[, detail:table, type:string]):boolean
+  def setPatternSlot(context: Context, args: Arguments, tag: String): Array[AnyRef] = {
+    val (inv, index, slot, pattern, encodedValue, inTag) = getPatternNBT(context, args, tag)
+    val stack: IAEStack[_] = getAEStack(context, args, offset)
 
     while (inTag.tagCount() <= index)
       inTag.appendTag(new NBTTagCompound())
@@ -94,5 +104,23 @@ trait PartPatternEnvironment[PartType <: ISegmentedInventory with IPart] extends
   override def getPatternInventory(context: Context, args: Arguments): IInventory = {
     val side = args.checkSideAny(0)
     getPart(side).getInventoryByName("patterns")
+  }
+}
+
+trait PartTerminalPatternEnvironment[PartType <: PartPatternTerminal] extends PartPatternEnvironment[PartType]
+{
+  override def offset: Int = 0
+
+  override def getPatternInventory(context: Context, args: Arguments): IInventory = {
+    val side = args.checkSideAny(0)
+    getPart(side).getInventoryByName("pattern")
+  }
+
+  override def getPatternNBT(context: Context, args: Arguments, tag: String) = {
+    val inv = getPatternInventory(context, args)
+    val slot = 1
+    val index = args.checkInteger(offset + 1) - 1
+    val (pattern, encodedValue, nbt) = getPatternNBTInternal(inv, slot, index, tag)
+    (inv, index, slot, pattern, encodedValue, nbt)
   }
 }
