@@ -111,7 +111,7 @@ object DriverPartInterfaceTerminal extends driver.SidedBlock {
           case _ => ForgeDirection.UNKNOWN
         }
         val slot: Integer = args.get("slot") match {
-          case value: java.lang.Number => value.intValue
+          case value: java.lang.Number => value.intValue - 1
           case _ => -1
         }
         TransferData(location, side)(slot)
@@ -212,7 +212,7 @@ object DriverPartInterfaceTerminal extends driver.SidedBlock {
           "name" -> info.name,
           "location" -> info.location,
           "side" -> info.side,
-          "patterns" -> info.patterns.zipWithIndex.map(_.swap).toMap
+          "patterns" -> info.patterns.zipWithIndex.map { case (pattern, id) => (id + 1, pattern) }.toMap
         )
       } else {
         Map(
