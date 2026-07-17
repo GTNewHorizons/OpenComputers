@@ -309,7 +309,8 @@ object EventHandler {
         val stacks = (0 until e.craftMatrix.getSizeInventory).flatMap(i => Option(e.craftMatrix.getStackInSlot(i))).toArray
         if (stacks.length == 2) stacks.find(Wrench.isWrench) match {
           case Some(stack) =>
-            stack.stackSize += 1
+            if (!stack.getItem.hasContainerItem(stack))
+              stack.stackSize += 1
             true
           case _ => didRecraft
         }
