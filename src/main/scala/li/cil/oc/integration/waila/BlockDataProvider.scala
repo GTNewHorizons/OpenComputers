@@ -1,5 +1,6 @@
 package li.cil.oc.integration.waila
 
+import java.text.NumberFormat
 import java.util
 
 import li.cil.oc.Localization
@@ -107,6 +108,8 @@ object BlockDataProvider extends IWailaDataProvider {
 //        tag.setNewTagList("servers", stringIterableToNbt(te.servers.map(_.fold("")(_.node.address))))
 //        tag.setByteArray("sideIndexes", ForgeDirection.VALID_DIRECTIONS.map(side => te.sides.indexWhere(_.contains(side))).map(_.toByte))
         // TODO
+      case te: tileentity.Transposer =>
+        tag.setInteger("fluidTransferRate", te.info.fluidTransferRate)
       case _ =>
     }
 
@@ -138,7 +141,7 @@ object BlockDataProvider extends IWailaDataProvider {
       case _: tileentity.Charger =>
         val chargeSpeed = tag.getDouble("chargeSpeed")
         tooltip.add(Localization.Analyzer.ChargerSpeed(chargeSpeed).getUnformattedText)
-      case te: tileentity.Rack =>
+//    case te: tileentity.Rack =>
 //        val servers = tag.getTagList("servers", NBT.TAG_STRING).map((t: NBTTagString) => t.func_150285_a_()).toArray
 //        val hitPos = accessor.getPosition.hitVec
 //        val address = te.slotAt(accessor.getSide, (hitPos.xCoord - accessor.getPosition.blockX).toFloat, (hitPos.yCoord - accessor.getPosition.blockY).toFloat, (hitPos.zCoord - accessor.getPosition.blockZ).toFloat) match {
@@ -149,6 +152,9 @@ object BlockDataProvider extends IWailaDataProvider {
 //            tooltip.add(Localization.Analyzer.Address(address).getUnformattedText)
 //        }
         // TODO
+      case _: tileentity.Transposer =>
+          val transferRate = tag.getInteger("fluidTransferRate");
+          tooltip.add(Localization.localizeImmediately("tile.oc.transposer.tooltip", NumberFormat.getIntegerInstance.format(transferRate)))
       case _ =>
     }
 
