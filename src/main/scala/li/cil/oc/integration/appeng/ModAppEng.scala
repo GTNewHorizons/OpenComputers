@@ -37,6 +37,7 @@ object ModAppEng extends ModProxy {
     Driver.add(DriverStorageBus)
     Driver.add(DriverPartInterface)
     Driver.add(DriverPartInterfaceTerminal)
+    Driver.add(DriverPartPatternTerminal)
     Driver.add(DriverBlockInterface)
     Driver.add(DriverUpgradeAE)
 

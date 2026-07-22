@@ -5,7 +5,8 @@ import appeng.api.parts.IPartHost
 import appeng.api.util.{DimensionalCoord, IInterfaceViewable}
 import appeng.parts.AEBasePart
 import appeng.parts.p2p.PartP2PTunnel
-import appeng.parts.reporting.PartInterfaceTerminal
+import appeng.parts.reporting.{PartInterfaceTerminal, PartPatternTerminal}
+import appeng.util.inv.WrapperInvSlot
 import li.cil.oc.api.driver
 import li.cil.oc.api.driver.{EnvironmentProvider, NamedBlock}
 import li.cil.oc.api.machine.{Arguments, Callback, Context}
@@ -20,7 +21,7 @@ import net.minecraftforge.common.util.Constants.NBT
 import net.minecraftforge.common.util.ForgeDirection
 
 import java.util
-import scala.collection.JavaConversions.asScalaSet
+import scala.collection.JavaConversions.asScalaIterator
 import scala.collection.JavaConverters._
 import scala.collection.mutable
 
@@ -111,7 +112,7 @@ object DriverPartInterfaceTerminal extends driver.SidedBlock {
           case _ => ForgeDirection.UNKNOWN
         }
         val slot: Integer = args.get("slot") match {
-          case value: java.lang.Number => value.intValue
+          case value: java.lang.Number => value.intValue - 1
           case _ => -1
         }
         TransferData(location, side)(slot)
@@ -121,16 +122,13 @@ object DriverPartInterfaceTerminal extends driver.SidedBlock {
     private case class TransferTask(source: TransferData, target: TransferData)
 
     private def findMachines(targets: Array[TransferData]) = {
-      val result = mutable.Map[TransferData, IInterfaceViewable]()
-      val it = allMachines.iterator
+      val result = mutable.Map[TransferData, PatternContainer]()
+      val it = allMachines
 
       while (it.hasNext && result.size < targets.length) {
         val machine = it.next()
         val location = machine.getLocation
-        val side = machine match {
-          case part: AEBasePart => part.getSide
-          case _ => ForgeDirection.UNKNOWN
-        }
+        val side = machine.getSide
         targets.find(t => t.location == location && t.side == side).foreach { matchedData =>
           result(matchedData) = machine
         }
@@ -177,18 +175,28 @@ object DriverPartInterfaceTerminal extends driver.SidedBlock {
       }.toArray
     }
 
-    private def allMachines: Iterable[IInterfaceViewable] = {
+    private def allMachines: Iterator[PatternContainer] = {
       val grid = getGrid
-      if (grid == null) return Array.empty[IInterfaceViewable]
-      AEApi.instance().registries().interfaceTerminal().getSupportedClasses.view
-        .flatMap(c => grid.getMachines(c).asScala)
-        .map(_.getMachine.asInstanceOf[IInterfaceViewable])
-        .filter { m =>
-          m.shouldDisplay && (m match {
-            case p: PartP2PTunnel[_] => !p.isOutput
-            case _ => true
-          })
-        }
+      if (grid == null) {
+        Iterator.empty
+      }
+      else {
+        val interfaces = AEApi.instance().registries().interfaceTerminal().getSupportedClasses.iterator
+          .flatMap(c => grid.getMachines(c).asScala)
+          .map(_.getMachine)
+          .collect {
+            case m: IInterfaceViewable if m.shouldDisplay && (m match {
+              case p: PartP2PTunnel[_] => !p.isOutput
+              case _ => true
+            }) => new InterfaceAdapter(m)
+          }
+        val patternTerminals = grid.getMachines(classOf[PartPatternTerminal]).asScala.iterator
+          .map(_.getMachine)
+          .collect {
+            case t: PartPatternTerminal => new PatternTerminalAdapter(t)
+          }
+        interfaces ++ patternTerminals
+      }
     }
 
     private def getGrid = part.getActionableNode.getGrid
@@ -201,8 +209,47 @@ object DriverPartInterfaceTerminal extends driver.SidedBlock {
       else null
   }
 
-  class InterfaceViewableArrayValue(it: Iterable[IInterfaceViewable]) extends AbstractValue {
-    def this() = this(Iterable.empty)
+  trait PatternContainer {
+    def getName: String
+
+    def getPatterns: IInventory
+
+    def numSlots: Int
+
+    def getLocation: DimensionalCoord
+
+    def getSide: ForgeDirection
+  }
+
+  private class InterfaceAdapter(val machine: IInterfaceViewable) extends PatternContainer {
+    override def getName: String = machine.getName
+
+    override def getPatterns: IInventory = machine.getPatterns
+
+    override def numSlots: Int = machine.numSlots
+
+    override def getLocation: DimensionalCoord = machine.getLocation
+
+    override def getSide: ForgeDirection = machine match {
+      case part: AEBasePart => part.getSide
+      case _ => ForgeDirection.UNKNOWN
+    }
+  }
+
+  private class PatternTerminalAdapter(val terminal: PartPatternTerminal) extends PatternContainer {
+    override def getName: String = terminal.getCustomName
+
+    override def getPatterns: IInventory = new WrapperInvSlot(terminal.getInventoryByName("pattern")).getWrapper(1)
+
+    override def numSlots: Int = 1
+
+    override def getLocation: DimensionalCoord = terminal.getLocation
+
+    override def getSide: ForgeDirection = terminal.getSide
+  }
+
+  private class InterfaceViewableArrayValue(it: Iterator[PatternContainer]) extends AbstractValue {
+    def this() = this(Iterator.empty)
 
     private case class InterfaceViewableInfo(name: String, location: DimensionalCoord, side: ForgeDirection, patterns: Array[ItemStack])
 
@@ -212,7 +259,7 @@ object DriverPartInterfaceTerminal extends driver.SidedBlock {
           "name" -> info.name,
           "location" -> info.location,
           "side" -> info.side,
-          "patterns" -> info.patterns.zipWithIndex.map(_.swap).toMap
+          "patterns" -> info.patterns.zipWithIndex.map { case (pattern, id) => (id + 1, pattern) }.toMap
         )
       } else {
         Map(
@@ -226,12 +273,9 @@ object DriverPartInterfaceTerminal extends driver.SidedBlock {
     private var array = it.map { machine =>
       val name = machine.getName
       val location = machine.getLocation
-      val side = machine match {
-        case part: AEBasePart => part.getSide
-        case _ => ForgeDirection.UNKNOWN
-      }
+      val side = machine.getSide
       val patterns = machine.getPatterns
-      val patternsArray = Array.tabulate(machine.rows() * machine.rowSize()) { index =>
+      val patternsArray = Array.tabulate(machine.numSlots) { index =>
         val stack = patterns.getStackInSlot(index)
         if (stack == null) null else stack.copy()
       }
