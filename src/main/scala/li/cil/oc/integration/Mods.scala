@@ -57,6 +57,7 @@ object Mods {
   val Minecraft = new SimpleMod(IDs.Minecraft)
   val MineFactoryReloaded = new SimpleMod(IDs.MineFactoryReloaded)
   val Mystcraft = new SimpleMod(IDs.Mystcraft)
+  val NotEnoughEnergistics = new SimpleMod(IDs.NotEnoughEnergistics)
   val NotEnoughItems = new SimpleMod(IDs.NotEnoughItems)
   val NotEnoughKeys = new SimpleMod(IDs.NotEnoughKeys)
   val OpenComputers = new SimpleMod(IDs.OpenComputers)
@@ -120,6 +121,7 @@ object Mods {
     integration.mekanism.gas.ModMekanismGas,
     integration.mfr.ModMineFactoryReloaded,
     integration.mystcraft.ModMystcraft,
+    integration.nee.ModNotEnoughEnergistics,
     integration.nek.ModNotEnoughKeys,
     integration.projectred.ModProjectRed,
     integration.railcraft.ModRailcraft,
@@ -212,6 +214,7 @@ object Mods {
     final val Minecraft = "Minecraft"
     final val MineFactoryReloaded = "MineFactoryReloaded"
     final val Mystcraft = "Mystcraft"
+    final val NotEnoughEnergistics = "neenergistics"
     final val NotEnoughItems = "NotEnoughItems"
     final val NotEnoughKeys = "notenoughkeys"
     final val OpenComputers = "OpenComputers"
