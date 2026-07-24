@@ -22,7 +22,7 @@ object PartEssentiaBusBase {
     def setPartConfig[T <: AEEssentiaStack](context: Context, args: Arguments)(implicit ev: PartType <:< IIAEStackInventory): Array[AnyRef] = {
       val side = args.checkSideAny(0)
       val part = env.getPart(side)
-      val (slot, offset) = if (args.isInteger(1)) (args.checkInteger(1), 2) else (0, 1)
+      val (slot, offset) = if (args.isInteger(1)) (args.checkInteger(1) - 1, 2) else (0, 1)
       val stack = if (args.isTable(offset)) AEStackFactory.parse[AEEssentiaStack](args.checkTable(offset))
       else if (args.isString(offset)) AEStackFactory.parse[AEEssentiaStack](mapAsJavaMap(Map("name" -> args.checkString(offset))))
       else null.asInstanceOf[AEEssentiaStack]

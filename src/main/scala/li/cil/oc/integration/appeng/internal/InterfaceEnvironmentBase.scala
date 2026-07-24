@@ -27,13 +27,13 @@ trait InterfaceEnvironmentBase extends Environment {
 
   def getConfig(context: Context, args: Arguments): Array[AnyRef] = {
     val inv = getConfigInventory(context, args)
-    val slot = args.optInteger(offset, 0)
+    val slot = args.optSlot(inv, offset, 0)
     result(inv.getStackInSlot(slot))
   }
 
   def setConfig(context: Context, args: Arguments): Array[AnyRef] = {
     val inv = getConfigInventory(context, args)
-    val (slot, valOffset) = if (args.isInteger(offset)) (args.checkInteger(offset), offset + 1) else (0, offset)
+    val (slot, valOffset) = if (args.isInteger(offset)) (args.checkInteger(offset) - 1, offset + 1) else (0, offset)
     val stack = getConfigValue(node, args, valOffset)
     inv.setInventorySlotContents(slot, stack)
     result(true)

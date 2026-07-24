@@ -68,7 +68,8 @@ object PartEnvironmentBase {
     def getPartConfig(context: Context, args: Arguments)(implicit ev: PartType <:< IIAEStackInventory): Array[AnyRef] = {
       val side = args.checkSideAny(0)
       val part = env.getPart(side)
-      result(getPartConfigInternal(part, args.optInteger(1, 0)))
+      val slot = args.optInteger(1, 1) - 1
+      result(getPartConfigInternal(part, slot))
     }
 
     // NOTE: Setting a config to null won't sync to the client properly.
@@ -81,7 +82,7 @@ object PartEnvironmentBase {
     def setPartConfig[T <: IAEStack[T] : ClassTag](context: Context, args: Arguments)(implicit ev: PartType <:< IIAEStackInventory): Array[AnyRef] = {
       val side = args.checkSideAny(0)
       val part = env.getPart(side)
-      val (slot, offset) = if (args.isInteger(1)) (args.checkInteger(1), 2) else (0, 1)
+      val (slot, offset) = if (args.isInteger(1)) (args.checkInteger(1) - 1, 2) else (0, 1)
       val stack: T = if (args.isTable(offset)) AEStackFactory.parse[T](args.checkTable(offset))
       else null.asInstanceOf[T]
       setPartConfigInternal(part, slot, stack)
