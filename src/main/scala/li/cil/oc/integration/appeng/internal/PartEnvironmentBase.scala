@@ -68,7 +68,8 @@ object PartEnvironmentBase {
     def getPartConfig(context: Context, args: Arguments)(implicit ev: PartType <:< IIAEStackInventory): Array[AnyRef] = {
       val side = args.checkSideAny(0)
       val part = env.getPart(side)
-      result(getPartConfigInternal(part, args.optInteger(1, 0)))
+      val slot = args.optInteger(1, 1) - 1
+      result(getPartConfigInternal(part, slot))
     }
 
     // NOTE: Setting a config to null won't sync to the client properly.
@@ -81,9 +82,9 @@ object PartEnvironmentBase {
     def setPartConfig[T <: IAEStack[T] : ClassTag](context: Context, args: Arguments)(implicit ev: PartType <:< IIAEStackInventory): Array[AnyRef] = {
       val side = args.checkSideAny(0)
       val part = env.getPart(side)
-      val (slot, offset) = if (args.isInteger(1)) (args.checkInteger(1), 2) else (0, 1)
-      val stack: T = if (args.count() <= offset) null.asInstanceOf[T]
-      else AEStackFactory.parse[T](args.checkTable(offset))
+      val (slot, offset) = if (args.isInteger(1)) (args.checkInteger(1) - 1, 2) else (0, 1)
+      val stack: T = if (args.isTable(offset)) AEStackFactory.parse[T](args.checkTable(offset))
+      else null.asInstanceOf[T]
       setPartConfigInternal(part, slot, stack)
       result(true)
     }
@@ -105,25 +106,24 @@ trait PartSharedItemBusBase[PartType <: PartSharedItemBus[_]] extends PartEnviro
 
 object PartItemConfigurablePart {
   implicit class ConfigOps[PartType <: IPart](val env: PartEnvironmentBase[PartType]) {
-    def setPartConfig[T <: IAEStack[T] : ClassTag](context: Context, args: Arguments)(implicit ev: PartType <:< IIAEStackInventory): Array[AnyRef] = {
+    def setPartConfig[T <: IAEItemStack](context: Context, args: Arguments)(implicit ev: PartType <:< IIAEStackInventory): Array[AnyRef] = {
       val side = args.checkSideAny(0)
       val part = env.getPart(side)
-      val (slot, offset) = if (args.isInteger(1)) (args.checkInteger(1), 2) else (0, 1)
-      val stack =
-        if (args.isTable(offset)) AEStackFactory.parse[IAEItemStack](args.checkTable(offset))
-        else AEItemStack.create(DatabaseAccess.getStackFromDatabase(env.node, args, offset))
+      val (slot, offset) = if (args.isInteger(1)) (args.checkInteger(1) - 1, 2) else (0, 1)
+      val stack = if (args.isTable(offset)) AEStackFactory.parse[IAEItemStack](args.checkTable(offset))
+      else AEItemStack.create(DatabaseAccess.getStackFromDatabase(env.node, args, offset))
       env.setPartConfigInternal(part, slot, stack)
       result(true)
     }
   }
 }
 
-trait PartItemBusBase[PartType <: PartSharedItemBus[_]] extends PartSharedItemBusBase[PartType] {
+trait PartItemBusBase[PartType <: PartSharedItemBus[IAEItemStack]] extends PartSharedItemBusBase[PartType] {
   implicit def tag: ClassTag[PartType]
 }
 
 object PartItemBusBase {
-  implicit def ConfigOps[PartType <: PartSharedItemBus[_]](env: PartItemBusBase[PartType]): PartItemConfigurablePart.ConfigOps[PartType] = new PartItemConfigurablePart.ConfigOps[PartType](env)
+  implicit def ConfigOps[PartType <: PartSharedItemBus[IAEItemStack]](env: PartItemBusBase[PartType]): PartItemConfigurablePart.ConfigOps[PartType] = new PartItemConfigurablePart.ConfigOps[PartType](env)
 }
 
 trait PartStorageBusBase[PartType <: PartStorageBus] extends PartEnvironmentBase[PartType] {
