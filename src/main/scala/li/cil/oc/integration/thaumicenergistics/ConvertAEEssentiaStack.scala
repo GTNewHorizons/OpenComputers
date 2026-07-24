@@ -12,7 +12,7 @@ object ConvertAEEssentiaStack extends Converter {
   override def convert(value: Any, output: util.Map[AnyRef, AnyRef]): Unit = {
     value match {
       case stack: AEEssentiaStack =>
-        output += "name" -> stack.getAspect.getName
+        output += "name" -> stack.getAspect.getTag
         output += "amount" -> Long.box(stack.getStackSize)
         output += "label" -> stack.getLocalizedName
       case _ =>

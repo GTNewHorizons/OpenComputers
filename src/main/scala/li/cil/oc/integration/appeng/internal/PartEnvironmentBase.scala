@@ -82,8 +82,8 @@ object PartEnvironmentBase {
       val side = args.checkSideAny(0)
       val part = env.getPart(side)
       val (slot, offset) = if (args.isInteger(1)) (args.checkInteger(1), 2) else (0, 1)
-      val stack: T = if (args.count() <= offset) null.asInstanceOf[T]
-      else AEStackFactory.parse[T](args.checkTable(offset))
+      val stack: T = if (args.isTable(offset)) AEStackFactory.parse[T](args.checkTable(offset))
+      else null.asInstanceOf[T]
       setPartConfigInternal(part, slot, stack)
       result(true)
     }
@@ -109,8 +109,7 @@ object PartItemConfigurablePart {
       val side = args.checkSideAny(0)
       val part = env.getPart(side)
       val (slot, offset) = if (args.isInteger(1)) (args.checkInteger(1) - 1, 2) else (0, 1)
-      val stack = if (args.count() <= offset) null.asInstanceOf[IAEItemStack]
-      else if (args.isTable(offset)) AEStackFactory.parse[IAEItemStack](args.checkTable(offset))
+      val stack = if (args.isTable(offset)) AEStackFactory.parse[IAEItemStack](args.checkTable(offset))
       else AEItemStack.create(DatabaseAccess.getStackFromDatabase(env.node, args, offset))
       env.setPartConfigInternal(part, slot, stack)
       result(true)

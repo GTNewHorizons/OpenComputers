@@ -2,7 +2,6 @@ package li.cil.oc.integration.thaumicenergistics
 
 import appeng.api.networking.security.IActionHost
 import appeng.api.storage.IMEMonitor
-import appeng.api.storage.data.IItemList
 import appeng.me.helpers.IGridProxyable
 import appeng.util.IterationCounter
 import li.cil.oc.api.Persistable
@@ -17,6 +16,7 @@ import thaumicenergistics.common.storage.AEEssentiaStack
 import thaumicenergistics.common.storage.AEEssentiaStackType.ESSENTIA_STACK_TYPE
 
 import scala.collection.JavaConverters.iterableAsScalaIterableConverter
+import scala.collection.convert.WrapAsJava.mapAsJavaMap
 import scala.reflect.ClassTag
 
 // Note to self: this class is used by ExtraCells (and potentially others), do not rename / drastically change it.
@@ -25,26 +25,26 @@ trait NetworkControl[AETile >: Null <: TileEntity with IGridProxyable with IActi
 
   def node: Node
 
-  @Callback(doc = "function([filter: string]|detail:table):table -- Get a list of the stored essentia in the network, or a single requested essentia if a descriptor table is provided.")
+  @Callback(doc = "function([aspect: string OR detail:table]):table -- Get a list of the stored essentia in the network, or a single requested essentia if a descriptor table is provided.")
   def getEssentiaInNetwork(context: Context, args: Arguments): Array[AnyRef] = {
     val monitor = tile.getProxy.getStorage.getMEMonitor(ESSENTIA_STACK_TYPE).asInstanceOf[IMEMonitor[AEEssentiaStack]]
-    if (monitor == null) {
+    if (monitor == null)
       result(null)
-    }
-    else if (args.isTable(0)) {
-      val aeEssentiaStack = AEStackFactory.parse[AEEssentiaStack](args.checkTable(0))
-      val availableItem = monitor.getAvailableItem(aeEssentiaStack, IterationCounter.fetchNewId())
-      result(if (availableItem != null) availableItem else null)
-    }
     else {
-      val list = monitor.getStorageList.asScala
-      val filtered = if (args.isString(0)) {
-        val filter = args.checkString(0)
-        list.filter(_.getUnlocalizedName == filter)
-      } else {
-        list
+      val aestack = {
+        if (args.isTable(0))
+          Some(AEStackFactory.parse[AEEssentiaStack](args.checkTable(0)))
+        else if (args.isString(0)) {
+          val table = mapAsJavaMap(Map("name" -> args.checkString(0)))
+          Some(AEStackFactory.parse[AEEssentiaStack](table))
+        }
+        else
+          None
       }
-      result(filtered.toArray)
+      aestack match {
+        case Some(stack) => result(monitor.getAvailableItem(stack, IterationCounter.fetchNewId()))
+        case None => result(monitor.getStorageList.asScala.toArray)
+      }
     }
   }
 
