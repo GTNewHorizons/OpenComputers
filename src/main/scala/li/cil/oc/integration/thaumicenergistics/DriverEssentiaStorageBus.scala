@@ -5,7 +5,7 @@ import li.cil.oc.api.driver
 import li.cil.oc.api.driver.{EnvironmentProvider, NamedBlock}
 import li.cil.oc.api.machine.{Arguments, Callback, Context}
 import li.cil.oc.integration.ManagedTileEntityEnvironment
-import li.cil.oc.integration.appeng.internal.PartStorageBusBase
+import li.cil.oc.integration.thaumicenergistics.internal.PartEssentiaStorageBusBase
 import net.minecraft.item.ItemStack
 import net.minecraft.world.World
 import net.minecraftforge.common.util.ForgeDirection
@@ -26,7 +26,7 @@ object DriverEssentiaStorageBus extends driver.SidedBlock {
 
   override def createEnvironment(world: World, x: Int, y: Int, z: Int, side: ForgeDirection) = new Environment(world.getTileEntity(x, y, z).asInstanceOf[IPartHost])
 
-  final class Environment(val host: IPartHost)(implicit val tag: ClassTag[PartEssentiaStorageBus]) extends ManagedTileEntityEnvironment[IPartHost](host, "essentia_storagebus") with NamedBlock with PartStorageBusBase[PartEssentiaStorageBus] {
+  final class Environment(val host: IPartHost)(implicit val tag: ClassTag[PartEssentiaStorageBus]) extends ManagedTileEntityEnvironment[IPartHost](host, "essentia_storagebus") with NamedBlock with PartEssentiaStorageBusBase[PartEssentiaStorageBus] {
     override def preferredName = "essentia_storagebus"
 
     override def priority = 2
@@ -34,7 +34,7 @@ object DriverEssentiaStorageBus extends driver.SidedBlock {
     @Callback(doc = "function(side:number[, slot:number]):boolean -- Get the configuration of the storage bus pointing in the specified direction.")
     def getStorageConfiguration(context: Context, args: Arguments): Array[AnyRef] = this.getPartConfig(context, args)
 
-    @Callback(doc = "function(side:number[, slot:number][, database:address, entry:number]):boolean OR function(side:number[, slot:number][, detail:table]):boolean -- Configure the storage bus pointing in the specified direction to storage item stacks matching the specified descriptor.")
+    @Callback(doc = "function(side:number[, slot:number][, aspect:string OR detail:table]):boolean -- Configure the storage bus pointing in the specified direction to storage item stacks matching the specified descriptor.")
     def setStorageConfiguration(context: Context, args: Arguments): Array[AnyRef] = this.setPartConfig[AEEssentiaStack](context, args)
 
     @Callback(doc = "function(side:number):boolean -- Get the ore filter of the storage bus pointing in the specified direction.")

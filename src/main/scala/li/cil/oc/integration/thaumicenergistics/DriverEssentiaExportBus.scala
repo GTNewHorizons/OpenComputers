@@ -5,7 +5,7 @@ import li.cil.oc.api.driver
 import li.cil.oc.api.driver.{EnvironmentProvider, NamedBlock}
 import li.cil.oc.api.machine.{Arguments, Callback, Context}
 import li.cil.oc.integration.ManagedTileEntityEnvironment
-import li.cil.oc.integration.appeng.internal.PartSharedItemBusBase
+import li.cil.oc.integration.thaumicenergistics.internal.PartEssentiaBusBase
 import li.cil.oc.util.ExtendedArguments._
 import li.cil.oc.util.ResultWrapper._
 import net.minecraft.item.ItemStack
@@ -28,7 +28,7 @@ object DriverEssentiaExportBus extends driver.SidedBlock {
 
   override def createEnvironment(world: World, x: Int, y: Int, z: Int, side: ForgeDirection) = new Environment(world, world.getTileEntity(x, y, z).asInstanceOf[IPartHost])
 
-  final class Environment(val world: World, val host: IPartHost)(implicit val tag: ClassTag[PartEssentiaExportBus]) extends ManagedTileEntityEnvironment[IPartHost](host, "essentia_exportbus") with NamedBlock with PartSharedItemBusBase[PartEssentiaExportBus] {
+  final class Environment(val world: World, val host: IPartHost)(implicit val tag: ClassTag[PartEssentiaExportBus]) extends ManagedTileEntityEnvironment[IPartHost](host, "essentia_exportbus") with NamedBlock with PartEssentiaBusBase[PartEssentiaExportBus] {
     override def preferredName = "essentia_exportbus"
 
     override def priority = 2
@@ -36,7 +36,7 @@ object DriverEssentiaExportBus extends driver.SidedBlock {
     @Callback(doc = "function(side:number[, slot:number]):string -- Get the configuration of the export bus pointing in the specified direction.")
     def getExportConfiguration(context: Context, args: Arguments): Array[AnyRef] = this.getPartConfig(context, args)
 
-    @Callback(doc = "function(side:number[, slot:number][, aspect:string]):boolean -- Configure the export bus pointing in the specified direction to export essentia matching the specified type.")
+    @Callback(doc = "function(side:number[, slot:number][, aspect:string OR detail:table]):boolean -- Configure the export bus pointing in the specified direction to export essentia matching the specified type.")
     def setExportConfiguration(context: Context, args: Arguments): Array[AnyRef] = this.setPartConfig[AEEssentiaStack](context, args)
 
     @Callback(doc = "function(side:number):number -- Get the number of valid slots in this export bus.")
