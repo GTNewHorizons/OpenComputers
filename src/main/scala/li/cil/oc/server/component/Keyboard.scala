@@ -89,17 +89,46 @@ class Keyboard(val host: EnvironmentHost) extends prefab.ManagedEnvironment with
         }
       case Array(p: EntityPlayer, value: String) if message.name == "keyboard.clipboard" =>
         if (isUseableByPlayer(p)) {
-          for (line <- value.linesWithSeparators) {
+          // linesWithSeparators is used here deliberately: unlike lines it
+          // retains the newline characters. The helper then fills parts by
+          // character capacity, crossing line boundaries when possible and
+          // splitting individual long lines when necessary.
+          for (part <- clipboardParts(value)) {
             if (Settings.get.inputUsername) {
-              signal(p, "clipboard", line, p.getCommandSenderName)
+              signal(p, "clipboard", part, p.getCommandSenderName)
             }
             else {
-              signal(p, "clipboard", line)
+              signal(p, "clipboard", part)
             }
           }
         }
       case _ =>
     }
+  }
+
+  private def clipboardParts(value: String): Iterator[String] = {
+    val limit = Settings.get.maxClipboard max 1
+    val parts = mutable.ArrayBuffer.empty[String]
+    val current = new mutable.StringBuilder
+
+    for (line <- value.linesWithSeparators) {
+      var offset = 0
+      while (offset < line.length) {
+        val count = math.min(limit - current.length, line.length - offset)
+        current.append(line.substring(offset, offset + count))
+        offset += count
+
+        if (current.length == limit) {
+          parts += current.toString()
+          current.clear()
+        }
+      }
+    }
+
+    if (current.nonEmpty) {
+      parts += current.toString()
+    }
+    parts.iterator
   }
 
   // ----------------------------------------------------------------------- //
