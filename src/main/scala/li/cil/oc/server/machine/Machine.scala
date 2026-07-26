@@ -102,6 +102,11 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
 
   private var cost = Settings.get.computerCost * Settings.get.tickFrequency
 
+  // A clipboard event is input transport, not a computer operation. Keep
+  // track of it so the tick that only moves clipboard data through the
+  // machine does not drain the machine's energy buffer.
+  @volatile private var processingClipboardSignal = false
+
   private val maxSignalQueueSize = Settings.get.maxSignalQueueSize
 
   // ----------------------------------------------------------------------- //
@@ -363,7 +368,14 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
     true
   }
 
-  override def popSignal(): Machine.Signal = signals.synchronized(if (signals.isEmpty) null else signals.dequeue().convert())
+  override def popSignal(): Machine.Signal = signals.synchronized {
+    val signal = if (signals.isEmpty) null else signals.dequeue()
+    // popSignal is called when Lua has finished the previous event and asks
+    // for the next one. Keep this flag set across direct-call budget yields
+    // and synchronized callbacks until that happens.
+    processingClipboardSignal = signal != null && signal.name == "clipboard"
+    if (signal == null) null else signal.convert()
+  }
 
   override def methods(value: scala.AnyRef) = Callbacks(value).map(entry => {
     val (name, callback) = entry
@@ -526,6 +538,9 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
              Machine.State.Restarting |
              Machine.State.Stopping |
              Machine.State.Stopped => // No power consumption.
+        case _ if isClipboardPowerFree =>
+          // Clipboard transport itself is free. The Lua code and any screen
+          // rendering it performs still use their normal component costs.
         case Machine.State.Sleeping if remainIdle > 0 && signals.isEmpty =>
           if (!node.tryChangeBuffer(-cost * Settings.get.sleepCostFactor)) {
             crash("gui.Error.NoEnergy")
@@ -638,6 +653,16 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
         if (message.name == "computer.start" && !isPaused) start()
         else if (message.name == "computer.stop") stop()
     }
+  }
+
+  /**
+   * Clipboard input is delivered as ordinary machine signals, but it should
+   * not make a sleeping machine pay a full running tick merely because input
+   * arrived. This also covers the tick after the worker has popped the
+   * signal, when the queue may already be empty.
+   */
+  private def isClipboardPowerFree: Boolean = signals.synchronized {
+    processingClipboardSignal || signals.nonEmpty && signals.forall(_.name == "clipboard")
   }
 
   override def onConnect(node: Node) {

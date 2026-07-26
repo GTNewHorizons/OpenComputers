@@ -343,6 +343,7 @@ class Settings(val config: Config) {
   val maxScreenWidth = config.getInt("misc.maxScreenWidth") max 1
   val maxScreenHeight = config.getInt("misc.maxScreenHeight") max 1
   val inputUsername = config.getBoolean("misc.inputUsername")
+  val maxClipboard = config.getInt("misc.maxClipboard") max 1
   val initialNetworkPacketTTL = config.getInt("misc.initialNetworkPacketTTL") max 5
   val maxNetworkPacketSize = config.getInt("misc.maxNetworkPacketSize") max 0
   // Need at least 4 for nanomachine protocol. Because I can!
@@ -792,4 +793,3 @@ object Settings {
       default.getOrElse(new java.util.LinkedList[Integer]())
   }
 }
-
