@@ -10,11 +10,13 @@ import li.cil.oc.api.network.Node
 import li.cil.oc.common.EventHandler
 import li.cil.oc.integration.appeng.AEUtil
 import li.cil.oc.integration.appeng.NetworkControl.convert
+import li.cil.oc.util.ExtendedNBT.mapToNbtRecursively
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.tileentity.TileEntity
 
 import java.lang
 import scala.collection.JavaConversions.iterableAsScalaIterable
+import scala.collection.convert.WrapAsScala.mapAsScalaMap
 import scala.collection.mutable.ArrayBuffer
 import scala.reflect.ClassTag
 
@@ -55,7 +57,7 @@ trait SubscriptionBase[T <: IAEStack[T]] extends IMEMonitorHandlerReceiver[T] wi
   override def postChange(monitor: IBaseMonitor[T], change: lang.Iterable[T], actionSource: BaseActionSource): Unit = {
     if (subscribe && tile != null) {
       val flatArgs = ArrayBuffer[Object](event_name)
-      flatArgs ++= change.map(convert(_, tile))
+      flatArgs ++= change.map(stack => mapToNbtRecursively(mapAsScalaMap(convert(stack, tile))))
       node.sendToReachable("computer.signal", flatArgs: _*)
     }
   }
