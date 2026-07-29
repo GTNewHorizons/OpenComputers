@@ -344,6 +344,9 @@ class Settings(val config: Config) {
   val maxScreenHeight = config.getInt("misc.maxScreenHeight") max 1
   val inputUsername = config.getBoolean("misc.inputUsername")
   val maxClipboard = config.getInt("misc.maxClipboard") max 1
+  val maxDropFileCount = config.getInt("misc.maxDropFileCount") max 0
+  val maxDropFileNameLength = 128
+  val maxDropFileSize = config.getInt("misc.maxDropFileSize") min 4 * 1024 * 1024
   val initialNetworkPacketTTL = config.getInt("misc.initialNetworkPacketTTL") max 5
   val maxNetworkPacketSize = config.getInt("misc.maxNetworkPacketSize") max 0
   // Need at least 4 for nanomachine protocol. Because I can!

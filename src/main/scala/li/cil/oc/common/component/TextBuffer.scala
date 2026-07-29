@@ -36,6 +36,7 @@ import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.event.world.ChunkEvent
 import net.minecraftforge.event.world.WorldEvent
 
+import java.nio.charset.StandardCharsets
 import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
@@ -381,7 +382,7 @@ class TextBuffer(val host: EnvironmentHost) extends prefab.ManagedEnvironment wi
   override def clipboard(value: String, player: EntityPlayer): Unit =
     proxy.clipboard(value, player)
 
-  override def dropFile(fileName: String, fileContent: String, player: EntityPlayer): Unit =
+  override def dropFile(fileName: String, fileContent: Array[Byte], player: EntityPlayer): Unit =
     proxy.dropFile(fileName, fileContent, player)
 
   override def mouseDown(x: Double, y: Double, button: Int, player: EntityPlayer): Unit =
@@ -603,7 +604,7 @@ object TextBuffer {
 
     def clipboard(value: String, player: EntityPlayer): Unit
 
-    def dropFile(fileName: String, fileContent: String, player: EntityPlayer): Unit
+    def dropFile(fileName: String, fileContent: Array[Byte], player: EntityPlayer): Unit
 
     def mouseDown(x: Double, y: Double, button: Int, player: EntityPlayer): Unit
 
@@ -698,7 +699,7 @@ object TextBuffer {
       ClientPacketSender.sendClipboard(nodeAddress, value)
     }
 
-    override def dropFile(fileName: String, fileContent: String, player: EntityPlayer) {
+    override def dropFile(fileName: String, fileContent: Array[Byte], player: EntityPlayer) {
       debug(s"{type = dropFile}")
       ClientPacketSender.sendDropFile(nodeAddress, fileName, fileContent)
     }
@@ -841,9 +842,11 @@ object TextBuffer {
         sendToKeyboards("keyboard.clipboard", player, value)
     }
 
-    override def dropFile(fileName: String, fileContent: String, player: EntityPlayer): Unit = {
-      if (owner.isUseableByPlayer(player))
-        owner.node.sendToReachable("computer.checked_signal", player, "drop_file", fileName, fileContent)
+    override def dropFile(fileName: String, fileContent: Array[Byte], player: EntityPlayer): Unit = {
+      if (owner.isUseableByPlayer(player)) {
+        val content = new String(fileContent, StandardCharsets.UTF_8)
+        owner.node.sendToReachable("computer.checked_signal", player, "drop_file", fileName, content)
+      }
     }
 
     override def mouseDown(x: Double, y: Double, button: Int, player: EntityPlayer) {

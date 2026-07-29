@@ -1,9 +1,8 @@
 package li.cil.oc.client
 
-import li.cil.oc.Settings
-import li.cil.oc.common.CompressedPacketBuilder
-import li.cil.oc.common.PacketType
-import li.cil.oc.common.SimplePacketBuilder
+import cpw.mods.fml.common.network.internal.FMLProxyPacket
+import li.cil.oc.{Localization, Settings}
+import li.cil.oc.common.{CompressedPacketBuilder, PacketFlags, PacketType, SimplePacketBuilder}
 import li.cil.oc.common.entity.Drone
 import li.cil.oc.common.tileentity._
 import li.cil.oc.common.tileentity.traits.Computer
@@ -12,6 +11,10 @@ import net.minecraft.client.audio.PositionedSoundRecord
 import net.minecraft.item.ItemStack
 import net.minecraft.util.ResourceLocation
 import net.minecraftforge.common.util.ForgeDirection
+
+import java.io.ByteArrayOutputStream
+import java.nio.charset.StandardCharsets
+import java.util.zip.{Deflater, DeflaterOutputStream}
 
 object PacketSender {
   // The server can queue this many clipboard chunks. Keep the client-side
@@ -76,12 +79,16 @@ object PacketSender {
     pb.sendToServer()
   }
 
+  private def playErrorSound(): Unit = {
+    val player = Minecraft.getMinecraft.thePlayer
+    val handler = Minecraft.getMinecraft.getSoundHandler
+    handler.playSound(new PositionedSoundRecord(new ResourceLocation("note.harp"), 1, 1, player.posX.toFloat, player.posY.toFloat, player.posZ.toFloat))
+  }
+
   def sendClipboard(address: String, value: String) {
     if (value != null && !value.isEmpty) {
       if (value.length.toLong > maxClipboardLength || System.currentTimeMillis() < clipboardCooldown) {
-        val player = Minecraft.getMinecraft.thePlayer
-        val handler = Minecraft.getMinecraft.getSoundHandler
-        handler.playSound(new PositionedSoundRecord(new ResourceLocation("note.harp"), 1, 1, player.posX.toFloat, player.posY.toFloat, player.posZ.toFloat))
+        playErrorSound()
       }
       else {
         clipboardCooldown = System.currentTimeMillis() + value.length / 10
@@ -97,21 +104,37 @@ object PacketSender {
     }
   }
 
-  def sendDropFile(address: String, name: String, content: String): Unit = {
-      val length = name.length + content.length
-      if (length > 64 * 1024) {
-        val player = Minecraft.getMinecraft.thePlayer
-        val handler = Minecraft.getMinecraft.getSoundHandler
-        handler.playSound(new PositionedSoundRecord(new ResourceLocation("note.harp"), 1, 1, player.posX.toFloat, player.posY.toFloat, player.posZ.toFloat))
+  def sendDropFile(address: String, name: String, content: Array[Byte]): Unit = {
+      if (content.length > Settings.get.maxDropFileSize) {
+        playErrorSound()
+        Minecraft.getMinecraft.thePlayer.addChatMessage(Localization.InputBuffer.FileTooLarge)
       }
       else {
-        val pb = new CompressedPacketBuilder(PacketType.DropFile)
-
-        pb.writeUTF(address)
-        pb.writeUTF(name)
-        pb.writeUTF(content)
-
-        pb.sendToServer()
+        val data = new ByteArrayOutputStream()
+        val stream = new DeflaterOutputStream(data, new Deflater(Deflater.BEST_SPEED))
+        stream.write(content)
+        stream.close()
+        // 1(compress) + 38(address) + 514(name) + 8(size) + 1(flag) + 8(size) = 570
+        val chunks = data.toByteArray.grouped(31 * 1024).toArray
+        val size = chunks.map(_.length).sum
+        for (i <- chunks.indices) {
+          val chunk = chunks(i)
+          val pb = new SimplePacketBuilder(PacketType.DropFile)
+          val flag = PacketFlags.DropFile.Chunk |
+            (if (i == 0) PacketFlags.DropFile.Start else 0) |
+            (if (i == chunks.length - 1) PacketFlags.DropFile.End else 0)
+          pb.writeByte(flag)
+          if (i == 0) {
+            pb.writeUTF(address)
+            pb.writeUTF(name)
+            pb.writeInt(size)
+          }
+          pb.writeShort(chunk.length)
+          pb.write(chunk)
+          if (i == chunks.length - 1)
+            pb.writeInt(content.length)
+          pb.sendToServer()
+        }
       }
   }
 
