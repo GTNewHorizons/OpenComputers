@@ -17,7 +17,7 @@ import net.minecraft.world.World;
  * */
 public final class UpgradeBeekeeperUtil {
 
-    private static final boolean GT_LOADED = Loader.isModLoaded("gregtech");
+    private static final boolean GT_LOADED = Loader.isModLoaded("gregtech_nh");
     private UpgradeBeekeeperUtil() {}
 
     /** Returns an IBeeHousing TileEntity at position pos. Can be an Industrial Apiary */
