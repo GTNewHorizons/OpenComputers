@@ -7,8 +7,9 @@ import appeng.api.networking.crafting.{CraftingItemList, ICraftingLink, ICraftin
 import appeng.api.networking.security.{BaseActionSource, IActionHost, MachineSource}
 import appeng.api.networking.storage.IBaseMonitor
 import appeng.api.storage.data.{IAEFluidStack, IAEItemStack, IAEStack, IItemList}
-import appeng.api.storage.{IMEInventory, IMEMonitor, IMEMonitorHandlerReceiver}
+import appeng.api.storage.{IMEMonitor, IMEMonitorHandlerReceiver}
 import appeng.api.util.AECableType
+import appeng.me.GridAccessException
 import appeng.me.cluster.implementations.CraftingCPUCluster
 import appeng.me.helpers.IGridProxyable
 import appeng.tile.crafting.TileCraftingMonitorTile
@@ -334,6 +335,17 @@ trait NetworkControl[AETile >: Null <: TileEntity with IGridProxyable with IActi
 }
 
 object NetworkControl extends AETypes {
+  def getMonitor[T <: IAEStack[T] : ClassTag](controller: IGridProxyable): Option[IMEMonitor[T]] = {
+    for {
+      c <- Option(controller)
+      entry <- AEStackFactory.getEntry[T]()
+      inv <- try {
+        Option(c.getProxy.getStorage.getMEMonitor(entry.stackType).asInstanceOf[IMEMonitor[T]])
+      } catch {
+        case _: GridAccessException => None
+      }
+    } yield inv
+  }
 
   //noinspection ScalaUnusedSymbol
   private class Craftable(var controller: TileEntity with IGridProxyable with IActionHost, var stack: AEStack) extends AbstractValue with ICraftingRequester {
@@ -592,7 +604,7 @@ object NetworkControl extends AETypes {
   private abstract class NetworkContents[T <: IAEStack[T] : ClassTag](var controller: TileEntity with IGridProxyable with IActionHost) extends AbstractValue with IMEMonitorHandlerReceiver[T] {
     def this() = this(null)
 
-    private def getMonitor: Option[IMEMonitor[T]] = AEUtil.getMonitor[T](controller)
+    private def getMonitor: Option[IMEMonitor[T]] = NetworkControl.getMonitor[T](controller)
 
     private var items: IItemList[T] = null
     private var itemIterator: java.util.Iterator[T] = null

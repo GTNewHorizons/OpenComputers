@@ -1,19 +1,15 @@
 package li.cil.oc.integration.appeng
 
 import appeng.api.AEApi
-import appeng.api.storage.IMEMonitor
-import appeng.api.storage.data.IAEStack
-import appeng.me.GridAccessException
-import appeng.me.helpers.IGridProxyable
+import appeng.parts.p2p.PartP2PItems
 import cpw.mods.fml.common.Loader
 import cpw.mods.fml.common.versioning.VersionRange
 import li.cil.oc.api
 import li.cil.oc.common.item.Delegator
 import li.cil.oc.common.item.data.{DroneData, RobotData}
 import li.cil.oc.integration.Mods
+import net.minecraft.inventory.IInventory
 import net.minecraft.item.ItemStack
-
-import scala.reflect.ClassTag
 
 object AEUtil {
   val versionsWithNewItemDefinitionAPI = VersionRange.createFromVersionSpec("[rv2-beta-20,)")
@@ -140,6 +136,8 @@ object AEUtil {
     AEApi.instance.definitions.parts.storageBus.isSameAs(stack)
   }
 
+  def isPartP2PItems(inventory: IInventory): Boolean = inventory.isInstanceOf[PartP2PItems]
+
   def isRobot(stack: ItemStack): Boolean =
     api.Items.get(stack) == api.Items.get("robot")
 
@@ -164,17 +162,5 @@ object AEUtil {
       }
     }
     null
-  }
-
-  def getMonitor[T <: IAEStack[T] : ClassTag](controller: IGridProxyable): Option[IMEMonitor[T]] = {
-    for {
-      c <- Option(controller)
-      entry <- AEStackFactory.getEntry[T]()
-      inv <- try {
-        Option(c.getProxy.getStorage.getMEMonitor(entry.stackType).asInstanceOf[IMEMonitor[T]])
-      } catch {
-        case _: GridAccessException => None
-      }
-    } yield inv
   }
 }

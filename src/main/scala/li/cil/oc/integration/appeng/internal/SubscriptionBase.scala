@@ -8,8 +8,7 @@ import appeng.me.helpers.IGridProxyable
 import li.cil.oc.api.Persistable
 import li.cil.oc.api.network.Node
 import li.cil.oc.common.EventHandler
-import li.cil.oc.integration.appeng.AEUtil
-import li.cil.oc.integration.appeng.NetworkControl.convert
+import li.cil.oc.integration.appeng.NetworkControl.{convert, getMonitor}
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.tileentity.TileEntity
 
@@ -36,7 +35,7 @@ trait SubscriptionBase[T <: IAEStack[T]] extends IMEMonitorHandlerReceiver[T] wi
 
   private def updateSubscribe(): Unit = {
     if (tile.isInvalid) return
-    AEUtil.getMonitor[T](tile) match {
+    getMonitor[T](tile) match {
       case Some(inv) =>
         if (subscribe)
           inv.addListener(this, null)
