@@ -2,6 +2,7 @@ package li.cil.oc.server
 
 import cpw.mods.fml.common.eventhandler.SubscribeEvent
 import cpw.mods.fml.common.network.FMLNetworkEvent.ServerCustomPacketEvent
+import li.cil.oc.{Localization, OpenComputers, Settings, api}
 import li.cil.oc.api.internal.Server
 import li.cil.oc.api.machine.Machine
 import li.cil.oc.common.component.TextBuffer
@@ -23,12 +24,6 @@ import org.apache.logging.log4j.MarkerManager
 
 object PacketHandler extends CommonPacketHandler {
   private val securityMarker = MarkerManager.getMarker("SuspiciousPackets")
-
-  // Server-side cap on client-supplied text (clipboard paste, dropped files).
-  // The client enforces the same 64KB limit, but a modified client can omit it,
-  // so we must re-check here rather than trust the sender.
-  private val maxClientTextLength = 64 * 1024
-
   private def isFinite(f: Float): Boolean = !f.isNaN && !f.isInfinity
 
   private def isPlayerWatchingHost(player: EntityPlayerMP, host: api.network.EnvironmentHost): Boolean = host.world match {
@@ -205,7 +200,7 @@ object PacketHandler extends CommonPacketHandler {
   def onClipboard(p: PacketParser): Unit = {
     val address = p.readUTF()
     val copy = p.readUTF()
-    if (copy.length > maxClientTextLength) return // Oversized; likely a forged client.
+    if (copy.length > Settings.get.maxClipboardLength) return // Oversized; likely a forged client.
     ComponentTracker.get(p.player.worldObj, address) match {
       case Some(buffer: api.internal.TextBuffer) => buffer.clipboard(copy, p.player.asInstanceOf[EntityPlayer])
       case _ => // Invalid Packet

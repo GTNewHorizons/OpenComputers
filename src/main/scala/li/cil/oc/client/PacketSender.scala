@@ -17,12 +17,6 @@ import java.nio.charset.StandardCharsets
 import java.util.zip.{Deflater, DeflaterOutputStream}
 
 object PacketSender {
-  // The server can queue this many clipboard chunks. Keep the client-side
-  // whole-paste limit in line with that capacity instead of imposing the
-  // unrelated historical 64 KiB limit.
-  private def maxClipboardLength: Long =
-    Settings.get.maxClipboard.toLong * Settings.get.maxSignalQueueSize
-
   // Timestamp after which the next clipboard message may be sent. Used to
   // avoid spamming large packets on key repeat.
   protected var clipboardCooldown = 0L
@@ -87,9 +81,8 @@ object PacketSender {
 
   def sendClipboard(address: String, value: String) {
     if (value != null && !value.isEmpty) {
-      if (value.length.toLong > maxClipboardLength || System.currentTimeMillis() < clipboardCooldown) {
+      if (value.length > Settings.get.maxClipboardLength || System.currentTimeMillis() < clipboardCooldown)
         playErrorSound()
-      }
       else {
         clipboardCooldown = System.currentTimeMillis() + value.length / 10
         for (part <- value.grouped(16 * 1024)) {
