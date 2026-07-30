@@ -89,11 +89,8 @@ class Keyboard(val host: EnvironmentHost) extends prefab.ManagedEnvironment with
         }
       case Array(p: EntityPlayer, value: String) if message.name == "keyboard.clipboard" =>
         if (isUseableByPlayer(p)) {
-          // linesWithSeparators is used here deliberately: unlike lines it
-          // retains the newline characters. The helper then fills parts by
-          // character capacity, crossing line boundaries when possible and
-          // splitting individual long lines when necessary.
-          for (part <- clipboardParts(value)) {
+          val it = if (Settings.get.enableClipboardBatching) clipboardParts(value) else value.linesWithSeparators
+          for (part <- it) {
             if (Settings.get.inputUsername) {
               signal(p, "clipboard", part, p.getCommandSenderName)
             }
@@ -106,8 +103,12 @@ class Keyboard(val host: EnvironmentHost) extends prefab.ManagedEnvironment with
     }
   }
 
+  // linesWithSeparators is used here deliberately: unlike lines it
+  // retains the newline characters. The helper then fills parts by
+  // character capacity, crossing line boundaries when possible and
+  // splitting individual long lines when necessary.
   private def clipboardParts(value: String): Iterator[String] = {
-    val limit = Settings.get.maxClipboard max 1
+    val limit = Settings.get.clipboardBatchSize max 1
     val parts = mutable.ArrayBuffer.empty[String]
     val current = new mutable.StringBuilder
 
