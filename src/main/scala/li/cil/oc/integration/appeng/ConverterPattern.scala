@@ -26,6 +26,8 @@ object ConverterPattern extends Converter {
             output += "inputs" -> inputs
             output += "outputs" -> outputs
             output += "isCraftable" -> Boolean.box(encodedValue.getBoolean("crafting"))
+            output += "substitute" -> Boolean.box(encodedValue.getBoolean("substitute"))
+            output += "beSubstitute" -> Boolean.box(encodedValue.getBoolean("beSubstitute"))
           }
         } catch {
           case ignored: Throwable =>
