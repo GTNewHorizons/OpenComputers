@@ -21,7 +21,7 @@ object DropFileManager {
       case Some(buffer: api.internal.TextBuffer) =>
         if (sessions.getIfPresent(player.getUniqueID) != null)
           OpenComputers.log.warn(s"Player ${player.getCommandSenderName} started a new drop file before finishing the previous one. Overwriting.")
-        val session = new DropFileSession(fileName, compressedSize, player, buffer)
+        val session = new DropFileSession(fileName, compressedSize, player.getUniqueID, player.getCommandSenderName, buffer)
         sessions.put(player.getUniqueID, session)
       case _ =>
         OpenComputers.log.warn(s"Drop file target not found for address $address")
@@ -50,6 +50,13 @@ object DropFileManager {
       sessions.invalidate(player.getUniqueID)
     } else {
       OpenComputers.log.warn(s"Received orphan drop file end from ${player.getCommandSenderName}.")
+    }
+  }
+
+  def clearSession(playerUUID: UUID): Unit = {
+    val session = sessions.getIfPresent(playerUUID)
+    if (session != null) {
+      sessions.invalidate(playerUUID)
     }
   }
 }
