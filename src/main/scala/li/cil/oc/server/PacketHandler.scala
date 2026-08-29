@@ -14,7 +14,6 @@ import li.cil.oc.common.tileentity._
 import li.cil.oc.common.tileentity.traits.Computer
 import li.cil.oc.common.{Achievement, PacketFlags, PacketType, container, PacketHandler => CommonPacketHandler}
 import li.cil.oc.integration.fmp.EventHandler
-import li.cil.oc.{Localization, OpenComputers, Settings, api}
 import net.minecraft.entity.player.{EntityPlayer, EntityPlayerMP}
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.network.NetHandlerPlayServer

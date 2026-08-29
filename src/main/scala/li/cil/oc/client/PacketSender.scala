@@ -1,6 +1,5 @@
 package li.cil.oc.client
 
-import cpw.mods.fml.common.network.internal.FMLProxyPacket
 import li.cil.oc.{Localization, Settings}
 import li.cil.oc.common.{CompressedPacketBuilder, PacketFlags, PacketType, SimplePacketBuilder}
 import li.cil.oc.common.entity.Drone
@@ -13,7 +12,6 @@ import net.minecraft.util.ResourceLocation
 import net.minecraftforge.common.util.ForgeDirection
 
 import java.io.ByteArrayOutputStream
-import java.nio.charset.StandardCharsets
 import java.util.zip.{Deflater, DeflaterOutputStream}
 
 object PacketSender {
