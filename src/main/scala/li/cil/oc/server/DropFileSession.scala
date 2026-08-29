@@ -9,7 +9,7 @@ import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
 import java.util.zip.InflaterInputStream
 
 class DropFileSession(fileName: String, compressedSize: Int, player: EntityPlayer, target: api.internal.TextBuffer) {
-  private val compressed = new ByteArrayOutputStream(compressedSize)
+  private val compressed = new ByteArrayOutputStream(math.min(compressedSize, 32 * 1024))
 
   def onDropFileChunk(data: Array[Byte]): Boolean = {
     if (compressed.size() + data.length <= compressedSize) {
