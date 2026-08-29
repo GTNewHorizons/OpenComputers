@@ -14,7 +14,7 @@ import li.cil.oc.common.tileentity._
 import li.cil.oc.common.tileentity.traits.Computer
 import li.cil.oc.common.{Achievement, PacketFlags, PacketType, container, PacketHandler => CommonPacketHandler}
 import li.cil.oc.integration.fmp.EventHandler
-import li.cil.oc.{Localization, OpenComputers, api}
+import li.cil.oc.{Localization, OpenComputers, Settings, api}
 import net.minecraft.entity.player.{EntityPlayer, EntityPlayerMP}
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.network.NetHandlerPlayServer
@@ -212,6 +212,7 @@ object PacketHandler extends CommonPacketHandler {
     if ((flag & PacketFlags.DropFile.Start) != 0) {
       val address = p.readUTF()
       val fileName = p.readUTF()
+      if (fileName.length > Settings.get.maxDropFileNameLength) return
       val size = p.readInt()
       DropFileManager.onDropFileStart(address, fileName, size, p.player)
     }
