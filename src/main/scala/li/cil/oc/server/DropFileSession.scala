@@ -3,6 +3,7 @@ package li.cil.oc.server
 import li.cil.oc.{OpenComputers, api}
 import net.minecraft.entity.player.EntityPlayer
 import org.apache.commons.io.IOUtils
+import org.apache.commons.io.input.BoundedInputStream
 
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
 import java.util.zip.InflaterInputStream
@@ -27,7 +28,7 @@ class DropFileSession(fileName: String, compressedSize: Int, player: EntityPlaye
     }
     val uncompressed = new InflaterInputStream(new ByteArrayInputStream(compressed.toByteArray))
     try {
-      val content = IOUtils.toByteArray(uncompressed)
+      val content = IOUtils.toByteArray(new BoundedInputStream(uncompressed, unCompressedSize.toLong + 1))
       if (content.length == unCompressedSize)
         target.dropFile(fileName, content, player)
       else
