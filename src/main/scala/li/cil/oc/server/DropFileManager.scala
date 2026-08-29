@@ -18,6 +18,10 @@ object DropFileManager {
   }
 
   def onDropFileStart(address: String, fileName: String, compressedSize: Int, player: EntityPlayer): Unit = {
+    if (fileName.length > Settings.get.maxDropFileNameLength) {
+      OpenComputers.log.warn(s"Rejected drop file from ${player.getCommandSenderName}: File name is too long!")
+      return
+    }
     if (!getRateLimiter(player.getUniqueID).tryRequest()) {
       OpenComputers.log.warn(s"Player ${player.getCommandSenderName} is dropping files too fast.")
       player.addChatMessage(Localization.InputBuffer.TooFrequentFiles)

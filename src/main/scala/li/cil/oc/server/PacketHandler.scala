@@ -211,7 +211,6 @@ object PacketHandler extends CommonPacketHandler {
     if ((flag & PacketFlags.DropFile.Start) != 0) {
       val address = p.readUTF()
       val fileName = p.readUTF()
-      if (fileName.length > Settings.get.maxDropFileNameLength) return
       val size = p.readInt()
       DropFileManager.onDropFileStart(address, fileName, size, p.player)
     }
