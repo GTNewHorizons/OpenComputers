@@ -159,7 +159,7 @@ trait InputBuffer extends DisplayBuffer {
       val allFiles = getFiles(filePath)
       if (allFiles.size > Settings.get.maxDropFileCount) {
         EventHandler.scheduleClient(() => {
-          this.mc.thePlayer.addChatMessage(Localization.InputBuffer.TooMuchFiles)
+          this.mc.thePlayer.addChatMessage(Localization.InputBuffer.TooManyFiles)
           playErrorSound()
         })
       }
