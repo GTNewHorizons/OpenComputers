@@ -19,7 +19,7 @@ object DropFileManager {
 
   def onDropFileStart(address: String, fileName: String, compressedSize: Int, player: EntityPlayer): Unit = {
     if (!getRateLimiter(player.getUniqueID).tryRequest()) {
-      OpenComputers.log.warn(s"Player ${player.getCommandSenderName} is dropping files too fast.");
+      OpenComputers.log.warn(s"Player ${player.getCommandSenderName} is dropping files too fast.")
       player.addChatMessage(Localization.InputBuffer.TooFrequentFiles)
       return
     }
@@ -32,7 +32,7 @@ object DropFileManager {
       case Some(buffer: api.internal.TextBuffer) =>
         if (sessions.getIfPresent(player.getUniqueID) != null)
           OpenComputers.log.warn(s"Player ${player.getCommandSenderName} started a new drop file before finishing the previous one. Overwriting.")
-        val session = new DropFileSession(fileName, compressedSize, player.getUniqueID, player.getCommandSenderName, buffer)
+        val session = new DropFileSession(fileName, compressedSize, buffer)
         sessions.put(player.getUniqueID, session)
       case _ =>
         OpenComputers.log.warn(s"Drop file target not found for address $address")
@@ -42,7 +42,7 @@ object DropFileManager {
   def onDropFileChunk(data: Array[Byte], player: EntityPlayer): Unit = {
     val session = sessions.getIfPresent(player.getUniqueID)
     if (session != null) {
-      if (!session.onDropFileChunk(data))
+      if (!session.onDropFileChunk(data, player))
         sessions.invalidate(player.getUniqueID)
     }
     else {
@@ -58,7 +58,7 @@ object DropFileManager {
     }
     val session = sessions.getIfPresent(player.getUniqueID)
     if (session != null) {
-      session.onDropFileEnd(unCompressedSize)
+      session.onDropFileEnd(unCompressedSize, player)
       sessions.invalidate(player.getUniqueID)
     } else {
       OpenComputers.log.warn(s"Received orphan drop file end from ${player.getCommandSenderName}.")
@@ -82,7 +82,7 @@ object DropFileManager {
       lastRequestTime = now
 
       allowRequests = math.min(maxRequests, allowRequests + time * refillPerSecond / 1000.0)
-      if (allowRequests >= 1){
+      if (allowRequests >= 1) {
         allowRequests -= 1
         true
       } else {
