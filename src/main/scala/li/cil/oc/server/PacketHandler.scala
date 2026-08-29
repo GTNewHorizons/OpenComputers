@@ -218,7 +218,7 @@ object PacketHandler extends CommonPacketHandler {
     if ((flag & PacketFlags.DropFile.Chunk) != 0) {
       val size = p.readUnsignedShort()
       val content = new Array[Byte](size)
-      p.read(content)
+      p.readFully(content)
       DropFileManager.onDropFileChunk(content, p.player)
     }
     if ((flag & PacketFlags.DropFile.End) != 0) {
