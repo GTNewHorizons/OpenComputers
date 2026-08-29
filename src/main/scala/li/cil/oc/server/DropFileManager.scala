@@ -43,7 +43,7 @@ object DropFileManager {
         sessions.invalidate(player.getUniqueID)
     }
     else {
-      OpenComputers.log.warn(s"Received orphan drop file chunk from ${player.getCommandSenderName}.")
+      OpenComputers.log.debug(s"Received orphan drop file chunk from ${player.getCommandSenderName}.")
     }
   }
 
