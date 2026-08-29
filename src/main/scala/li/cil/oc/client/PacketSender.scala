@@ -107,7 +107,7 @@ object PacketSender {
         val stream = new DeflaterOutputStream(data, new Deflater(Deflater.BEST_SPEED))
         stream.write(content)
         stream.close()
-        // 1(compress) + 38(address) + 514(name) + 8(size) + 1(flag) + 8(size) = 570
+        // 1(compress) + 38(address) + 386(name) + 4(size) + 1(flag) + 4(size) = 434
         val chunks = data.toByteArray.grouped(31 * 1024).toArray
         val size = chunks.map(_.length).sum
         for (i <- chunks.indices) {
