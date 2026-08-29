@@ -6,13 +6,21 @@ import net.minecraft.entity.player.EntityPlayer
 
 import java.util.UUID
 import java.util.concurrent.TimeUnit
+import scala.collection.mutable
 
 object DropFileManager {
   private val sessions = CacheBuilder.newBuilder()
     .expireAfterAccess(8, TimeUnit.SECONDS)
     .build[UUID, DropFileSession]()
-
+  private val rateLimiters = mutable.Map.empty[UUID, RateLimiter]
+  private def getRateLimiter(playerUUID: UUID): RateLimiter = {
+    rateLimiters.getOrElseUpdate(playerUUID, new RateLimiter(Settings.get.maxDropFileCount, Settings.get.maxDropFileCount))
+  }
   def onDropFileStart(address: String, fileName: String, compressedSize: Int, player: EntityPlayer): Unit = {
+    if (!getRateLimiter(player.getUniqueID).tryRequest()) {
+      OpenComputers.log.warn(s"Player ${player.getCommandSenderName} is dropping files too fast.");
+      return
+    }
     if (compressedSize > Settings.get.maxDropFileSize || compressedSize < 0) {
       OpenComputers.log.warn(s"Rejected drop file from ${player.getCommandSenderName}: invalid compressed size $compressedSize.")
       return
@@ -57,6 +65,25 @@ object DropFileManager {
     val session = sessions.getIfPresent(playerUUID)
     if (session != null) {
       sessions.invalidate(playerUUID)
+    }
+    rateLimiters -= playerUUID
+  }
+
+  private class RateLimiter(val maxRequests: Int, val refillPerSecond: Int) {
+    private var allowRequests: Double = maxRequests
+    private var lastRequestTime = System.currentTimeMillis()
+    def tryRequest(): Boolean = {
+      val now = System.currentTimeMillis()
+      val time = now - lastRequestTime
+      lastRequestTime = now
+
+      allowRequests = math.min(maxRequests, allowRequests + time * refillPerSecond / 1000.0)
+      if (allowRequests >= 1){
+        allowRequests -= 1
+        true
+      } else {
+        false
+      }
     }
   }
 }
