@@ -167,6 +167,7 @@ object Localization {
 
   object InputBuffer {
     def TooManyFiles = localizeLater("gui.InputBuffer.TooMuchFiles", Settings.get.maxDropFileCount.toString)
+    def TooFrequentFiles = localizeLater("gui.InputBuffer.TooFrequentFiles", Settings.get.maxDropFileCount.toString)
     def FileTooLarge = localizeLater("gui.InputBuffer.FileTooLarge", Settings.get.maxDropFileSize.toString)
     def FileNameTooLong = localizeLater("gui.InputBuffer.FileNameTooLong", Settings.get.maxDropFileNameLength.toString)
   }

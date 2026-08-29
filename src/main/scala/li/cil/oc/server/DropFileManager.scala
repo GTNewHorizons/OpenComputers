@@ -1,7 +1,7 @@
 package li.cil.oc.server
 
 import com.google.common.cache.CacheBuilder
-import li.cil.oc.{OpenComputers, Settings, api}
+import li.cil.oc.{Localization, OpenComputers, Settings, api}
 import net.minecraft.entity.player.EntityPlayer
 
 import java.util.UUID
@@ -16,13 +16,16 @@ object DropFileManager {
   private def getRateLimiter(playerUUID: UUID): RateLimiter = {
     rateLimiters.getOrElseUpdate(playerUUID, new RateLimiter(Settings.get.maxDropFileCount, Settings.get.maxDropFileCount))
   }
+
   def onDropFileStart(address: String, fileName: String, compressedSize: Int, player: EntityPlayer): Unit = {
     if (!getRateLimiter(player.getUniqueID).tryRequest()) {
       OpenComputers.log.warn(s"Player ${player.getCommandSenderName} is dropping files too fast.");
+      player.addChatMessage(Localization.InputBuffer.TooFrequentFiles)
       return
     }
     if (compressedSize > Settings.get.maxDropFileSize || compressedSize < 0) {
       OpenComputers.log.warn(s"Rejected drop file from ${player.getCommandSenderName}: invalid compressed size $compressedSize.")
+      player.addChatMessage(Localization.InputBuffer.FileTooLarge)
       return
     }
     ComponentTracker.get(player.worldObj, address) match {
@@ -50,6 +53,7 @@ object DropFileManager {
   def onDropFileEnd(unCompressedSize: Int, player: EntityPlayer): Unit = {
     if (unCompressedSize > Settings.get.maxDropFileSize || unCompressedSize < 0) {
       OpenComputers.log.warn(s"Rejected drop file from ${player.getCommandSenderName}: invalid uncompressed size $unCompressedSize.")
+      player.addChatMessage(Localization.InputBuffer.FileTooLarge)
       return
     }
     val session = sessions.getIfPresent(player.getUniqueID)
