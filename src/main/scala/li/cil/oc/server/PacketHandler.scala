@@ -5,20 +5,16 @@ import cpw.mods.fml.common.network.FMLNetworkEvent.ServerCustomPacketEvent
 import li.cil.oc.{Localization, OpenComputers, Settings, api}
 import li.cil.oc.api.internal.Server
 import li.cil.oc.api.machine.Machine
-import li.cil.oc.common.Achievement
-import li.cil.oc.common.PacketType
 import li.cil.oc.common.component.TextBuffer
-import li.cil.oc.common.container
 import li.cil.oc.common.entity.Drone
 import li.cil.oc.common.item.Delegator
 import li.cil.oc.common.item.data.DriveData
 import li.cil.oc.common.item.traits.FileSystemLike
 import li.cil.oc.common.tileentity._
 import li.cil.oc.common.tileentity.traits.Computer
-import li.cil.oc.common.{PacketHandler => CommonPacketHandler}
+import li.cil.oc.common.{Achievement, PacketFlags, PacketType, container, PacketHandler => CommonPacketHandler}
 import li.cil.oc.integration.fmp.EventHandler
-import net.minecraft.entity.player.EntityPlayer
-import net.minecraft.entity.player.EntityPlayerMP
+import net.minecraft.entity.player.{EntityPlayer, EntityPlayerMP}
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.network.NetHandlerPlayServer
 import net.minecraft.world.WorldServer
@@ -27,12 +23,6 @@ import org.apache.logging.log4j.MarkerManager
 
 object PacketHandler extends CommonPacketHandler {
   private val securityMarker = MarkerManager.getMarker("SuspiciousPackets")
-
-  // Server-side cap on client-supplied text (clipboard paste, dropped files).
-  // The client enforces the same 64KB limit, but a modified client can omit it,
-  // so we must re-check here rather than trust the sender.
-  private val maxClientTextLength = 64 * 1024
-
   private def isFinite(f: Float): Boolean = !f.isNaN && !f.isInfinity
 
   private def isPlayerWatchingHost(player: EntityPlayerMP, host: api.network.EnvironmentHost): Boolean = host.world match {
@@ -104,7 +94,7 @@ object PacketHandler extends CommonPacketHandler {
       case Some(t) =>
         t.getMountable(index) match {
           case server: Server => server
-          case _ => return  // probably just lag, not invalid packet
+          case _ => return // probably just lag, not invalid packet
         }
       case _ => return
     }
@@ -217,13 +207,22 @@ object PacketHandler extends CommonPacketHandler {
   }
 
   def onDropFile(p: PacketParser): Unit = {
-    val address = p.readUTF()
-    val fileName = p.readUTF()
-    val fileContent = p.readUTF()
-    if (fileName.length.toLong + fileContent.length > maxClientTextLength) return // Oversized; likely a forged client.
-    ComponentTracker.get(p.player.worldObj, address) match {
-      case Some(buffer: api.internal.TextBuffer) => buffer.dropFile(fileName, fileContent, p.player.asInstanceOf[EntityPlayer])
-      case _ => // Invalid Packet
+    val flag = p.readByte()
+    if ((flag & PacketFlags.DropFile.Start) != 0) {
+      val address = p.readUTF()
+      val fileName = p.readUTF()
+      val size = p.readInt()
+      DropFileManager.onDropFileStart(address, fileName, size, p.player)
+    }
+    if ((flag & PacketFlags.DropFile.Chunk) != 0) {
+      val size = p.readUnsignedShort()
+      val content = new Array[Byte](size)
+      p.readFully(content)
+      DropFileManager.onDropFileChunk(content, p.player)
+    }
+    if ((flag & PacketFlags.DropFile.End) != 0) {
+      val size = p.readInt()
+      DropFileManager.onDropFileEnd(size, p.player)
     }
   }
 
@@ -275,7 +274,7 @@ object PacketHandler extends CommonPacketHandler {
     val slot = p.readByte()
     val stack = p.readItemStack()
     p.player.openContainer match {
-      case db: container.Database => if (slot < db.rows*db.rows && slot >= 0) db.putStackInSlot(slot, stack)
+      case db: container.Database => if (slot < db.rows * db.rows && slot >= 0) db.putStackInSlot(slot, stack)
       case _ => // Invalid packet.
     }
   }
@@ -311,7 +310,7 @@ object PacketHandler extends CommonPacketHandler {
     val side = p.readDirection()
     p.player match {
       case player: EntityPlayerMP => (player.openContainer, entity) match {
-        case (container: container.Rack, Some(readRack)) if readRack == container.rack  =>
+        case (container: container.Rack, Some(readRack)) if readRack == container.rack =>
           if (container.rack.isUseableByPlayer(player))
             container.rack.connect(mountableIndex, nodeIndex - 1, side)
         case _ => logForgedPacket(player)

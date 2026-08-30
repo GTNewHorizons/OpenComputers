@@ -343,6 +343,9 @@ class Settings(val config: Config) {
   val maxScreenWidth = config.getInt("misc.maxScreenWidth") max 1
   val maxScreenHeight = config.getInt("misc.maxScreenHeight") max 1
   val inputUsername = config.getBoolean("misc.inputUsername")
+  val maxDropFileCount = config.getInt("misc.maxDropFileCount") max 0
+  val maxDropFileNameLength = 128
+  val maxDropFileSize = config.getInt("misc.maxDropFileSize") max 0 min 4 * 1024 * 1024
   val enableClipboardBatching = config.getBoolean("misc.enableClipboardBatching")
   val maxClipboardSize = config.getInt("misc.maxClipboardSize")
   val clipboardBatchSize = config.getInt("misc.clipboardBatchSize") max 1
