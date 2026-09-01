@@ -106,7 +106,7 @@ object DriverCellWorkbench extends DriverSidedTileEntity {
       result(true)
     }
 
-    @Callback(doc = "function():string -- Returns the workbench's copy mode: \"clear\" or \"keep\" (whether the partition settings are cleared or remains when a cell is removed).")
+    @Callback(doc = "function():string -- Returns the workbench's copy mode: \"clear\" or \"keep\" (whether the partitions are cleared or remains when a cell is removed).")
     def getCopyMode(context: Context, args: Arguments): Array[AnyRef] = {
       val mode = tile.getConfigManager.getSetting(Settings.COPY_MODE)
       result(if (mode == CopyMode.KEEP_ON_REMOVE) "keep" else "clear")
