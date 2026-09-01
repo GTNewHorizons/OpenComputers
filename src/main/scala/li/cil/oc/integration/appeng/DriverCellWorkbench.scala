@@ -1,5 +1,6 @@
 package li.cil.oc.integration.appeng
 
+import appeng.api.config.{CopyMode, Settings}
 import appeng.api.storage.StorageName
 import appeng.helpers.ICellRestriction.CellRestrictionData
 import appeng.tile.misc.TileCellWorkbench
@@ -28,8 +29,7 @@ object DriverCellWorkbench extends DriverSidedTileEntity {
     private def config = tile.getAEInventoryByName(StorageName.CONFIG)
 
     private def checkSlot(slot: Int): Int = {
-      val c = config
-      if (c == null || slot < 0 || slot >= c.getSizeInventory) {
+      if (slot < 0 || slot >= config.getSizeInventory) {
         throw new IllegalArgumentException("invalid slot")
       }
       slot
@@ -52,35 +52,23 @@ object DriverCellWorkbench extends DriverSidedTileEntity {
     @Callback(doc = "function():string -- Returns the inserted cell's type (\"item\", \"fluid\", \"essentia\", ...). Returns nil if no cell is inserted.")
     def getCellType(context: Context, args: Arguments): Array[AnyRef] = result(liveStackTypeId.orNull)
 
-    @Callback(doc = "function():table -- Returns every partition slot as a table keyed by slot number (1-based). Empty slots are omitted.")
-    def getPartition(context: Context, args: Arguments): Array[AnyRef] = {
-      val c = config
-      val out = new java.util.HashMap[AnyRef, AnyRef]()
-      if (c != null) {
-        for (i <- 0 until c.getSizeInventory) {
-          val stack = c.getAEStackInSlot(i)
-          if (stack != null) {
-            val entry = new java.util.HashMap[AnyRef, AnyRef]()
-            AEStackFactory.convert(stack, entry)
-            out.put(Int.box(i + 1), entry)
-          }
-        }
-      }
-      result(out)
-    }
+    @Callback(doc = "function():table -- Returns details about the inserted cell item itself. Returns nil if no cell is inserted. Essentia cells return limited info.")
+    def getCell(context: Context, args: Arguments): Array[AnyRef] =
+      result(tile.getInventoryByName("cell").getStackInSlot(0))
 
-    @Callback(doc = "function(slot:number[, item:string OR table]):boolean -- Sets the partition in the given slot (1-based). Accepts a name, or a table for more detail (e.g. item damage). Omit the item to clear the slot.")
+    @Callback(doc = "function():table -- Returns every partition slot as a table keyed by slot number (1-based). Empty slots are omitted.")
+    def getPartition(context: Context, args: Arguments): Array[AnyRef] =
+      result(Array.tabulate(config.getSizeInventory)(config.getAEStackInSlot))
+
+    @Callback(doc = "function(slot:number[, item:table]):boolean -- Sets the partition in the given slot (1-based). Accepts a table describing the item (e.g. name, damage). Omit the item to clear the slot.")
     def setPartition(context: Context, args: Arguments): Array[AnyRef] = {
       val slot = checkSlot(args.checkInteger(0) - 1)
       val stack =
-        if (args.count > 1 && (args.isTable(1) || args.isString(1))) {
+        if (args.count <= 1) null
+        else {
           val stackTypeId = liveStackTypeId.getOrElse(throw new IllegalArgumentException("no cell inserted"))
-          val descriptor =
-            if (args.isTable(1)) args.checkTable(1)
-            else java.util.Collections.singletonMap("name", args.checkString(1))
-          AEStackFactory.parse(stackTypeId, descriptor)
+          AEStackFactory.parse(stackTypeId, args.checkTable(1))
         }
-        else null
       config.putAEStackInSlot(slot, stack)
       tile.saveAEStackInv()
       result(true)
@@ -88,11 +76,8 @@ object DriverCellWorkbench extends DriverSidedTileEntity {
 
     @Callback(doc = "function():boolean -- Clears every partition slot on the inserted cell.")
     def clearPartitions(context: Context, args: Arguments): Array[AnyRef] = {
-      val c = config
-      if (c != null) {
-        for (i <- 0 until c.getSizeInventory) c.putAEStackInSlot(i, null)
-        tile.saveAEStackInv()
-      }
+      for (i <- 0 until config.getSizeInventory) config.putAEStackInSlot(i, null)
+      tile.saveAEStackInv()
       result(true)
     }
 
@@ -104,6 +89,7 @@ object DriverCellWorkbench extends DriverSidedTileEntity {
 
     @Callback(doc = "function(types:number, amount:number):boolean -- Sets the cell's restriction. (0, 0) means unrestricted.")
     def setRestriction(context: Context, args: Arguments): Array[AnyRef] = {
+      if (tile.getCell == null) throw new IllegalArgumentException("no cell inserted")
       val types = args.checkInteger(0)
       val amount = args.checkLong(1)
       tile.setCellRestriction(null, new CellRestrictionData(types.toByte, amount))
@@ -115,7 +101,25 @@ object DriverCellWorkbench extends DriverSidedTileEntity {
 
     @Callback(doc = "function(filter:string):boolean -- Sets the inserted cell's ore filter string.")
     def setOreFilter(context: Context, args: Arguments): Array[AnyRef] = {
+      if (tile.getCell == null) throw new IllegalArgumentException("no cell inserted")
       tile.setFilter(args.checkString(0))
+      result(true)
+    }
+
+    @Callback(doc = "function():string -- Returns the workbench's copy mode: \"clear\" or \"keep\" (whether the partition settings are cleared or remains when a cell is removed).")
+    def getCopyMode(context: Context, args: Arguments): Array[AnyRef] = {
+      val mode = tile.getConfigManager.getSetting(Settings.COPY_MODE)
+      result(if (mode == CopyMode.KEEP_ON_REMOVE) "keep" else "clear")
+    }
+
+    @Callback(doc = "function(mode:string):boolean -- Sets the workbench's copy mode: \"clear\" or \"keep\".")
+    def setCopyMode(context: Context, args: Arguments): Array[AnyRef] = {
+      val mode = args.checkString(0) match {
+        case "clear" => CopyMode.CLEAR_ON_REMOVE
+        case "keep" => CopyMode.KEEP_ON_REMOVE
+        case other => throw new IllegalArgumentException(s"invalid mode: $other")
+      }
+      tile.getConfigManager.putSetting(Settings.COPY_MODE, mode)
       result(true)
     }
   }

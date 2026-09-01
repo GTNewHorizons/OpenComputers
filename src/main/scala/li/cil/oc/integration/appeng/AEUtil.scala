@@ -140,18 +140,9 @@ object AEUtil {
     AEApi.instance.definitions.parts.storageBus.isSameAs(stack)
   }
 
-  def isCellWorkbench(stack: ItemStack): Boolean = stack != null && AEApi.instance != null && {
-    if (useNewItemDefinitionAPI) isCellWorkbenchNew(stack)
-    else isCellWorkbenchOld(stack)
-  }
-
-  private def isCellWorkbenchNew(stack: ItemStack): Boolean =
+  def isCellWorkbench(stack: ItemStack): Boolean = {
     AEApi.instance.definitions.blocks.cellWorkbench.isSameAs(stack)
-
-  private def isCellWorkbenchOld(stack: ItemStack): Boolean =
-    AEApi.instance.blocks != null &&
-      AEApi.instance.blocks.blockCellWorkbench != null &&
-      AEApi.instance.blocks.blockCellWorkbench.sameAsStack(stack)
+  }
 
   def isRobot(stack: ItemStack): Boolean =
     api.Items.get(stack) == api.Items.get("robot")
