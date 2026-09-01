@@ -32,6 +32,7 @@ object ModAppEng extends ModProxy {
     AEApi.instance.registries.movable.whiteListTileEntity(classOf[Print])
 
     Driver.add(DriverController)
+    Driver.add(DriverCellWorkbench)
     Driver.add(DriverExportBus)
     Driver.add(DriverImportBus)
     Driver.add(DriverStorageBus)
@@ -46,6 +47,7 @@ object ModAppEng extends ModProxy {
     Driver.add(ConverterPattern)
 
     Driver.add(DriverController.Provider)
+    Driver.add(DriverCellWorkbench.Provider)
     Driver.add(DriverExportBus.Provider)
     Driver.add(DriverImportBus.Provider)
     Driver.add(DriverStorageBus.Provider)
