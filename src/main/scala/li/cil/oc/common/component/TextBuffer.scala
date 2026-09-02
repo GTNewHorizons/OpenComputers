@@ -36,6 +36,7 @@ import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.event.world.ChunkEvent
 import net.minecraftforge.event.world.WorldEvent
 
+import java.nio.charset.StandardCharsets
 import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
@@ -381,7 +382,7 @@ class TextBuffer(val host: EnvironmentHost) extends prefab.ManagedEnvironment wi
   override def clipboard(value: String, player: EntityPlayer): Unit =
     proxy.clipboard(value, player)
 
-  override def dropFile(fileName: String, fileContent: String, player: EntityPlayer): Unit =
+  override def dropFile(fileName: String, fileContent: Array[Byte], player: EntityPlayer): Unit =
     proxy.dropFile(fileName, fileContent, player)
 
   override def mouseDown(x: Double, y: Double, button: Int, player: EntityPlayer): Unit =
@@ -398,6 +399,17 @@ class TextBuffer(val host: EnvironmentHost) extends prefab.ManagedEnvironment wi
 
   def copyToAnalyzer(line: Int, player: EntityPlayer): Unit = {
     proxy.copyToAnalyzer(line, player)
+  }
+
+  // Server-side reach check, mirroring Keyboard.isUseableByPlayer (8 block
+  // radius). Used to reject mouse/file/analyzer/init packets from clients that
+  // are nowhere near the screen. For multiblock screens any constituent block
+  // being in range is enough.
+  def isUseableByPlayer(player: EntityPlayer): Boolean = host match {
+    case screen: tileentity.Screen =>
+      screen.screens.exists(s => player.getDistanceSq(s.xPosition, s.yPosition, s.zPosition) <= 64)
+    case _ =>
+      player.getDistanceSq(host.xPosition, host.yPosition, host.zPosition) <= 64
   }
 
   // ----------------------------------------------------------------------- //
@@ -592,7 +604,7 @@ object TextBuffer {
 
     def clipboard(value: String, player: EntityPlayer): Unit
 
-    def dropFile(fileName: String, fileContent: String, player: EntityPlayer): Unit
+    def dropFile(fileName: String, fileContent: Array[Byte], player: EntityPlayer): Unit
 
     def mouseDown(x: Double, y: Double, button: Int, player: EntityPlayer): Unit
 
@@ -687,7 +699,7 @@ object TextBuffer {
       ClientPacketSender.sendClipboard(nodeAddress, value)
     }
 
-    override def dropFile(fileName: String, fileContent: String, player: EntityPlayer) {
+    override def dropFile(fileName: String, fileContent: Array[Byte], player: EntityPlayer) {
       debug(s"{type = dropFile}")
       ClientPacketSender.sendDropFile(nodeAddress, fileName, fileContent)
     }
@@ -826,11 +838,15 @@ object TextBuffer {
     }
 
     override def clipboard(value: String, player: EntityPlayer) {
-      sendToKeyboards("keyboard.clipboard", player, value)
+      if (owner.isUseableByPlayer(player))
+        sendToKeyboards("keyboard.clipboard", player, value)
     }
 
-    override def dropFile(fileName: String, fileContent: String, player: EntityPlayer): Unit = {
-      owner.node.sendToReachable("computer.checked_signal", player, "drop_file", fileName, fileContent)
+    override def dropFile(fileName: String, fileContent: Array[Byte], player: EntityPlayer): Unit = {
+      if (owner.isUseableByPlayer(player)) {
+        val content = new String(fileContent, StandardCharsets.UTF_8)
+        owner.node.sendToReachable("computer.checked_signal", player, "drop_file", fileName, content)
+      }
     }
 
     override def mouseDown(x: Double, y: Double, button: Int, player: EntityPlayer) {
@@ -850,6 +866,7 @@ object TextBuffer {
     }
 
     override def copyToAnalyzer(line: Int, player: EntityPlayer): Unit = {
+      if (!owner.isUseableByPlayer(player)) return
       val stack = player.getHeldItem
       if (stack != null) {
         if (!stack.hasTagCompound) {
@@ -870,7 +887,8 @@ object TextBuffer {
       }
     }
 
-    private def sendMouseEvent(player: EntityPlayer, name: String, x: Double, y: Double, data: Int) = {
+    private def sendMouseEvent(player: EntityPlayer, name: String, x: Double, y: Double, data: Int): Unit = {
+      if (!owner.isUseableByPlayer(player)) return
       val args = mutable.ArrayBuffer.empty[AnyRef]
 
       args += player

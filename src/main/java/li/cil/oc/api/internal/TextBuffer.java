@@ -590,7 +590,7 @@ public interface TextBuffer extends ManagedEnvironment, Persistable {
      * @param fileContent the content of the file being transferred.
      * @param player      the player that dropped the file. Pass <tt>null</tt> on the client side.
      */
-    void dropFile(String fileName, String fileContent, EntityPlayer player);
+    void dropFile(String fileName, byte[] fileContent, EntityPlayer player);
 
     /**
      * Signals a mouse button down event for the buffer.

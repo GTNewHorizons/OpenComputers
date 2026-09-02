@@ -1,10 +1,12 @@
 package li.cil.oc.client.renderer.font
 
+import gnu.trove.map.hash.TIntObjectHashMap
 import li.cil.oc.Settings
 import li.cil.oc.client.renderer.font.DynamicFontRenderer.CharTexture
 import li.cil.oc.util.FontUtils
 import li.cil.oc.util.RenderState
 import net.minecraft.client.Minecraft
+import net.minecraft.client.renderer.Tessellator
 import net.minecraft.client.resources.IReloadableResourceManager
 import net.minecraft.client.resources.IResourceManager
 import net.minecraft.client.resources.IResourceManagerReloadListener
@@ -24,7 +26,7 @@ class DynamicFontRenderer extends TextureFontRenderer with IResourceManagerReloa
 
   private val textures = mutable.ArrayBuffer.empty[CharTexture]
 
-  private val charMap = mutable.Map.empty[Int, DynamicFontRenderer.CharIcon]
+  private val charMap = new TIntObjectHashMap[DynamicFontRenderer.CharIcon]()
 
   private var activeTexture: CharTexture = _
 
@@ -64,20 +66,29 @@ class DynamicFontRenderer extends TextureFontRenderer with IResourceManagerReloa
   }
 
   override protected def generateChar(char: Int) {
-    charMap.getOrElseUpdate(char, createCharIcon(char))
+    getOrCreate(char)
   }
 
   override protected def drawChar(tx: Float, ty: Float, char: Int) {
-    charMap.get(char) match {
-      case Some(icon) if icon.texture == activeTexture => icon.draw(tx, ty)
-      case _ =>
+    val icon = charMap.get(char)
+    if (icon != null && icon.texture == activeTexture) {
+      icon.draw(tx, ty)
+    }
+  }
+
+  private def getOrCreate(char: Int): DynamicFontRenderer.CharIcon = {
+    if (charMap.containsKey(char)) charMap.get(char)
+    else {
+      val icon = createCharIcon(char)
+      charMap.put(char, icon)
+      icon
     }
   }
 
   private def createCharIcon(char: Int): DynamicFontRenderer.CharIcon = {
     if (FontUtils.wcwidth(char) < 1 || glyphProvider.getGlyph(char) == null) {
       if (char == '?') null
-      else charMap.getOrElseUpdate('?', createCharIcon('?'))
+      else getOrCreate('?')
     }
     else {
       if (textures.last.isFull(char)) {
@@ -149,14 +160,11 @@ object DynamicFontRenderer {
 
   class CharIcon(val texture: CharTexture, val w: Int, val h: Int, val u1: Double, val v1: Double, val u2: Double, val v2: Double) {
     def draw(tx: Float, ty: Float) {
-      GL11.glTexCoord2d(u1, v2)
-      GL11.glVertex2f(tx, ty + h)
-      GL11.glTexCoord2d(u2, v2)
-      GL11.glVertex2f(tx + w, ty + h)
-      GL11.glTexCoord2d(u2, v1)
-      GL11.glVertex2f(tx + w, ty)
-      GL11.glTexCoord2d(u1, v1)
-      GL11.glVertex2f(tx, ty)
+      val t = Tessellator.instance
+      t.addVertexWithUV(tx, ty + h, 0, u1, v2)
+      t.addVertexWithUV(tx + w, ty + h, 0, u2, v2)
+      t.addVertexWithUV(tx + w, ty, 0, u2, v1)
+      t.addVertexWithUV(tx, ty, 0, u1, v1)
     }
   }
 

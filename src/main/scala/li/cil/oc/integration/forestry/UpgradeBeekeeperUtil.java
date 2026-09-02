@@ -17,7 +17,7 @@ import net.minecraft.world.World;
  * */
 public final class UpgradeBeekeeperUtil {
 
-    private static final boolean GT_LOADED = Loader.isModLoaded("gregtech");
+    private static final boolean GT5U_NH_LOADED = Loader.isModLoaded("gregtech_nh");
     private UpgradeBeekeeperUtil() {}
 
     /** Returns an IBeeHousing TileEntity at position pos. Can be an Industrial Apiary */
@@ -32,7 +32,7 @@ public final class UpgradeBeekeeperUtil {
         if (te instanceof IBeeHousing)
             return (IBeeHousing)te;
 
-        if (!GT_LOADED)
+        if (!GT5U_NH_LOADED)
             return null;
 
         // Scala doesn't compile if these checks are of the form (a instanceof B b)
@@ -46,7 +46,7 @@ public final class UpgradeBeekeeperUtil {
 
     /** Returns a Tile Entity for Industrial Apiaries at position pos, or null if none exist */
     public static MTEIndustrialApiary getGTIApiaryAt(BlockPosition pos) {
-        if (!GT_LOADED || pos.world().isEmpty())
+        if (!GT5U_NH_LOADED || pos.world().isEmpty())
             return null;
 
         World world = pos.world().get();
@@ -86,7 +86,7 @@ public final class UpgradeBeekeeperUtil {
     }
 
     public static int getMaxIndustrialUpgradeCount() {
-        if (!GT_LOADED)
+        if (!GT5U_NH_LOADED)
             return 0;
         return MTEIndustrialApiary.getMaxUpgradeCount();
     }

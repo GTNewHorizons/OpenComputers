@@ -31,7 +31,7 @@ import li.cil.oc.server.component.Keyboard
 import li.cil.oc.server.machine.Callbacks
 import li.cil.oc.server.machine.Machine
 import li.cil.oc.server.machine.luac.LuaStateFactory
-import li.cil.oc.server.{PacketSender => ServerPacketSender}
+import li.cil.oc.server.{DropFileManager, PacketSender => ServerPacketSender}
 import li.cil.oc.util.ExtendedWorld._
 import li.cil.oc.util._
 import net.minecraft.entity.player.EntityPlayer
@@ -249,6 +249,7 @@ object EventHandler {
   @SubscribeEvent
   def onPlayerLogout(e: PlayerLoggedOutEvent) {
     keyboards.foreach(_.releasePressedKeys(e.player))
+    DropFileManager.clearSession(e.player.getUniqueID)
   }
 
   @SubscribeEvent
@@ -309,7 +310,8 @@ object EventHandler {
         val stacks = (0 until e.craftMatrix.getSizeInventory).flatMap(i => Option(e.craftMatrix.getStackInSlot(i))).toArray
         if (stacks.length == 2) stacks.find(Wrench.isWrench) match {
           case Some(stack) =>
-            stack.stackSize += 1
+            if (!stack.getItem.hasContainerItem(stack))
+              stack.stackSize += 1
             true
           case _ => didRecraft
         }

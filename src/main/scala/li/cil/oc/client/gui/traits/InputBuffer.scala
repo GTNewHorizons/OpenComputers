@@ -1,14 +1,16 @@
 package li.cil.oc.client.gui.traits
 
-import li.cil.oc.{OpenComputers, api}
+import li.cil.oc.{Localization, OpenComputers, Settings, api}
 import li.cil.oc.client.{KeyBindings, Textures}
 import li.cil.oc.common.EventHandler
 import li.cil.oc.integration.util.NEI
 import li.cil.oc.util.RenderState
 import net.minecraft.client.Minecraft
+import net.minecraft.client.audio.PositionedSoundRecord
 import net.minecraft.client.gui.GuiScreen
 import net.minecraft.client.gui.inventory.GuiContainer
 import net.minecraft.client.renderer.Tessellator
+import net.minecraft.util.ResourceLocation
 import org.lwjgl.input.Keyboard
 import org.lwjgl.opengl.GL11
 
@@ -125,6 +127,7 @@ trait InputBuffer extends DisplayBuffer {
   }
 
   private val fileIoContext: ExecutionContext = ExecutionContext.fromExecutor(Executors.newFixedThreadPool(2))
+
   private case class FileResult(relativePath: String, file: File)
 
   private def getFiles(path: String): List[FileResult] = {
@@ -145,18 +148,43 @@ trait InputBuffer extends DisplayBuffer {
     }
   }
 
+  private def playErrorSound(): Unit = {
+    val player = this.mc.thePlayer
+    val handler = this.mc.getSoundHandler
+    handler.playSound(new PositionedSoundRecord(new ResourceLocation("note.harp"), 1, 1, player.posX.toFloat, player.posY.toFloat, player.posZ.toFloat))
+  }
+
   def handleDropFile(filePath: String): Unit = {
     Future {
-      getFiles(filePath).foreach {
-        case FileResult(path, file) =>
-          if (file.length() < 64 * 1024){
-            val content = new String(Files.readAllBytes(file.toPath), StandardCharsets.UTF_8)
+      val allFiles = getFiles(filePath)
+      if (allFiles.size > Settings.get.maxDropFileCount) {
+        EventHandler.scheduleClient(() => {
+          this.mc.thePlayer.addChatMessage(Localization.InputBuffer.TooManyFiles)
+          playErrorSound()
+        })
+      }
+      else if (allFiles.exists(_.file.length() > Settings.get.maxDropFileSize)) {
+        EventHandler.scheduleClient(() => {
+          this.mc.thePlayer.addChatMessage(Localization.InputBuffer.FileTooLarge)
+          playErrorSound()
+        })
+      }
+      else if (allFiles.exists(_.relativePath.length() > Settings.get.maxDropFileNameLength)) {
+        EventHandler.scheduleClient(() => {
+          this.mc.thePlayer.addChatMessage(Localization.InputBuffer.FileNameTooLong)
+          playErrorSound()
+        })
+      }
+      else {
+        allFiles.foreach {
+          case FileResult(path, file) =>
+            val content = Files.readAllBytes(file.toPath)
             EventHandler.scheduleClient(() => {
               buffer.dropFile(path, content, null)
             })
-          }
+        }
       }
-    }(fileIoContext).failed.foreach{ e =>
+    }(fileIoContext).failed.foreach { e =>
       OpenComputers.log.warn("Failed to handle drop file.", e)
     }(fileIoContext)
   }

@@ -74,7 +74,9 @@ object ConverterAEItemStack extends Converter {
 
 object ConverterAEFluidStack extends Converter {
   override def convert(value: Any, output: util.Map[AnyRef, AnyRef]): Unit = value match {
-    case stack: AEFluidStack => ConverterFluidStack.convert(stack.getFluidStack, output)
+    case stack: AEFluidStack =>
+      ConverterFluidStack.convert(stack.getFluidStack, output)
+      output.put("amount", Long.box(stack.getStackSize))
     case _ =>
   }
 

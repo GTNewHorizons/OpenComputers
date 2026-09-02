@@ -1,21 +1,16 @@
 package li.cil.oc.integration.vanilla
 
 import cpw.mods.fml.common.registry.GameData
-
-import java.util
-import li.cil.oc.Settings
-import li.cil.oc.api
+import li.cil.oc.{Settings, api}
 import li.cil.oc.integration.util.MapUtils.MapWrapper
 import li.cil.oc.util.ExtendedNBT._
-import net.minecraft.enchantment.Enchantment
-import net.minecraft.enchantment.EnchantmentHelper
-import net.minecraft.item
+import net.minecraft.enchantment.{Enchantment, EnchantmentHelper}
 import net.minecraft.item.{Item, ItemStack}
-import net.minecraft.nbt.CompressedStreamTools
-import net.minecraft.nbt.NBTTagString
+import net.minecraft.nbt.{CompressedStreamTools, JsonToNBT, NBTTagCompound, NBTTagString}
 import net.minecraftforge.common.util.Constants.NBT
 import net.minecraftforge.oredict.OreDictionary
 
+import java.util
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
 
@@ -68,8 +63,8 @@ object ConverterItemStack extends api.driver.Converter {
     }
 
   private val ItemRegistry = GameData.getItemRegistry
-  def parse(args: util.Map[_, _]): ItemStack =
-  {
+
+  def parse(args: util.Map[_, _]): ItemStack = {
     val id = args.getInt("id")
     val name = args.getString("name")
     val item = (id, name) match {
@@ -81,6 +76,12 @@ object ConverterItemStack extends api.driver.Converter {
     val amount = args.getInt("size").getOrElse(1)
     val damage = args.getInt("damage").getOrElse(0)
     val stack = new ItemStack(item, amount, damage)
+    if (Settings.get.allowItemStackNBTTags) {
+      args.getBytes("tag").foreach { tag =>
+        val nbtBase = CompressedStreamTools.func_152457_a(tag, net.minecraft.nbt.NBTSizeTracker.field_152451_a)
+        stack.setTagCompound(nbtBase)
+      }
+    }
     stack
   }
 }

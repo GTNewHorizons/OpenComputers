@@ -5,8 +5,8 @@ import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.client.Textures
 import net.minecraft.client.Minecraft
+import net.minecraft.client.renderer.Tessellator
 import net.minecraft.util.ResourceLocation
-import org.lwjgl.opengl.GL11
 
 import scala.io.Source
 
@@ -59,14 +59,11 @@ class StaticFontRenderer extends TextureFontRenderer {
     val y = (index - 1) / cols
     val u = x * uStep
     val v = y * vStep
-    GL11.glTexCoord2d(u, v + vSize)
-    GL11.glVertex3d(tx - dw, ty + charHeight * s, 0)
-    GL11.glTexCoord2d(u + uSize, v + vSize)
-    GL11.glVertex3d(tx + charWidth * s, ty + charHeight * s, 0)
-    GL11.glTexCoord2d(u + uSize, v)
-    GL11.glVertex3d(tx + charWidth * s, ty - dh, 0)
-    GL11.glTexCoord2d(u, v)
-    GL11.glVertex3d(tx - dw, ty - dh, 0)
+    val t = Tessellator.instance
+    t.addVertexWithUV(tx - dw, ty + charHeight * s, 0, u, v + vSize)
+    t.addVertexWithUV(tx + charWidth * s, ty + charHeight * s, 0, u + uSize, v + vSize)
+    t.addVertexWithUV(tx + charWidth * s, ty - dh, 0, u + uSize, v)
+    t.addVertexWithUV(tx - dw, ty - dh, 0, u, v)
   }
 
   override protected def generateChar(char: Int) {}

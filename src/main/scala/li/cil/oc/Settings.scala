@@ -344,6 +344,19 @@ class Settings(val config: Config) {
   val maxScreenWidth = config.getInt("misc.maxScreenWidth") max 1
   val maxScreenHeight = config.getInt("misc.maxScreenHeight") max 1
   val inputUsername = config.getBoolean("misc.inputUsername")
+  val maxDropFileCount = config.getInt("misc.maxDropFileCount") max 0
+  val maxDropFileNameLength = 128
+  val maxDropFileSize = config.getInt("misc.maxDropFileSize") max 0 min 4 * 1024 * 1024
+  val enableClipboardBatching = config.getBoolean("misc.enableClipboardBatching")
+  val maxClipboardSize = config.getInt("misc.maxClipboardSize")
+  val clipboardBatchSize = config.getInt("misc.clipboardBatchSize") max 1
+  def maxClipboardLength: Int = {
+    if (enableClipboardBatching) {
+      val value = clipboardBatchSize.toLong * maxSignalQueueSize.toLong
+      if (value > Int.MaxValue) Int.MaxValue else value.toInt
+    }
+    else maxClipboardSize
+  }
   val initialNetworkPacketTTL = config.getInt("misc.initialNetworkPacketTTL") max 5
   val maxNetworkPacketSize = config.getInt("misc.maxNetworkPacketSize") max 0
   // Need at least 4 for nanomachine protocol. Because I can!
@@ -812,4 +825,3 @@ object Settings {
       default.getOrElse(new java.util.LinkedList[Integer]())
   }
 }
-

@@ -8,7 +8,6 @@ import li.cil.oc.api.prefab
 import li.cil.oc.server.driver.Registry
 import li.cil.oc.server.machine.Callbacks
 import net.minecraft.item.ItemStack
-import net.minecraft.util.EnumChatFormatting
 
 import scala.collection.convert.WrapAsScala._
 
@@ -66,8 +65,7 @@ class CallbackDocHandler(pages: Option[Array[String]]) extends PagedUsageHandler
             case VexPattern(head, tail) => (name + head, tail)
             case _ => (name, doc)
           }
-          wrap(signature, 160).map(EnumChatFormatting.BLACK.toString + _).mkString("\n") +
-            EnumChatFormatting.RESET + "\n" +
+          wrap(signature, 160).mkString("\n") + "\n" +
             wrap(documentation, 152).map("  " + _).mkString("\n")
         }
     }

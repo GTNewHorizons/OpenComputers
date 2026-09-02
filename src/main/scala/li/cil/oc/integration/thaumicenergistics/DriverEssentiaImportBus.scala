@@ -5,7 +5,7 @@ import li.cil.oc.api.driver
 import li.cil.oc.api.driver.{EnvironmentProvider, NamedBlock}
 import li.cil.oc.api.machine.{Arguments, Callback, Context}
 import li.cil.oc.integration.ManagedTileEntityEnvironment
-import li.cil.oc.integration.appeng.internal.PartSharedItemBusBase
+import li.cil.oc.integration.thaumicenergistics.internal.PartEssentiaBusBase
 import net.minecraft.item.ItemStack
 import net.minecraft.world.World
 import net.minecraftforge.common.util.ForgeDirection
@@ -26,7 +26,7 @@ object DriverEssentiaImportBus extends driver.SidedBlock {
 
   override def createEnvironment(world: World, x: Int, y: Int, z: Int, side: ForgeDirection) = new Environment(world, world.getTileEntity(x, y, z).asInstanceOf[IPartHost])
 
-  final class Environment(val world: World, val host: IPartHost)(implicit val tag: ClassTag[PartEssentiaImportBus]) extends ManagedTileEntityEnvironment[IPartHost](host, "essentia_importbus") with NamedBlock with PartSharedItemBusBase[PartEssentiaImportBus] {
+  final class Environment(val world: World, val host: IPartHost)(implicit val tag: ClassTag[PartEssentiaImportBus]) extends ManagedTileEntityEnvironment[IPartHost](host, "essentia_importbus") with NamedBlock with PartEssentiaBusBase[PartEssentiaImportBus] {
     override def preferredName = "essentia_importbus"
 
     override def priority = 2
@@ -34,7 +34,7 @@ object DriverEssentiaImportBus extends driver.SidedBlock {
     @Callback(doc = "function(side:number[, slot:number]):string -- Get the configuration of the import bus pointing in the specified direction.")
     def getImportConfiguration(context: Context, args: Arguments): Array[AnyRef] = this.getPartConfig(context, args)
 
-    @Callback(doc = "function(side:number[, slot:number][, aspect:string]):boolean -- Configure the import bus pointing in the specified direction to import essentia matching the specified type.")
+    @Callback(doc = "function(side:number[, slot:number][, aspect:string OR detail:table]):boolean -- Configure the import bus pointing in the specified direction to import essentia matching the specified type.")
     def setImportConfiguration(context: Context, args: Arguments): Array[AnyRef] = this.setPartConfig[AEEssentiaStack](context, args)
 
     @Callback(doc = "function(side:number):number -- Get the number of valid slots in this import bus.")

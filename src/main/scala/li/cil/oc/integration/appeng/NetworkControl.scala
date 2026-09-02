@@ -7,7 +7,7 @@ import appeng.api.networking.crafting.{CraftingItemList, ICraftingLink, ICraftin
 import appeng.api.networking.security.{BaseActionSource, IActionHost, MachineSource}
 import appeng.api.networking.storage.IBaseMonitor
 import appeng.api.storage.data.{IAEFluidStack, IAEItemStack, IAEStack, IItemList}
-import appeng.api.storage.{IMEMonitor, IMEMonitorHandlerReceiver}
+import appeng.api.storage.{IMEInventory, IMEMonitor, IMEMonitorHandlerReceiver}
 import appeng.api.util.AECableType
 import appeng.me.cluster.implementations.CraftingCPUCluster
 import appeng.me.helpers.IGridProxyable
@@ -84,6 +84,22 @@ trait NetworkControl[AETile >: Null <: TileEntity with IGridProxyable with IActi
     result(buffer.toArray)
   }
 
+  @Callback(doc = "function([detail:table, type:string]):table -- Get a known recipe. This can be used to issue crafting requests.")
+  def getCraftable(context: Context, args: Arguments): Array[AnyRef] = {
+    val table = args.checkTable(0)
+    val tp = args.checkString(1)
+    val stack = AEStackFactory.parse(tp, table).asInstanceOf[AEStack]
+    val monitor = tile.getProxy.getStorage.getMEMonitor(stack.getStackType).asInstanceOf[IMEMonitor[AEStack]]
+    if (monitor != null) {
+      val s = monitor.getAvailableItem(stack, IterationCounter.fetchNewId())
+      if (s != null && s.isCraftable) result(new Craftable(tile, asCraft(s, tile)))
+      else result(null)
+    }
+    else {
+      result(null)
+    }
+  }
+
   @Callback(doc = "function([filter:table]):table -- Get a list of known item recipes. These can be used to issue crafting requests.")
   def getCraftables(context: Context, args: Arguments): Array[AnyRef] = {
     val filter = args.optTable(0, Map.empty[AnyRef, AnyRef]).collect {
@@ -125,23 +141,27 @@ trait NetworkControl[AETile >: Null <: TileEntity with IGridProxyable with IActi
       .toArray)
   }
 
-  @Callback(doc = "function(name:string|id:number[, damage:number[, nbt:string]]):table -- Retrieves the stored item in the network by its unlocalized name.")
+  @Callback(doc = "function(name:string|id:number[, damage:number[, nbt:string]]):table OR function(detail:table):table -- Retrieves the stored item in the network by its unlocalized name. For the first format, 'nbt' expects an SNBT string.")
   def getItemInNetwork(context: Context, args: Arguments): Array[AnyRef] = {
-    val item = if (args.isString(0)) Item.itemRegistry.getObject(args.checkString(0))
-    else Item.itemRegistry.getObjectById(args.checkInteger(0))
-    if (item == null) {
-      return result(null)
+    val aeItemStack = if (args.isTable(0)) {
+      AEStackFactory.parse[IAEItemStack](args.checkTable(0))
     }
+    else {
+      val item = if (args.isString(0)) Item.itemRegistry.getObject(args.checkString(0))
+      else Item.itemRegistry.getObjectById(args.checkInteger(0))
+      if (item == null) {
+        return result(null)
+      }
 
-    val itemStack = new ItemStack(item.asInstanceOf[Item])
-    itemStack.setItemDamage(args.optInteger(1, 0))
+      val itemStack = new ItemStack(item.asInstanceOf[Item])
+      itemStack.setItemDamage(args.optInteger(1, 0))
 
-    // The obfuscated method turns a json string into an NBTBase.
-    val nbtBase = JsonToNBT.func_150315_a(args.optString(2, "{}"))
-    itemStack.setTagCompound(nbtBase.asInstanceOf[NBTTagCompound])
-
-    val aeItemStack = AEItemStack.create(itemStack)
-    val availableItem = getAvailableItem(aeItemStack, IterationCounter.fetchNewId())
+      // The obfuscated method turns a json string into an NBTBase.
+      val nbtBase = JsonToNBT.func_150315_a(args.optString(2, "{}"))
+      itemStack.setTagCompound(nbtBase.asInstanceOf[NBTTagCompound])
+      AEItemStack.create(itemStack)
+    }
+    val availableItem = getAvailableItem(aeItemStack)
     result(if (availableItem != null) convert(availableItem, tile) else null)
   }
 
@@ -164,16 +184,17 @@ trait NetworkControl[AETile >: Null <: TileEntity with IGridProxyable with IActi
       .toArray)
   }
 
-  @Callback(doc = "function([name:string]):table -- Get a list of the stored fluids in the network.")
+  @Callback(doc = "function([name:string]):table OR function(detail:table):table -- Get a list of the stored fluids in the network.")
   def getFluidInNetwork(context: Context, args: Arguments): Array[AnyRef] = {
-    FluidRegistry.getFluid(args.checkString(0)) match {
-      case null => result(null)
-      case fluid =>
-        getAvailableFluid(AEFluidStack.create(new FluidStack(fluid, 0))) match {
-          case null => result(null)
-          case fluid => result(convert(fluid, tile))
-        }
+    val aeFluidStack = if (args.isTable(0)) {
+      AEStackFactory.parse[IAEFluidStack](args.checkTable(0))
+    } else {
+      val fluid = FluidRegistry.getFluid(args.checkString(0))
+      if (fluid == null) return null
+      AEFluidStack.create(new FluidStack(fluid, 0))
     }
+    val availableItem = getAvailableFluid(aeFluidStack)
+    result(if (availableItem != null) convert(availableItem, tile) else null)
   }
 
   @Callback(doc = "function():userdata -- Get an iterator object for the list of the items in the network. ")

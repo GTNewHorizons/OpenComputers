@@ -140,6 +140,10 @@ object AEUtil {
     AEApi.instance.definitions.parts.storageBus.isSameAs(stack)
   }
 
+  def isCellWorkbench(stack: ItemStack): Boolean = {
+    AEApi.instance.definitions.blocks.cellWorkbench.isSameAs(stack)
+  }
+
   def isRobot(stack: ItemStack): Boolean =
     api.Items.get(stack) == api.Items.get("robot")
 
