@@ -38,7 +38,7 @@ abstract class PacketHandler {
       player match {
         case mp: EntityPlayerMP => {
           packetParser.packetType match {
-            case PacketType.TextBufferInit => // This packet isn't a player interaction result, don't tick the afk timer
+            case PacketType.TextBufferInit | PacketType.RobotStateRequest => // This packet isn't a player interaction result, don't tick the afk timer
             case _ => mp.func_143004_u()
           }
         }
