@@ -58,25 +58,35 @@ public final class DriverBECDiode extends DriverSidedTileEntity {
       return 10;
     }
 
-    @Callback(doc = "function():string -- Returns the name of the fluid used as condensate filter, or nil if no filter is set.")
-    public Object[] getCondensateFilter(Context context, Arguments args) {
-      Fluid filter = tileEntity.getCondensateFilter();
+    @Callback(doc = "function(slot:number):string -- Returns the name of the fluid used as condensate filter in the given slot, or nil if no filter is set.")
+    public Object[] getCondensateFilterAt(Context context, Arguments args) {
+      int slot = getFilterSlot(args.checkInteger(0));
+      Fluid filter = tileEntity.getCondensateFilterAt(slot);
       return new Object[] { filter == null ? null : FluidRegistry.getFluidName(filter) };
     }
 
-    @Callback(doc = "function(fluidName:string) -- Sets the condensate filter to the given fluid name.")
-    public Object[] setCondensateFilter(Context context, Arguments args) {
-      String name = args.optString(0, null);
+    @Callback(doc = "function(slot:number[, fluidName:string]) -- Sets the condensate filter in the given slot to the given fluid name, or clears it if nil.")
+    public Object[] setCondensateFilterAt(Context context, Arguments args) {
+      int slot = getFilterSlot(args.checkInteger(0));
+      String name = args.optString(1, null);
       if (name == null) {
-        tileEntity.setCondensateFilter(null);
+        tileEntity.setCondensateFilterAt(slot, null);
         return null;
       }
       Fluid fluid = FluidRegistry.getFluid(name);
       if (fluid == null) {
         throw new IllegalArgumentException("Unknown fluid: " + name);
       }
-      tileEntity.setCondensateFilter(fluid);
+      tileEntity.setCondensateFilterAt(slot, fluid);
       return null;
+    }
+
+    private int getFilterSlot(int luaSlot) {
+      int filterCount = tileEntity.getCondensateFilterCount();
+      if (luaSlot < 1 || luaSlot > filterCount) {
+        throw new IllegalArgumentException("Filter slot must be between 1 and " + filterCount);
+      }
+      return luaSlot - 1;
     }
   }
 }
