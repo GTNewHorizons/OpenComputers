@@ -30,7 +30,20 @@ abstract class PacketHandler {
     try {
       stream = new ByteBufInputStream(data)
       if (stream.read() != 0) stream = new InflaterInputStream(stream)
-      dispatch(new PacketParser(stream, player))
+      val packetParser = new PacketParser(stream, player)
+      dispatch(packetParser)
+
+      // Avoid AFK kicks by marking players as non-idle when they send packets.
+      // This will usually be stuff like typing while in screen GUIs.
+      player match {
+        case mp: EntityPlayerMP => {
+          packetParser.packetType match {
+            case PacketType.TextBufferInit | PacketType.RobotStateRequest => // This packet isn't a player interaction result, don't tick the afk timer
+            case _ => mp.func_143004_u()
+          }
+        }
+        case _ => // Uh... OK?
+      }
     } catch {
       case e: Throwable =>
         OpenComputers.log.warn("Received a badly formatted packet.", e)
@@ -42,13 +55,6 @@ abstract class PacketHandler {
       if (data != null && data.refCnt() > 0) {
         data.release();
       }
-    }
-
-    // Avoid AFK kicks by marking players as non-idle when they send packets.
-    // This will usually be stuff like typing while in screen GUIs.
-    player match {
-      case mp: EntityPlayerMP => mp.func_143004_u()
-      case _ => // Uh... OK?
     }
   }
 
