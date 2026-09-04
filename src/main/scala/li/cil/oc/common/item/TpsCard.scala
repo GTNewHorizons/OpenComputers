@@ -19,13 +19,15 @@ class TpsCard(val parent: Delegator) extends traits.Delegate {
     if (!world.isRemote && player.isSneaking && DebugWhitelistCommand.isOp(player)) {
       val data = new DebugCardData(stack)
       val name = player.getCommandSenderName
+      val uuid = player.getGameProfile.getId.toString
 
-      if (data.access.exists(_.player == name)) data.access = None
-      else data.access = Some(CDebugCard.AccessContext(name, ""))
+      if (data.access.exists(_.uuid == uuid)) data.access = None
+      else data.access = Some(CDebugCard.AccessContext(uuid, name, ""))
 
       data.save(stack)
       player.swingItem()
     }
     stack
   }
+
 }
