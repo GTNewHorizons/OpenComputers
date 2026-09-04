@@ -17,6 +17,11 @@ import net.minecraftforge.common.util.ForgeDirection;
 import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.FluidRegistry;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import li.cil.oc.integration.ManagedTileEntityEnvironment;
 import tectech.thing.metaTileEntity.multi.bec.MTEBECDiode;
 
@@ -58,25 +63,77 @@ public final class DriverBECDiode extends DriverSidedTileEntity {
       return 10;
     }
 
-    @Callback(doc = "function():string -- Returns the name of the fluid used as condensate filter, or nil if no filter is set.")
-    public Object[] getCondensateFilter(Context context, Arguments args) {
-      Fluid filter = tileEntity.getCondensateFilter();
+    @Callback(doc = "function():number -- Returns the number of condensate filter slots.")
+    public Object[] getCondensateFilterCount(Context context, Arguments args) {
+      return new Object[] { tileEntity.getCondensateFilterCount() };
+    }
+
+    @Callback(doc = "function():table -- Returns the condensate filters by slot, using nil for empty slots.")
+    public Object[] getCondensateFilters(Context context, Arguments args) {
+      Map<Integer, String> filters = new HashMap<>();
+      List<Fluid> values = tileEntity.getCondensateFilters();
+      for (int i = 0; i < values.size(); i++) {
+        Fluid fluid = values.get(i);
+        filters.put(i + 1, fluid == null ? null : FluidRegistry.getFluidName(fluid));
+      }
+      return new Object[] { filters };
+    }
+
+    @Callback(doc = "function(filters:table) -- Sets the condensate filters by slot to fluid names, or nil for empty slots.")
+    public Object[] setCondensateFilters(Context context, Arguments args) {
+      Map filters = args.checkTable(0);
+      int filterCount = tileEntity.getCondensateFilterCount();
+      List<Fluid> values = new ArrayList<>(filterCount);
+
+      for (int i = 1; i <= filterCount; i++) {
+        Object value = filters.get(i);
+        if (value == null) {
+          values.add(null);
+          continue;
+        }
+        if (!(value instanceof String)) {
+          throw new IllegalArgumentException("Filter " + i + " must be a fluid name or nil");
+        }
+        Fluid fluid = FluidRegistry.getFluid((String) value);
+        if (fluid == null) {
+          throw new IllegalArgumentException("Unknown fluid: " + value);
+        }
+        values.add(fluid);
+      }
+
+      tileEntity.setCondensateFilters(values);
+      return null;
+    }
+
+    @Callback(doc = "function(slot:number):string -- Returns the name of the fluid used as condensate filter in the given slot, or nil if no filter is set.")
+    public Object[] getCondensateFilterAt(Context context, Arguments args) {
+      int slot = getFilterSlot(args.checkInteger(0));
+      Fluid filter = tileEntity.getCondensateFilterAt(slot);
       return new Object[] { filter == null ? null : FluidRegistry.getFluidName(filter) };
     }
 
-    @Callback(doc = "function(fluidName:string) -- Sets the condensate filter to the given fluid name.")
-    public Object[] setCondensateFilter(Context context, Arguments args) {
-      String name = args.optString(0, null);
+    @Callback(doc = "function(slot:number[, fluidName:string]) -- Sets the condensate filter in the given slot to the given fluid name, or clears it if nil.")
+    public Object[] setCondensateFilterAt(Context context, Arguments args) {
+      int slot = getFilterSlot(args.checkInteger(0));
+      String name = args.optString(1, null);
       if (name == null) {
-        tileEntity.setCondensateFilter(null);
+        tileEntity.setCondensateFilterAt(slot, null);
         return null;
       }
       Fluid fluid = FluidRegistry.getFluid(name);
       if (fluid == null) {
         throw new IllegalArgumentException("Unknown fluid: " + name);
       }
-      tileEntity.setCondensateFilter(fluid);
+      tileEntity.setCondensateFilterAt(slot, fluid);
       return null;
+    }
+
+    private int getFilterSlot(int luaSlot) {
+      int filterCount = tileEntity.getCondensateFilterCount();
+      if (luaSlot < 1 || luaSlot > filterCount) {
+        throw new IllegalArgumentException("Filter slot must be between 1 and " + filterCount);
+      }
+      return luaSlot - 1;
     }
   }
 }
