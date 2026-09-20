@@ -1,7 +1,6 @@
 package li.cil.oc.common.block
 
 import java.util
-
 import cpw.mods.fml.relauncher.Side
 import cpw.mods.fml.relauncher.SideOnly
 import li.cil.oc.Constants
@@ -20,6 +19,7 @@ import net.minecraft.entity.EntityLivingBase
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.entity.projectile.EntityArrow
 import net.minecraft.item.ItemStack
+import net.minecraft.launchwrapper.Launch
 import net.minecraft.util.IIcon
 import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
@@ -115,10 +115,13 @@ class Screen(val tier: Int) extends RedstoneAware {
     def tv = Array(Icons.bvb, Icons.bvm, Icons.bvt)
   }
 
+  private final val fixedBottomFaceUV: Boolean = java.lang.Boolean.TRUE.equals(Launch.blackboard.get("hodgepodge.FixesConfig.fixBottomFaceUV"))
+
   // This an ugly monstrosity, but it's still better than having to manually
   // compute ambient occlusion in a custom block renderer to keep the lighting
   // pretty... which would be even more grotesque.
-  override def getIcon(world: IBlockAccess, x: Int, y: Int, z: Int, worldSide: ForgeDirection, localSide: ForgeDirection) =
+  override def getIcon(world: IBlockAccess, x: Int, y: Int, z: Int, worldSide: ForgeDirection, localSide: ForgeDirection) = {
+    val unflipDown = worldSide == ForgeDirection.DOWN && fixedBottomFaceUV
     world.getTileEntity(x, y, z) match {
       case screen: tileentity.Screen if screen.width > 1 || screen.height > 1 =>
         val right = screen.width - 1
@@ -128,24 +131,24 @@ class Screen(val tier: Int) extends RedstoneAware {
           case ForgeDirection.NORTH => (px, py)
           case ForgeDirection.UP => screen.yaw match {
             case ForgeDirection.SOUTH =>
-              (px, py)
+              if (unflipDown) (right - px, py) else (px, py)
             case ForgeDirection.NORTH =>
-              (right - px, bottom - py)
+              if (unflipDown) (px, bottom - py) else (right - px, bottom - py)
             case ForgeDirection.EAST =>
-              (right - px, py)
+              if (unflipDown) (right - px, bottom - py) else (right - px, py)
             case ForgeDirection.WEST =>
-              (px, bottom - py)
+              if (unflipDown) (px, py) else (px, bottom - py)
             case _ => throw new AssertionError("yaw has invalid value")
           }
           case ForgeDirection.DOWN => screen.yaw match {
             case ForgeDirection.SOUTH =>
-              (px, bottom - py)
+              if (unflipDown) (right - px, bottom - py) else (px, bottom - py)
             case ForgeDirection.NORTH =>
-              (right - px, py)
+              if (unflipDown) (px, py) else (right - px, py)
             case ForgeDirection.EAST =>
-              (right - px, bottom - py)
+              if (unflipDown) (right - px, py) else (right - px, bottom - py)
             case ForgeDirection.WEST =>
-              (px, py)
+              if (unflipDown) (px, bottom - py) else (px, py)
             case _ => throw new AssertionError("yaw has invalid value")
           }
           case _ => throw new AssertionError("pitch has invalid value")
@@ -219,8 +222,8 @@ class Screen(val tier: Int) extends RedstoneAware {
               else (Icons.sse, Icons.snw)
             val Array(t, m, b) = screen.pitch match {
               case ForgeDirection.NORTH => screen.yaw match {
-                case ForgeDirection.SOUTH => Icons.th
-                case ForgeDirection.NORTH => Icons.bh
+                case ForgeDirection.SOUTH => if (unflipDown) Icons.bh else Icons.th
+                case ForgeDirection.NORTH => if (unflipDown) Icons.th else Icons.bh
                 case ForgeDirection.EAST => Icons.bv
                 case ForgeDirection.WEST => Icons.tv
                 case _ => throw new AssertionError("yaw has invalid value")
@@ -255,6 +258,7 @@ class Screen(val tier: Int) extends RedstoneAware {
         }
       case _ => getIcon(localSide, 0)
     }
+  }
 
   override def getIcon(side: ForgeDirection, metadata: Int) =
     side match {

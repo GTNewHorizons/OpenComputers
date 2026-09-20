@@ -2,6 +2,7 @@ package li.cil.oc.integration.gregtech;
 
 import com.gtnewhorizon.gtnhlib.capability.Capabilities;
 import gregtech.api.interfaces.tileentity.IBasicEnergyContainer;
+import li.cil.oc.api.driver.NamedBlock;
 import li.cil.oc.api.machine.Arguments;
 import li.cil.oc.api.machine.Callback;
 import li.cil.oc.api.machine.Context;
@@ -23,7 +24,18 @@ public final class DriverEnergyContainer extends DriverSidedTileEntity {
         return new Environment(Capabilities.getCapability(world.getTileEntity(x, y, z), IBasicEnergyContainer.class, side));
     }
 
-    public static final class Environment extends ManagedTileEntityEnvironment<IBasicEnergyContainer> {
+    public static final class Environment extends ManagedTileEntityEnvironment<IBasicEnergyContainer> implements NamedBlock {
+
+        @Override
+        public String preferredName() {
+            return "gt_energyContainer";
+        }
+
+        @Override
+        public int priority() {
+            return -1;
+        }
+
         public Environment(final IBasicEnergyContainer tileEntity) {
             super(tileEntity, "gt_energyContainer");
         }

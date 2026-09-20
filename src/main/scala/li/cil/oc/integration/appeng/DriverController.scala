@@ -2,8 +2,7 @@ package li.cil.oc.integration.appeng
 
 import appeng.api.networking.security.IActionHost
 import appeng.me.helpers.IGridProxyable
-import li.cil.oc.api.driver.EnvironmentProvider
-import li.cil.oc.api.driver.NamedBlock
+import li.cil.oc.api.driver.{EnvironmentProvider, NamedBlock}
 import li.cil.oc.api.network.ManagedEnvironment
 import li.cil.oc.api.prefab.DriverSidedTileEntity
 import li.cil.oc.integration.ManagedTileEntityEnvironment

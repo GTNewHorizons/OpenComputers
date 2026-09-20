@@ -20,7 +20,7 @@ import net.minecraft.tileentity.TileEntity;
 public final class StaticSimpleEnvironment {
     private StaticSimpleEnvironment() {}
 
-    private static final Map<Environment, Node> nodes = new HashMap<Environment, Node>();
+    private static final Map<Environment, Node> nodes = new HashMap<>();
 
     public static Node node(final SimpleComponentImpl self) {
         // Save ourselves the lookup time in the hash map and avoid mixing in
@@ -85,5 +85,9 @@ public final class StaticSimpleEnvironment {
             node.save(nodeNbt);
             nbt.setTag("oc:node", nodeNbt);
         }
+    }
+
+    public static void onServerStopped() {
+      nodes.clear();
     }
 }

@@ -354,6 +354,63 @@ object InventoryUtils {
       case _ => null
     }
 
+  def swapBetweenInventoriesSlots(source: IInventory, sourceSide: ForgeDirection, sourceSlot: Int, sink: IInventory, sinkSide: ForgeDirection, sinkSlot: Int, safe: Boolean): Boolean = {
+    val sourceStack = source.getStackInSlot(sourceSlot)
+    val sinkStack = sink.getStackInSlot(sinkSlot)
+
+    val sourceEmpty = sourceStack == null || sourceStack.stackSize <= 0
+    val sinkEmpty = sinkStack == null || sinkStack.stackSize <= 0
+
+    if (safe) {
+      if (sourceEmpty || sinkEmpty) return false
+    } else {
+      if (sourceEmpty && sinkEmpty) return true
+    }
+
+    if (source == sink && sourceSlot == sinkSlot) return true
+
+    if (!sourceEmpty && sourceStack.stackSize > sink.getInventoryStackLimit) return false
+    if (!sinkEmpty && sinkStack.stackSize > source.getInventoryStackLimit) return false
+
+    if (!sourceEmpty) {
+      source match {
+        case inventory: ISidedInventory =>
+          if (!inventory.canExtractItem(sourceSlot, sourceStack, sourceSide.ordinal)) return false
+        case _ =>
+      }
+
+      sink match {
+        case inventory: ISidedInventory =>
+          if (!inventory.canInsertItem(sinkSlot, sourceStack, sinkSide.ordinal)) return false
+          if (!sink.isItemValidForSlot(sinkSlot, sourceStack)) return false
+        case _ =>
+          if (!sink.isItemValidForSlot(sinkSlot, sourceStack)) return false
+      }
+    }
+
+    if (!sinkEmpty) {
+      sink match {
+        case inventory: ISidedInventory =>
+          if (!inventory.canExtractItem(sinkSlot, sinkStack, sinkSide.ordinal)) return false
+        case _ =>
+      }
+
+      source match {
+        case inventory: ISidedInventory =>
+          if (!inventory.canInsertItem(sourceSlot, sinkStack, sourceSide.ordinal)) return false
+          if (!source.isItemValidForSlot(sourceSlot, sinkStack)) return false
+        case _ =>
+          if (!source.isItemValidForSlot(sourceSlot, sinkStack)) return false
+      }
+    }
+
+    source.setInventorySlotContents(sourceSlot, if (sinkEmpty) null else sinkStack.copy())
+    sink.setInventorySlotContents(sinkSlot, if (sourceEmpty) null else sourceStack.copy())
+    source.markDirty()
+    if (source != sink) sink.markDirty()
+    true
+  }
+
   /**
    * Utility method for dropping contents from a single inventory slot into
    * the world.

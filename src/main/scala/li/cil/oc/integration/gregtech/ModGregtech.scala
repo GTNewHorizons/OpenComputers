@@ -15,7 +15,12 @@ object ModGregtech extends ModProxy {
     MinecraftForge.EVENT_BUS.register(EventHandlerGregTech)
 
     Driver.add(new DriverEnergyContainer)
+    Driver.add(DriverLSC)
     Driver.add(new ConverterDataStick)
+
+    Driver.add(new DriverBECIONode)
+    Driver.add(new DriverBECStorage)
+    Driver.add(new DriverBECDiode)
 
     RecipeHandler.init()
   }

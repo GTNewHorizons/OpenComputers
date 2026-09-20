@@ -165,6 +165,13 @@ object Localization {
     def OutOfRange = localizeLater("gui.Terminal.OutOfRange")
   }
 
+  object InputBuffer {
+    def TooManyFiles = localizeLater("gui.InputBuffer.TooManyFiles", Settings.get.maxDropFileCount.toString)
+    def TooFrequentFiles = localizeLater("gui.InputBuffer.TooFrequentFiles", Settings.get.maxDropFileCount.toString)
+    def FileTooLarge = localizeLater("gui.InputBuffer.FileTooLarge", Settings.get.maxDropFileSize.toString)
+    def FileNameTooLong = localizeLater("gui.InputBuffer.FileNameTooLong", Settings.get.maxDropFileNameLength.toString)
+  }
+
   object Tooltip {
     def DiskUsage(used: Long, capacity: Long) = localizeImmediately("tooltip.DiskUsage", used.toString, capacity.toString)
 
@@ -184,5 +191,4 @@ object Localization {
 
     def MFULinked(isLinked: Boolean) = localizeImmediately(if (isLinked) "tooltip.UpgradeMF.Linked" else "tooltip.UpgradeMF.Unlinked")
   }
-
 }

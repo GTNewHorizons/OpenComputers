@@ -1,9 +1,8 @@
 package li.cil.oc.integration.gregtech
 
-import com.gtnewhorizon.gtnhlib.capability.Capabilities
 import cpw.mods.fml.common.eventhandler.SubscribeEvent
 import gregtech.api.interfaces.IDamagableItem
-import gregtech.api.interfaces.tileentity.{IGregTechDeviceInformation, IGregTechTileEntity, ITurnable}
+import gregtech.api.interfaces.tileentity.{IGregTechTileEntity, ITurnable}
 import gregtech.api.items.MetaGeneratedTool
 import li.cil.oc.api.event.{GeolyzerEvent, RobotUsedToolEvent}
 import net.minecraft.item.ItemStack
@@ -16,13 +15,21 @@ object EventHandlerGregTech {
     val world = e.host.world
     val te = world.getTileEntity(e.x, e.y, e.z)
     te match {
-      case turnable : ITurnable =>
+      case turnable: ITurnable =>
         e.data += "facing" -> turnable.getFrontFacing.name
       case _ =>
     }
-    val infoDevice = Capabilities.getCapability(te, classOf[IGregTechDeviceInformation])
-    if (infoDevice != null) {
-      e.data += "sensorInformation" -> infoDevice.getInfoData
+
+    te match {
+      case gtTe: IGregTechTileEntity =>
+        val meta = gtTe.getMetaTileEntity
+        if (meta != null) {
+          e.data += "sensorInformation" -> meta.getInfoData
+          e.data += "machineType"       -> meta.getInventoryName
+          e.data += "metaId"            -> meta.getClass.getSimpleName
+          e.data += "gtMetaId"          -> Int.box(gtTe.getMetaTileID.toInt)
+        }
+      case _ =>
     }
   }
 

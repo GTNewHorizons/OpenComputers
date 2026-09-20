@@ -1,26 +1,23 @@
 package li.cil.oc.integration.vanilla
 
-import java.util
-
-import li.cil.oc.Settings
-import li.cil.oc.api
+import cpw.mods.fml.common.registry.GameData
+import li.cil.oc.{Settings, api}
+import li.cil.oc.integration.util.MapUtils.MapWrapper
 import li.cil.oc.util.ExtendedNBT._
-import net.minecraft.enchantment.Enchantment
-import net.minecraft.enchantment.EnchantmentHelper
-import net.minecraft.item
-import net.minecraft.item.Item
-import net.minecraft.nbt.CompressedStreamTools
-import net.minecraft.nbt.NBTTagString
+import net.minecraft.enchantment.{Enchantment, EnchantmentHelper}
+import net.minecraft.item.{Item, ItemStack}
+import net.minecraft.nbt.{CompressedStreamTools, JsonToNBT, NBTTagCompound, NBTTagString}
 import net.minecraftforge.common.util.Constants.NBT
 import net.minecraftforge.oredict.OreDictionary
 
+import java.util
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
 
 object ConverterItemStack extends api.driver.Converter {
   override def convert(value: AnyRef, output: util.Map[AnyRef, AnyRef]) =
     value match {
-      case stack: item.ItemStack =>
+      case stack: ItemStack =>
         if (Settings.get.insertIdsInConverters) {
           output += "id" -> Int.box(Item.getIdFromItem(stack.getItem))
           output += "oreNames" -> OreDictionary.getOreIDs(stack).map(OreDictionary.getOreName)
@@ -64,4 +61,27 @@ object ConverterItemStack extends api.driver.Converter {
         }
       case _ =>
     }
+
+  private val ItemRegistry = GameData.getItemRegistry
+
+  def parse(args: util.Map[_, _]): ItemStack = {
+    val id = args.getInt("id")
+    val name = args.getString("name")
+    val item = (id, name) match {
+      case (Some(i), _) => ItemRegistry.getObjectById(i)
+      case (_, Some(n)) => ItemRegistry.getObject(n)
+      case _ => throw new IllegalArgumentException("item id or name expected")
+    }
+    if (item == null) throw new IllegalArgumentException("item not found")
+    val amount = args.getInt("size").getOrElse(1)
+    val damage = args.getInt("damage").getOrElse(0)
+    val stack = new ItemStack(item, amount, damage)
+    if (Settings.get.allowItemStackNBTTags) {
+      args.getBytes("tag").foreach { tag =>
+        val nbtBase = CompressedStreamTools.func_152457_a(tag, net.minecraft.nbt.NBTSizeTracker.field_152451_a)
+        stack.setTagCompound(nbtBase)
+      }
+    }
+    stack
+  }
 }

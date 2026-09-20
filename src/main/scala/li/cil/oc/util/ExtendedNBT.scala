@@ -70,6 +70,48 @@ object ExtendedNBT {
     nbt
   }
 
+  def mapToNbtRecursively(map: collection.Map[String, _]): NBTTagCompound = {
+    def valueToNbtRecursively(value: Any): NBTBase = value match {
+      case value: Boolean => value
+      case value: Byte => value
+      case value: Short => value
+      case value: Int => value
+      case value: Long => value
+      case value: Float => value
+      case value: Double => value
+      case value: Array[Byte] => value
+      case value: Array[Int] => value
+      case value: String => value
+      case value: ItemStack => value
+      case value: Map[String, _] => mapToNbtRecursively(value)
+      case value: Iterable[_] =>
+        val list = new NBTTagList
+        value.foreach { v =>
+          val nbt = valueToNbtRecursively(v)
+          if (nbt != null && (list.func_150303_d() == 0 || list.func_150303_d() == nbt.getId))
+            list.appendTag(nbt)
+        }
+        list
+      case value: Array[_] =>
+        val list = new NBTTagList
+        value.foreach { v =>
+          val nbt = valueToNbtRecursively(v)
+          if (nbt != null && (list.func_150303_d() == 0 || list.func_150303_d() == nbt.getId))
+            list.appendTag(nbt)
+        }
+        list
+      case _ => null
+    }
+
+    val nbt = new NBTTagCompound
+    map.foreach { case (key, value) =>
+      val tag = valueToNbtRecursively(value)
+      if (tag != null)
+        nbt.setTag(key, tag);
+    }
+    nbt
+  }
+
   def typedMapToNbt(map: Map[_, _]): NBTBase = {
     def mapToList(value: Array[(_, _)]) = value.collect {
       // Ignore, can be stuff like the 'n' introduced by Lua's `pack`.

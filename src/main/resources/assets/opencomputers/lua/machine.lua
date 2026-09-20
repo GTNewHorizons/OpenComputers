@@ -1388,6 +1388,7 @@ local libcomputer = {
   freeMemory = computer.freeMemory,
   totalMemory = computer.totalMemory,
   uptime = computer.uptime,
+  realTime = computer.realTime,
   energy = computer.energy,
   maxEnergy = computer.maxEnergy,
 

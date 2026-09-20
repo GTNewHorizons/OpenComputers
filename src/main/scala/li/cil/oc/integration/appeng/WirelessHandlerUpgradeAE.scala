@@ -76,9 +76,10 @@ class WirelessHandlerUpgradeAE extends IWirelessTermHandler {
 
   override def hasInfinityRange(itemStack: ItemStack): Boolean = false
 }
-object WirelessHandlerUpgradeAE
-{
+
+object WirelessHandlerUpgradeAE {
   lazy val instance = new WirelessHandlerUpgradeAE
+
   def register() = {
     AEApi.instance.registries.wireless.registerWirelessHandler(instance)
   }

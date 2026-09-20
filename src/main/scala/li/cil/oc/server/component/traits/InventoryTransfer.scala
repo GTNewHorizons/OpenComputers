@@ -42,6 +42,29 @@ trait InventoryTransfer extends traits.WorldAware with traits.SideRestricted {
     }
   }
 
+  @Callback(doc = """function(sourceSide:number, sinkSide:number, sourceSlot:number, sinkSlot:number[, safe:boolean]):boolean -- Swap two inventory slots if and only if both directions succeed. Safe swaps require two non-empty slots.""")
+  def swap(context: Context, args: Arguments): Array[AnyRef] = {
+    val sourceSide = checkSideForAction(args, 0)
+    val sourcePos = position.offset(sourceSide)
+    val sinkSide = checkSideForAction(args, 1)
+    val sinkPos = position.offset(sinkSide)
+
+    onTransferContents() match {
+      case Some(reason) => return result(Unit, reason)
+      case _ =>
+    }
+
+    val source = InventoryUtils.inventoryAt(sourcePos).getOrElse(return result(Unit, "no inventory"))
+    val sink = InventoryUtils.inventoryAt(sinkPos).getOrElse(return result(Unit, "no inventory"))
+
+    val sourceSlot = args.checkSlot(source, 2)
+    val sinkSlot = args.checkSlot(sink, 3)
+
+    val safe = args.optBoolean(4, false)
+
+    result(InventoryUtils.swapBetweenInventoriesSlots(source, sourceSide.getOpposite, sourceSlot, sink, sinkSide.getOpposite, sinkSlot, safe))
+  }
+
   @Callback(doc = """function(sourceSide:number, sinkSide:number[, count:number [, sourceTank:number]]):boolean, number -- Transfer some fluid between two tanks. Returns operation result and filled amount""")
   def transferFluid(context: Context, args: Arguments): Array[AnyRef] = {
     val sourceSide = checkSideForAction(args, 0)

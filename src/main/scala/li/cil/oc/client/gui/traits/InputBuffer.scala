@@ -1,18 +1,26 @@
 package li.cil.oc.client.gui.traits
 
-import li.cil.oc.api
-import li.cil.oc.client.KeyBindings
-import li.cil.oc.client.Textures
+import li.cil.oc.{Localization, OpenComputers, Settings, api}
+import li.cil.oc.client.{KeyBindings, Textures}
+import li.cil.oc.common.EventHandler
 import li.cil.oc.integration.util.NEI
 import li.cil.oc.util.RenderState
 import net.minecraft.client.Minecraft
+import net.minecraft.client.audio.PositionedSoundRecord
 import net.minecraft.client.gui.GuiScreen
 import net.minecraft.client.gui.inventory.GuiContainer
 import net.minecraft.client.renderer.Tessellator
+import net.minecraft.util.ResourceLocation
 import org.lwjgl.input.Keyboard
 import org.lwjgl.opengl.GL11
 
+import java.io.File
+import java.nio.charset.StandardCharsets
+import java.nio.file.Files
+import java.util.concurrent.Executors
+import scala.collection.JavaConverters.asScalaIteratorConverter
 import scala.collection.mutable
+import scala.concurrent.{ExecutionContext, Future}
 
 trait InputBuffer extends DisplayBuffer {
   protected def buffer: api.internal.TextBuffer
@@ -116,5 +124,68 @@ trait InputBuffer extends DisplayBuffer {
       code == Keyboard.KEY_RSHIFT ||
       code == Keyboard.KEY_LMETA ||
       code == Keyboard.KEY_RMETA
+  }
+
+  private val fileIoContext: ExecutionContext = ExecutionContext.fromExecutor(Executors.newFixedThreadPool(2))
+
+  private case class FileResult(relativePath: String, file: File)
+
+  private def getFiles(path: String): List[FileResult] = {
+    val rootFile = new File(path)
+    if (rootFile.isDirectory) {
+      val basePath = rootFile.getAbsoluteFile.getParentFile.toPath
+      val stream = Files.walk(rootFile.toPath)
+      try {
+        stream.iterator().asScala.filter(Files.isRegularFile(_)).map { path =>
+          val relative = basePath.relativize(path.toAbsolutePath).toString
+          FileResult(relative, path.toFile)
+        }.toList
+      } finally {
+        stream.close()
+      }
+    } else {
+      List(FileResult(rootFile.getName, rootFile))
+    }
+  }
+
+  private def playErrorSound(): Unit = {
+    val player = this.mc.thePlayer
+    val handler = this.mc.getSoundHandler
+    handler.playSound(new PositionedSoundRecord(new ResourceLocation("note.harp"), 1, 1, player.posX.toFloat, player.posY.toFloat, player.posZ.toFloat))
+  }
+
+  def handleDropFile(filePath: String): Unit = {
+    Future {
+      val allFiles = getFiles(filePath)
+      if (allFiles.size > Settings.get.maxDropFileCount) {
+        EventHandler.scheduleClient(() => {
+          this.mc.thePlayer.addChatMessage(Localization.InputBuffer.TooManyFiles)
+          playErrorSound()
+        })
+      }
+      else if (allFiles.exists(_.file.length() > Settings.get.maxDropFileSize)) {
+        EventHandler.scheduleClient(() => {
+          this.mc.thePlayer.addChatMessage(Localization.InputBuffer.FileTooLarge)
+          playErrorSound()
+        })
+      }
+      else if (allFiles.exists(_.relativePath.length() > Settings.get.maxDropFileNameLength)) {
+        EventHandler.scheduleClient(() => {
+          this.mc.thePlayer.addChatMessage(Localization.InputBuffer.FileNameTooLong)
+          playErrorSound()
+        })
+      }
+      else {
+        allFiles.foreach {
+          case FileResult(path, file) =>
+            val content = Files.readAllBytes(file.toPath)
+            EventHandler.scheduleClient(() => {
+              buffer.dropFile(path, content, null)
+            })
+        }
+      }
+    }(fileIoContext).failed.foreach { e =>
+      OpenComputers.log.warn("Failed to handle drop file.", e)
+    }(fileIoContext)
   }
 }

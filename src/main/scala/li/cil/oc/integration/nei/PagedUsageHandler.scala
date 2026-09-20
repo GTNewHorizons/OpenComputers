@@ -6,6 +6,7 @@ import codechicken.lib.gui.GuiDraw
 import codechicken.nei.PositionedStack
 import codechicken.nei.recipe.GuiRecipe
 import codechicken.nei.recipe.IUsageHandler
+import li.cil.oc.util.ColorUtils
 import net.minecraft.client.gui.inventory.GuiContainer
 import net.minecraft.inventory.Container
 import net.minecraft.item.ItemStack
@@ -21,7 +22,8 @@ abstract class PagedUsageHandler(val pages: Option[Array[String]]) extends IUsag
     pages match {
       case Some(data) =>
         for ((text, line) <- data(recipe).lines.zipWithIndex) {
-          GuiDraw.drawString(text, 4, 4 + line * 10, 0x333333, false)
+          val color = if (text.startsWith("  ")) ColorUtils.neiDocText.getColor() else ColorUtils.neiDocTitle.getColor()
+          GuiDraw.drawString(text, 4, 4 + line * 10, color, false)
         }
       case _ =>
     }
