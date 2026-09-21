@@ -39,20 +39,8 @@ object DriverMEInputHatch extends SidedBlock {
     case _ => null
   }
 
-  def isSlotArgument(args: Arguments): Boolean =
-    if (args.isInteger(0)) true
-    else if (args.isString(0)) {
-      val value = args.checkString(0).trim
-      value.nonEmpty && value.forall(c => c.isDigit || c == '-' || c == '+')
-    } else false
-
-  def detailIndex(args: Arguments): Int = if (isSlotArgument(args)) 1 else 0
-
-  def isTable(args: Arguments, index: Int): Boolean =
-    args.count() > index && args.checkAny(index).isInstanceOf[java.util.Map[_, _]]
-
   def resolveSlot(args: Arguments, size: Int): Int = {
-    val slot = if (args.isInteger(0)) args.checkInteger(0) else if (isSlotArgument(args)) args.checkString(0).trim.toInt else 1
+    val slot = args.checkInteger(0)
     val index = slot - 1
     if (index < 0 || index >= size) {
       throw new IllegalArgumentException("invalid slot")
@@ -61,8 +49,14 @@ object DriverMEInputHatch extends SidedBlock {
   }
 
   def detailTable(args: Arguments): java.util.Map[_, _] = {
-    val index = detailIndex(args)
-    if (isTable(args, index)) args.checkTable(index) else null
+    val index = if (args.isInteger(0)) 1 else 0
+    if (args.count() <= index || args.checkAny(index) == null) null else args.checkTable(index)
+  }
+
+  def checkPositiveInteger(args: Arguments, index: Int): Int = {
+    val value = args.checkInteger(index)
+    if (value <= 0) throw new IllegalArgumentException("Bad argument#" + index + ": " + "expected positive integer, got " + value)
+    value
   }
 
   private def parseDetail[T <: IAEStack[T]](table: java.util.Map[_, _])(implicit tag: ClassTag[T]): T =
@@ -132,21 +126,21 @@ object DriverMEInputHatch extends SidedBlock {
     def isAdvanced(context: Context, args: Arguments): Array[AnyRef] = result(autoPullAvailable)
 
     @Callback(doc = "function():boolean -- Returns whether this input bus enables the auto-pull feature.")
-    def getAutoStock(context: Context, args: Arguments): Array[AnyRef] = result(autoPullAvailable && isAutoPull)
+    def getAutoPull(context: Context, args: Arguments): Array[AnyRef] = result(autoPullAvailable && isAutoPull)
 
     @Callback(doc = "function(enabled:boolean):boolean -- Sets whether this input bus enables the auto-pull feature.")
-    def setAutoStock(context: Context, args: Arguments): Array[AnyRef] = {
+    def setAutoPull(context: Context, args: Arguments): Array[AnyRef] = {
       val enabled = args.checkBoolean(0)
       if (autoPullAvailable) setAutoPull(enabled)
       result(true)
     }
 
     @Callback(doc = "function():number -- Returns the minimum amount of this input bus.")
-    def getMinAutoPullStackSize(context: Context, args: Arguments): Array[AnyRef] = result(getMinAutoPullAmount)
+    def getMinAmount(context: Context, args: Arguments): Array[AnyRef] = result(getMinAutoPullAmount)
 
     @Callback(doc = "function(min:number):boolean -- Sets the minimum amount of this input bus.")
-    def setMinAutoPullStackSize(context: Context, args: Arguments): Array[AnyRef] = {
-      setMinAutoPullAmount(args.checkInteger(0))
+    def setMinAmount(context: Context, args: Arguments): Array[AnyRef] = {
+      setMinAutoPullAmount(checkPositiveInteger(args, 0))
       result(true)
     }
 
@@ -155,7 +149,7 @@ object DriverMEInputHatch extends SidedBlock {
 
     @Callback(doc = "function(ticks:number):boolean -- Sets the slot refresh time of this input bus.")
     def setRefreshTime(context: Context, args: Arguments): Array[AnyRef] = {
-      setAutoPullRefreshTime(args.checkInteger(0))
+      setAutoPullRefreshTime(checkPositiveInteger(args, 0))
       result(true)
     }
 
@@ -192,7 +186,7 @@ object DriverMEInputHatch extends SidedBlock {
     override protected def setConnectsToAllSides(connects: Boolean): Unit = tile.setConnectsToAllSides(connects)
 
     @Callback(doc = "function():number -- Returns the number of slots this input hatch can be configured for.")
-    def getTankSize(context: Context, args: Arguments): Array[AnyRef] = result(MTEHatchInputME.SLOT_COUNT)
+    def getSlotSize(context: Context, args: Arguments): Array[AnyRef] = result(MTEHatchInputME.SLOT_COUNT)
 
     @Callback(doc = "function(slot:number):table -- Returns the fluid configured for the specified slot.")
     def getConfiguration(context: Context, args: Arguments): Array[AnyRef] =
@@ -211,21 +205,21 @@ object DriverMEInputHatch extends SidedBlock {
     def isAdvanced(context: Context, args: Arguments): Array[AnyRef] = result(autoPullAvailable)
 
     @Callback(doc = "function():boolean -- Returns whether this input hatch enables the auto-pull feature.")
-    def getAutoStock(context: Context, args: Arguments): Array[AnyRef] = result(autoPullAvailable && isAutoPull)
+    def getAutoPull(context: Context, args: Arguments): Array[AnyRef] = result(autoPullAvailable && isAutoPull)
 
     @Callback(doc = "function(enabled:boolean):boolean -- Sets whether this input hatch enables the auto-pull feature.")
-    def setAutoStock(context: Context, args: Arguments): Array[AnyRef] = {
+    def setAutoPull(context: Context, args: Arguments): Array[AnyRef] = {
       val enabled = args.checkBoolean(0)
       if (autoPullAvailable) setAutoPull(enabled)
       result(true)
     }
 
     @Callback(doc = "function():number -- Returns the minimum amount of this input hatch.")
-    def getMinAutoPullStackSize(context: Context, args: Arguments): Array[AnyRef] = result(getMinAutoPullAmount)
+    def getMinAmount(context: Context, args: Arguments): Array[AnyRef] = result(getMinAutoPullAmount)
 
     @Callback(doc = "function(min:number):boolean -- Sets the minimum amount of this input hatch.")
-    def setMinAutoPullStackSize(context: Context, args: Arguments): Array[AnyRef] = {
-      setMinAutoPullAmount(args.checkInteger(0))
+    def setMinAmount(context: Context, args: Arguments): Array[AnyRef] = {
+      setMinAutoPullAmount(checkPositiveInteger(args, 0))
       result(true)
     }
 
@@ -234,7 +228,7 @@ object DriverMEInputHatch extends SidedBlock {
 
     @Callback(doc = "function(ticks:number):boolean -- Sets the slot refresh time of this input hatch.")
     def setRefreshTime(context: Context, args: Arguments): Array[AnyRef] = {
-      setAutoPullRefreshTime(args.checkInteger(0))
+      setAutoPullRefreshTime(checkPositiveInteger(args, 0))
       result(true)
     }
 
