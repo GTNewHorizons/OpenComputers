@@ -49,8 +49,9 @@ object DriverMEInputHatch extends SidedBlock {
   }
 
   def detailTable(args: Arguments): java.util.Map[_, _] = {
-    val index = if (args.isInteger(0)) 1 else 0
-    if (args.count() <= index || args.checkAny(index) == null) null else args.checkTable(index)
+    if (args.count() <= 1) null
+    else if (args.checkAny(1) == null) null
+    else args.checkTable(1)
   }
 
   def checkPositiveInteger(args: Arguments, index: Int): Int = {
