@@ -5,7 +5,7 @@ import cpw.mods.fml.relauncher.SideOnly
 import li.cil.oc.Settings
 import li.cil.oc.client.Textures
 import li.cil.oc.common.tileentity
-import li.cil.oc.common.item.data.TransposerData.FLUID_TRANSFER_RATE
+import li.cil.oc.common.item.data.TransposerData
 import net.minecraft.client.renderer.texture.IIconRegister
 import net.minecraft.entity.EntityLivingBase
 import net.minecraft.entity.player.EntityPlayer
@@ -63,13 +63,7 @@ class Transposer(protected implicit val tileTag: ClassTag[tileentity.Transposer]
   }
 
   override protected def tooltipBody(metadata: Int, stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean): Unit = {
-    val tag = stack.getTagCompound
-    val transferRate =
-      if (tag != null && tag.hasKey(FLUID_TRANSFER_RATE))
-        tag.getInteger(FLUID_TRANSFER_RATE)
-      else
-        Settings.get.transposerFluidTransferRate
-
+    val transferRate = new TransposerData(stack).fluidTransferRate
     tooltip.add(StatCollector.translateToLocalFormatted("tile.oc.transposer.tooltip", NumberFormat.getIntegerInstance.format(transferRate)))
     super.tooltipBody(metadata, stack, player, tooltip, advanced)
   }

@@ -9,6 +9,7 @@ import li.cil.oc.api
 import li.cil.oc.client.KeyBindings
 import li.cil.oc.common.item.data.PrintData
 import li.cil.oc.common.item.data.RobotData
+import li.cil.oc.common.item.data.TransposerData
 import li.cil.oc.common.tileentity
 import li.cil.oc.util.Color
 import li.cil.oc.util.ItemColorizer
@@ -53,11 +54,18 @@ class Item(value: Block) extends ItemBlock(value) {
   override def getMetadata(itemDamage: Int) = itemDamage
 
   override def getItemStackDisplayName(stack: ItemStack): String = {
-    if (api.Items.get(stack) == api.Items.get(Constants.BlockName.Print)) {
-      val data = new PrintData(stack)
-      data.label.getOrElse(super.getItemStackDisplayName(stack))
+    val name = super.getItemStackDisplayName(stack)
+    if (api.Items.get(stack) == api.Items.get(Constants.BlockName.Transposer)) {
+      TransposerData.tierName(new TransposerData(stack).fluidTransferRate) match {
+        case Some(tier) => StatCollector.translateToLocalFormatted("tile.oc.transposer.name.tier", name, tier)
+        case _ => name
+      }
     }
-    else super.getItemStackDisplayName(stack)
+    else if (api.Items.get(stack) == api.Items.get(Constants.BlockName.Print)) {
+      val data = new PrintData(stack)
+      data.label.getOrElse(name)
+    }
+    else name
   }
 
   override def getUnlocalizedName = block match {
