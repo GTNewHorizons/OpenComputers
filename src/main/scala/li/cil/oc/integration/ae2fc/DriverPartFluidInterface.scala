@@ -36,14 +36,14 @@ object DriverPartFluidInterface extends driver.SidedBlock {
     @Callback(doc = "function(side:number[, slot:number]):table -- Get the configuration of the fluid interface.")
     def getFluidInterfaceConfiguration(context: Context, args: Arguments): Array[AnyRef] = {
       val side = args.checkSideAny(0)
-      val slot = args.optInteger(1, 0)
+      val slot = args.optInteger(1, 1) - 1
       result(getPart(side).getConfig.getStackInSlot(slot))
     }
 
     @Callback(doc = "function(side:number[, slot:number][, detail:table]):boolean -- Configure the fluid interface.")
     def setFluidInterfaceConfiguration(context: Context, args: Arguments): Array[AnyRef] = {
       val side = args.checkSideAny(0)
-      val (slot, offset) = if (args.isInteger(1)) (args.checkInteger(1), 2) else (0, 1)
+      val (slot, offset) = if (args.isInteger(1)) (args.checkInteger(1) - 1, 2) else (0, 1)
       val stack = if (args.count() <= offset) null.asInstanceOf[IAEFluidStack]
       else AEStackFactory.parse[IAEFluidStack](args.checkTable(offset))
       getPart(side).setConfig(slot, stack)
