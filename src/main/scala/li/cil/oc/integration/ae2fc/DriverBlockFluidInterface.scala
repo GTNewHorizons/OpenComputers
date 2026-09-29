@@ -27,13 +27,13 @@ object DriverBlockFluidInterface extends DriverSidedTileEntity {
 
     @Callback(doc = "function([slot:number]):table -- Get the configuration of the fluid interface.")
     def getFluidInterfaceConfiguration(context: Context, args: Arguments): Array[AnyRef] = {
-      val slot = args.optInteger(0, 0)
+      val slot = args.optInteger(0, 1) - 1
       result(tile.getConfig.getStackInSlot(slot))
     }
 
     @Callback(doc = "function([slot:number][, detail:table]):boolean -- Configure the fluid interface.")
     def setFluidInterfaceConfiguration(context: Context, args: Arguments): Array[AnyRef] = {
-      val (slot, offset) = if (args.isInteger(0)) (args.checkInteger(0), 1) else (0, 0)
+      val (slot, offset) = if (args.isInteger(0)) (args.checkInteger(0) - 1, 1) else (0, 0)
       val stack = if (args.count() <= offset) null.asInstanceOf[IAEFluidStack]
       else AEStackFactory.parse[IAEFluidStack](args.checkTable(offset))
       tile.setConfig(slot, stack)
