@@ -11,16 +11,16 @@ class TransposerData(itemName: String = Constants.BlockName.Transposer) extends 
     load(stack)
   }
 
-  var fluidTransferRate: Int = Settings.get.transposerFluidTransferRate
+  var fluidTransferRate: Long = Settings.get.transposerFluidTransferRate
 
   def load(nbt: NBTTagCompound): Unit = {
     if (nbt.hasKey(FLUID_TRANSFER_RATE)) {
-      fluidTransferRate = nbt.getInteger(FLUID_TRANSFER_RATE)
+      fluidTransferRate = nbt.getLong(FLUID_TRANSFER_RATE)
     }
   }
 
   def save(nbt: NBTTagCompound): Unit = {
-    nbt.setInteger(FLUID_TRANSFER_RATE, fluidTransferRate)
+    nbt.setLong(FLUID_TRANSFER_RATE, fluidTransferRate)
   }
 
   def copyItemStack(): ItemStack = {
@@ -33,4 +33,20 @@ class TransposerData(itemName: String = Constants.BlockName.Transposer) extends 
 
 object TransposerData {
   val FLUID_TRANSFER_RATE: String = Settings.namespace + "fluidTransferRate"
+
+  private val tierNames = Map(
+    10240L -> "HV",
+    40960L -> "EV",
+    163840L -> "IV",
+    655360L -> "LuV",
+    2621440L -> "ZPM",
+    10485760L -> "UV",
+    41943040L -> "UHV",
+    167772160L -> "UEV",
+    671088640L -> "UIV",
+    2684354560L -> "UMV",
+    10737418240L -> "UXV"
+  )
+
+  def tierName(fluidTransferRate: Long): Option[String] = tierNames.get(fluidTransferRate)
 }

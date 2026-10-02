@@ -109,7 +109,7 @@ object BlockDataProvider extends IWailaDataProvider {
 //        tag.setByteArray("sideIndexes", ForgeDirection.VALID_DIRECTIONS.map(side => te.sides.indexWhere(_.contains(side))).map(_.toByte))
         // TODO
       case te: tileentity.Transposer =>
-        tag.setInteger("fluidTransferRate", te.info.fluidTransferRate)
+        tag.setLong("fluidTransferRate", te.info.fluidTransferRate)
       case _ =>
     }
 
@@ -153,7 +153,7 @@ object BlockDataProvider extends IWailaDataProvider {
 //        }
         // TODO
       case _: tileentity.Transposer =>
-          val transferRate = tag.getInteger("fluidTransferRate");
+          val transferRate = tag.getLong("fluidTransferRate");
           tooltip.add(Localization.localizeImmediately("tile.oc.transposer.tooltip", NumberFormat.getIntegerInstance.format(transferRate)))
       case _ =>
     }
