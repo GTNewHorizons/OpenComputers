@@ -10,7 +10,7 @@ import li.cil.oc.api.driver
 import li.cil.oc.api.driver.{EnvironmentProvider, NamedBlock}
 import li.cil.oc.api.machine.{Arguments, Callback, Context}
 import li.cil.oc.integration.ManagedTileEntityEnvironment
-import li.cil.oc.integration.appeng.internal.PartItemBusBase
+import li.cil.oc.integration.appeng.internal.{AESettingsEnvironment, PartItemBusBase}
 import li.cil.oc.util.ExtendedArguments._
 import li.cil.oc.util.ResultWrapper._
 import li.cil.oc.util.{BlockPosition, InventoryUtils}
@@ -32,10 +32,22 @@ object DriverExportBus extends driver.SidedBlock {
 
   override def createEnvironment(world: World, x: Int, y: Int, z: Int, side: ForgeDirection) = new Environment(world.getTileEntity(x, y, z).asInstanceOf[IPartHost])
 
-  final class Environment(val host: IPartHost)(implicit val tag: ClassTag[PartExportBus]) extends ManagedTileEntityEnvironment[IPartHost](host, "me_exportbus") with NamedBlock with PartItemBusBase[PartExportBus] {
+  final class Environment(val host: IPartHost)(implicit val tag: ClassTag[PartExportBus])
+    extends ManagedTileEntityEnvironment[IPartHost](host, "me_exportbus")
+    with NamedBlock
+    with PartItemBusBase[PartExportBus]
+    with AESettingsEnvironment.RedstoneControlledSetting
+    with AESettingsEnvironment.FuzzyModeSetting
+    with AESettingsEnvironment.CraftOnlySetting
+    with AESettingsEnvironment.SchedulingModeSetting {
     override def preferredName = "me_exportbus"
 
     override def priority = 2
+
+    override protected def settingsTarget(context: Context, args: Arguments) = {
+      val part = getPart(args.checkSideAny(0))
+      (part.getConfigManager, part, 1)
+    }
 
     @Callback(doc = "function(side:number, [ slot:number]):boolean -- Get the configuration of the export bus pointing in the specified direction.")
     def getExportConfiguration(context: Context, args: Arguments): Array[AnyRef] = this.getPartConfig(context, args)

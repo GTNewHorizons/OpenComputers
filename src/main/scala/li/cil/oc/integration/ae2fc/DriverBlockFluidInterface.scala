@@ -8,6 +8,7 @@ import li.cil.oc.api.network.ManagedEnvironment
 import li.cil.oc.api.prefab.DriverSidedTileEntity
 import li.cil.oc.integration.ManagedTileEntityEnvironment
 import li.cil.oc.integration.appeng.AEStackFactory
+import li.cil.oc.integration.appeng.internal.AESettingsEnvironment
 import li.cil.oc.util.ResultWrapper._
 import net.minecraft.item.ItemStack
 import net.minecraft.world.World
@@ -19,11 +20,24 @@ object DriverBlockFluidInterface extends DriverSidedTileEntity {
   def createEnvironment(world: World, x: Int, y: Int, z: Int, side: ForgeDirection): ManagedEnvironment =
     new Environment(world.getTileEntity(x, y, z).asInstanceOf[TileFluidInterface])
 
-  final class Environment(val tile: TileFluidInterface) extends ManagedTileEntityEnvironment[TileFluidInterface](tile, "fluid_interface") with NamedBlock {
+  final class Environment(val tile: TileFluidInterface)
+    extends ManagedTileEntityEnvironment[TileFluidInterface](tile, "fluid_interface")
+    with NamedBlock
+    with AESettingsEnvironment.BlockingModeSetting
+    with AESettingsEnvironment.SmartBlockSetting
+    with AESettingsEnvironment.InterfaceTerminalSetting
+    with AESettingsEnvironment.InsertionModeSetting
+    with AESettingsEnvironment.AdvancedBlockingModeSetting
+    with AESettingsEnvironment.LockCraftingModeSetting
+    with AESettingsEnvironment.PatternOptimizationSetting
+    with AESettingsEnvironment.FuzzyModeSetting
+    with AESettingsEnvironment.SidelessModeSetting {
 
     override def preferredName = "fluid_interface"
 
     override def priority = 6
+
+    override protected def settingsTarget(context: Context, args: Arguments) = (tile.getConfigManager, tile, 0)
 
     @Callback(doc = "function([slot:number]):table -- Get the configuration of the fluid interface.")
     def getFluidInterfaceConfiguration(context: Context, args: Arguments): Array[AnyRef] = {
