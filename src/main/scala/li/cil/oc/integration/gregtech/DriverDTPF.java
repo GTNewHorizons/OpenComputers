@@ -1,5 +1,6 @@
 package li.cil.oc.integration.gregtech;
 
+import bartworks.util.MathUtils;
 import gregtech.api.interfaces.metatileentity.IMetaTileEntity;
 import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
 import li.cil.oc.api.driver.NamedBlock;
@@ -70,7 +71,7 @@ final public class DriverDTPF extends DriverSidedTileEntity {
 
     @Callback(doc = "function(tier:number) -- Sets catalyst tier used when convergence is enabled.")
     public Object[] setConvergenceCatalystType(Context context, Arguments args) {
-      tileEntity.setCatalystTypeForRecipesWithoutCatalyst(args.checkInteger(0));
+      tileEntity.setCatalystTypeForRecipesWithoutCatalyst(MathUtils.clamp(args.checkInteger(0), 1, 5));
       return null;
     }
   }
