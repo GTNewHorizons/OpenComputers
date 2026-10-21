@@ -61,12 +61,12 @@ public final class DriverBECStorage extends DriverSidedTileEntity {
       return 10;
     }
 
-    @Callback(doc = "function():number -- Returns the field strength of this storage node.")
+    @Callback(direct = true, doc = "function():number -- Returns the field strength of this storage node.")
     public Object[] getFieldStrength(Context context, Arguments args) {
       return new Object[] { tileEntity.getFieldStrength() };
     }
 
-    @Callback(doc = "function(strength:number) -- Sets the field strength of this storage node.")
+    @Callback(direct = true, doc = "function(strength:number) -- Sets the field strength of this storage node.")
     public Object[] setFieldStrength(Context context, Arguments args) {
       tileEntity.setFieldStrength(args.checkLong(0));
       return null;

@@ -63,12 +63,12 @@ public final class DriverBECDiode extends DriverSidedTileEntity {
       return 10;
     }
 
-    @Callback(doc = "function():number -- Returns the number of condensate filter slots.")
+    @Callback(direct = true, doc = "function():number -- Returns the number of condensate filter slots.")
     public Object[] getCondensateFilterCount(Context context, Arguments args) {
       return new Object[] { tileEntity.getCondensateFilterCount() };
     }
 
-    @Callback(doc = "function():table -- Returns the condensate filters by slot, using nil for empty slots.")
+    @Callback(direct = true, doc = "function():table -- Returns the condensate filters by slot, using nil for empty slots.")
     public Object[] getCondensateFilters(Context context, Arguments args) {
       Map<Integer, String> filters = new HashMap<>();
       List<Fluid> values = tileEntity.getCondensateFilters();
@@ -105,14 +105,14 @@ public final class DriverBECDiode extends DriverSidedTileEntity {
       return null;
     }
 
-    @Callback(doc = "function(slot:number):string -- Returns the name of the fluid used as condensate filter in the given slot, or nil if no filter is set.")
+    @Callback(direct = true, doc = "function(slot:number):string -- Returns the name of the fluid used as condensate filter in the given slot, or nil if no filter is set.")
     public Object[] getCondensateFilterAt(Context context, Arguments args) {
       int slot = getFilterSlot(args.checkInteger(0));
       Fluid filter = tileEntity.getCondensateFilterAt(slot);
       return new Object[] { filter == null ? null : FluidRegistry.getFluidName(filter) };
     }
 
-    @Callback(doc = "function(slot:number[, fluidName:string]) -- Sets the condensate filter in the given slot to the given fluid name, or clears it if nil.")
+    @Callback(direct = true, doc = "function(slot:number[, fluidName:string]) -- Sets the condensate filter in the given slot to the given fluid name, or clears it if nil.")
     public Object[] setCondensateFilterAt(Context context, Arguments args) {
       int slot = getFilterSlot(args.checkInteger(0));
       String name = args.optString(1, null);
