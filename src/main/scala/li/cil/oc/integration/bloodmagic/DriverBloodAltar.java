@@ -93,7 +93,7 @@ public class DriverBloodAltar extends DriverSidedTileEntity {
             } catch (Exception e) {
                 return new Object[] { null, e.getMessage() };
             };
-            var owner = SoulNetworkHandler.getOwnerName(orb);
+            String owner = SoulNetworkHandler.getOwnerName(orb);
             return new Object[] { owner };
         }
 
@@ -105,7 +105,7 @@ public class DriverBloodAltar extends DriverSidedTileEntity {
             } catch (Exception e) {
                 return new Object[] { null, e.getMessage() };
             };
-            var owner = SoulNetworkHandler.getOwnerName(orb);
+            String owner = SoulNetworkHandler.getOwnerName(orb);
             if (owner == null || owner.isEmpty()) {
                 return new Object[] { 0, "Orb has no bound owner" };
             }
@@ -141,7 +141,7 @@ public class DriverBloodAltar extends DriverSidedTileEntity {
             if(!(tileEntity instanceof IInventory)) {
                 throw new Exception("Blood Altar does not contain a blood orb");
             }
-            var inventory = (IInventory)tileEntity;
+            IInventory inventory = (IInventory)tileEntity;
             for (int slot = 0; slot < inventory.getSizeInventory(); slot++) {
                 ItemStack stackInSlot = inventory.getStackInSlot(slot);
                 if (stackInSlot != null && stackInSlot.getItem() instanceof IBloodOrb) {
