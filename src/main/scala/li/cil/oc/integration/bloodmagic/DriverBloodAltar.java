@@ -95,7 +95,6 @@ public class DriverBloodAltar extends DriverSidedTileEntity {
             } catch (Exception e) {
                 return new Object[] { null, e.getMessage() };
             }
-            ;
             String owner = SoulNetworkHandler.getOwnerName(orb);
             return new Object[] { owner };
         }
@@ -108,7 +107,6 @@ public class DriverBloodAltar extends DriverSidedTileEntity {
             } catch (Exception e) {
                 return new Object[] { null, e.getMessage() };
             }
-            ;
             String owner = SoulNetworkHandler.getOwnerName(orb);
             if (owner == null || owner.isEmpty()) {
                 return new Object[] { 0, "Orb has no bound owner" };
@@ -125,7 +123,6 @@ public class DriverBloodAltar extends DriverSidedTileEntity {
             } catch (Exception e) {
                 return new Object[] { null, e.getMessage() };
             }
-            ;
             int maxLP = ((IBloodOrb) orb.getItem()).getMaxEssence();
             return new Object[] { maxLP };
         }
@@ -138,7 +135,6 @@ public class DriverBloodAltar extends DriverSidedTileEntity {
             } catch (Exception e) {
                 return new Object[] { null, e.getMessage() };
             }
-            ;
             int level = ((IBloodOrb) orb.getItem()).getOrbLevel();
             return new Object[] { level };
         }
