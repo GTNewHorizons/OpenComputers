@@ -1,5 +1,7 @@
 package li.cil.oc.client.renderer.tileentity
 
+import li.cil.oc.integration.angelica.AngelicaMeshBackend
+import li.cil.oc.integration.angelica.AngelicaTesr
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer
 
 trait MeshBackend {
@@ -13,5 +15,5 @@ trait MeshBackend {
 }
 
 object MeshBackend {
-  val active: MeshBackend = StandaloneMeshBackend
+  val active: MeshBackend = if (AngelicaTesr.Batching) AngelicaMeshBackend else StandaloneMeshBackend
 }

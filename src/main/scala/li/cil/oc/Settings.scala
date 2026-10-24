@@ -29,6 +29,7 @@ import scala.util.matching.Regex
 class Settings(val config: Config) {
   // ----------------------------------------------------------------------- //
   // client
+  val angelicaBatching = config.getBoolean("client.angelicaBatching")
   val screenTextFadeStartDistance = config.getDouble("client.screenTextFadeStartDistance")
   val maxScreenTextRenderDistance = config.getDouble("client.maxScreenTextRenderDistance")
   val textLinearFiltering = config.getBoolean("client.textLinearFiltering")
