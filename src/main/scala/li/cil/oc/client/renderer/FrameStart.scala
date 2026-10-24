@@ -6,6 +6,7 @@ import cpw.mods.fml.common.gameevent.TickEvent.RenderTickEvent
 import li.cil.oc.client.renderer.shading.Fog
 import li.cil.oc.client.renderer.shading.Programs
 import li.cil.oc.client.renderer.shading.ShaderPack
+import li.cil.oc.client.renderer.text.ScreenText
 
 object FrameStart {
   var reloadPending = true
@@ -19,7 +20,9 @@ object FrameStart {
         reloadPending = false
         TextBufferRenderCache.releaseAll()
         Programs.reload()
+        ScreenText.reload(TextBufferRenderCache.renderer)
       }
+      TextBufferRenderCache.beginFrame()
     }
   }
 }

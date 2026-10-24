@@ -177,9 +177,9 @@ class DynamicFontRenderer extends IResourceManagerReloadListener {
     initialize()
   }
 
-  private[font] def charWidth = glyphProvider.getGlyphWidth
+  private[renderer] def charWidth = glyphProvider.getGlyphWidth
 
-  private[font] def charHeight = glyphProvider.getGlyphHeight
+  private[renderer] def charHeight = glyphProvider.getGlyphHeight
 
   private def textureCount = textures.length
 
@@ -238,7 +238,7 @@ class DynamicFontRenderer extends IResourceManagerReloadListener {
   }
 
   private def createCharIcon(char: Int): DynamicFontRenderer.CharIcon = {
-    if (FontUtils.wcwidth(char) < 1 || glyphProvider.getGlyph(char) == null) {
+    if (FontUtils.wcwidth(char) < 1 || !glyphProvider.hasGlyph(char)) {
       if (char == '?') null
       else getOrCreate('?')
     }

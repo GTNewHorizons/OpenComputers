@@ -98,6 +98,14 @@ final class CapturedMesh {
     }
   }
 
+  def drawGeometry() {
+    var i = 0
+    while (i < used) {
+      slots.get(i).vao.render()
+      i += 1
+    }
+  }
+
   private def nextSlot(format: VertexFormat): CapturedMesh.Slot = {
     var i = used
     while (i < slots.size && (slots.get(i).format ne format)) i += 1

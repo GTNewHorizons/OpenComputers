@@ -28,6 +28,7 @@ public final class ProgramRecipe {
     private final List<String> uniforms = new ArrayList<>();
     private final Object2IntOpenHashMap<String> samplers = new Object2IntOpenHashMap<>();
     private final Object2FloatOpenHashMap<String> constants = new Object2FloatOpenHashMap<>();
+    private final StringBuilder defines = new StringBuilder();
 
     private boolean tinted;
     private boolean lit;
@@ -59,6 +60,15 @@ public final class ProgramRecipe {
     public ProgramRecipe constant(String uniform, float value) {
         constants.put(uniform, value);
         return required(uniform);
+    }
+
+    public ProgramRecipe define(String macro, float value) {
+        defines.append("#define ")
+            .append(macro)
+            .append(' ')
+            .append(value)
+            .append('\n');
+        return this;
     }
 
     public ProgramRecipe tinted() {
@@ -98,10 +108,9 @@ public final class ProgramRecipe {
     }
 
     public String assemble(GlslDialect dialect, String prelude, String body) {
-        return dialect.source((tinted ? "#define OC_TINTED\n" : "") + (lit ? "#define OC_LIT\n" : ""), prelude, body);
+        return dialect.source((tinted ? "#define OC_TINTED\n" : "") + (lit ? "#define OC_LIT\n" : "") + defines, prelude, body);
     }
 
-    // Never retry with GLSL120: under Angelica that is the emulated path these programs replace.
     public Program bake() {
         final GlslDialect dialect = GlslDialect.preferred();
         final int program = link(dialect);

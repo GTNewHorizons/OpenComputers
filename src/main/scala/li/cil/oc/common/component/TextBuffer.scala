@@ -634,13 +634,17 @@ object TextBuffer {
       wasDirty
     }
 
-    override def onBufferColorChange() {
-      markDirty()
+    override def markDirty() {
+      renderer.rows.markAll()
+      dirty = true
     }
+
+    override def onBufferColorChange() {}
 
     override def onBufferCopy(col: Int, row: Int, w: Int, h: Int, tx: Int, ty: Int) {
       super.onBufferCopy(col, row, w, h, tx, ty)
-      markDirty()
+      renderer.rows.copy(row, h, ty)
+      dirty = true
     }
 
     override def onBufferDepthChange(depth: api.internal.TextBuffer.ColorDepth) {
@@ -649,7 +653,8 @@ object TextBuffer {
 
     override def onBufferFill(col: Int, row: Int, w: Int, h: Int, c: Int) {
       super.onBufferFill(col, row, w, h, c)
-      markDirty()
+      renderer.rows.fill(row, h)
+      dirty = true
     }
 
     override def onBufferPaletteChange(index: Int) {
@@ -668,12 +673,32 @@ object TextBuffer {
 
     override def onBufferSet(col: Int, row: Int, s: String, vertical: Boolean) {
       super.onBufferSet(col, row, s, vertical)
-      markDirty()
+      renderer.rows.set(row, s, vertical)
+      dirty = true
     }
 
     override def onBufferBitBlt(col: Int, row: Int, w: Int, h: Int, ram: component.GpuTextBuffer, fromCol: Int, fromRow: Int): Unit = {
       super.onBufferBitBlt(col, row, w, h, ram, fromCol, fromRow)
-      markDirty()
+      renderer.rows.bitBlt(row, h)
+      dirty = true
+    }
+
+    override def onBufferRawSetText(col: Int, row: Int, text: Array[Array[Int]]) {
+      super.onBufferRawSetText(col, row, text)
+      renderer.rows.fill(row, text.length)
+      dirty = true
+    }
+
+    override def onBufferRawSetBackground(col: Int, row: Int, color: Array[Array[Int]]) {
+      super.onBufferRawSetBackground(col, row, color)
+      renderer.rows.fill(row, color.length)
+      dirty = true
+    }
+
+    override def onBufferRawSetForeground(col: Int, row: Int, color: Array[Array[Int]]) {
+      super.onBufferRawSetForeground(col, row, color)
+      renderer.rows.fill(row, color.length)
+      dirty = true
     }
 
     override def onBufferRamInit(ram: component.GpuTextBuffer): Unit = {

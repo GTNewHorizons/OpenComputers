@@ -6,7 +6,9 @@ import cpw.mods.fml.common.eventhandler.SubscribeEvent
 import cpw.mods.fml.common.gameevent.TickEvent
 import cpw.mods.fml.common.gameevent.TickEvent.ClientTickEvent
 import li.cil.oc.client.renderer.font.DynamicFontRenderer
+import li.cil.oc.client.renderer.shading.Programs
 import li.cil.oc.client.renderer.text.GlyphMeshText
+import li.cil.oc.client.renderer.text.ScreenText
 import li.cil.oc.client.renderer.text.TextBufferRenderData
 
 object TextBufferRenderCache {
@@ -30,14 +32,39 @@ object TextBufferRenderCache {
     }
     buffer.lastUsedTick = tick
 
-    GlyphMeshText.render(buffer, renderer, inWorld, worldFade)
+    val drawn =
+      if (Programs.fixedFunction(inWorld)) ScreenText.drawPacked(renderer, buffer, worldFade)
+      else ScreenText.render(renderer, buffer, if (inWorld) worldFade else 1f, inWorld)
+    if (drawn) dropMesh(buffer)
+    else GlyphMeshText.render(buffer, renderer, inWorld, worldFade)
   }
 
-  private def release(buffer: TextBufferRenderData) {
+  def beginFrame() {
+    ScreenText.beginFrame()
+    val packs = Programs.fixedFunction(inWorld = true)
+    var i = 0
+    while (i < owners.size) {
+      val owner = owners.get(i)
+      if (!packs) ScreenText.releasePackTarget(owner)
+      else if (owner.drawnInPack) {
+        owner.drawnInPack = false
+        ScreenText.renderPackTarget(renderer, owner)
+      }
+      i += 1
+    }
+    ScreenText.finishPackTargets()
+  }
+
+  private def dropMesh(buffer: TextBufferRenderData) {
     if (buffer.mesh != null) {
       buffer.mesh.delete()
       buffer.mesh = null
     }
+  }
+
+  private def release(buffer: TextBufferRenderData) {
+    ScreenText.release(buffer)
+    dropMesh(buffer)
     buffer.tracked = false
   }
 
@@ -48,6 +75,7 @@ object TextBufferRenderCache {
       i += 1
     }
     owners.clear()
+    ScreenText.finishPackTargets()
   }
 
   @SubscribeEvent
@@ -63,6 +91,7 @@ object TextBufferRenderCache {
         }
         i -= 1
       }
+      ScreenText.finishPackTargets()
     }
   }
 }
