@@ -35,6 +35,10 @@ class NetSplitter extends RedstoneAware {
 
   override def createTileEntity(world: World, metadata: Int) = new tileentity.NetSplitter()
 
+  override def getRenderBlockPass = 1
+
+  override def canRenderInPass(pass: Int) = pass == 0 || pass == 1
+
   // ----------------------------------------------------------------------- //
 
   override def onBlockActivated(world: World, x: Int, y: Int, z: Int, player: EntityPlayer, side: ForgeDirection, hitX: Float, hitY: Float, hitZ: Float) = {

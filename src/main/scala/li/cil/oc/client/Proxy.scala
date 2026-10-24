@@ -11,12 +11,15 @@ import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.client
+import li.cil.oc.client.renderer.FrameStart
 import li.cil.oc.client.renderer.HighlightRenderer
 import li.cil.oc.client.renderer.MFUTargetRenderer
 import li.cil.oc.client.renderer.PetRenderer
+import li.cil.oc.client.renderer.TextBufferRenderCache
 import li.cil.oc.client.renderer.WirelessNetworkDebugRenderer
 import li.cil.oc.client.renderer.block.BlockRenderer
 import li.cil.oc.client.renderer.entity.DroneRenderer
+import li.cil.oc.client.renderer.glsl.GlslDialect
 import li.cil.oc.client.renderer.item.ItemRenderer
 import li.cil.oc.client.renderer.tileentity._
 import li.cil.oc.common.component.TextBuffer
@@ -27,6 +30,10 @@ import li.cil.oc.common.init.Items
 import li.cil.oc.common.tileentity
 import li.cil.oc.common.{Proxy => CommonProxy}
 import li.cil.oc.util.Audio
+import net.minecraft.client.Minecraft
+import net.minecraft.client.resources.IReloadableResourceManager
+import net.minecraft.client.resources.IResourceManager
+import net.minecraft.client.resources.IResourceManagerReloadListener
 import net.minecraftforge.client.MinecraftForgeClient
 import net.minecraftforge.common.MinecraftForge
 import org.lwjgl.opengl.GLContext
@@ -47,33 +54,33 @@ private[oc] class Proxy extends CommonProxy {
 
     OpenComputers.channel.register(client.PacketHandler)
 
+    GlslDialect.init()
+
     Settings.blockRenderId = RenderingRegistry.getNextAvailableRenderId
     RenderingRegistry.registerBlockHandler(BlockRenderer)
     RenderingRegistry.registerEntityRenderingHandler(classOf[Drone], DroneRenderer)
 
-    ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.Adapter], AdapterRenderer)
-    ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.Assembler], AssemblerRenderer)
-    ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.Case], CaseRenderer)
-    ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.Charger], ChargerRenderer)
-    ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.Disassembler], DisassemblerRenderer)
+    ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.Assembler], MeshBackend.active.overlayRenderer(Overlays.Assembler))
+    ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.Case], MeshBackend.active.overlayRenderer(Overlays.Case))
+    ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.Charger], MeshBackend.active.overlayRenderer(Overlays.Charger))
+    ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.Geolyzer], MeshBackend.active.overlayRenderer(Overlays.Geolyzer))
+    ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.Microcontroller], MeshBackend.active.overlayRenderer(Overlays.Microcontroller))
+    ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.Raid], MeshBackend.active.overlayRenderer(Overlays.Raid))
     ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.DiskDrive], DiskDriveRenderer)
-    ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.Geolyzer], GeolyzerRenderer)
     if (GLContext.getCapabilities.OpenGL15)
       ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.Hologram], HologramRenderer)
     else
       ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.Hologram], HologramRendererFallback)
-    ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.Microcontroller], MicrocontrollerRenderer)
-    ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.NetSplitter], NetSplitterRenderer)
-    ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.PowerDistributor], PowerDistributorRenderer)
+    ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.PowerDistributor], MeshBackend.active.overlayRenderer(Overlays.PowerDistributor))
     ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.Printer], PrinterRenderer)
-    ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.Raid], RaidRenderer)
     ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.Rack], RackRenderer)
-    ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.Switch], SwitchRenderer)
-    ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.AccessPoint], SwitchRenderer)
-    ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.Relay], SwitchRenderer)
+    val switch = MeshBackend.active.overlayRenderer(Overlays.Switch)
+    ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.Switch], switch)
+    ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.AccessPoint], switch)
+    ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.Relay], switch)
     ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.RobotProxy], RobotRenderer)
     ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.Screen], ScreenRenderer)
-    ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.Transposer], TransposerRenderer)
+    ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.Transposer], MeshBackend.active.overlayRenderer(Overlays.Transposer))
 
     MinecraftForgeClient.registerItemRenderer(Items.get(Constants.ItemName.Floppy).createItemStack(1).getItem, ItemRenderer)
     MinecraftForgeClient.registerItemRenderer(Items.get(Constants.BlockName.Cable).createItemStack(1).getItem, ItemRenderer)
@@ -94,7 +101,14 @@ private[oc] class Proxy extends CommonProxy {
     NetworkRegistry.INSTANCE.registerGuiHandler(OpenComputers, GuiHandler)
 
     FMLCommonHandler.instance.bus.register(Audio)
-    FMLCommonHandler.instance.bus.register(HologramRenderer)
+    HologramMesh.active.init()
+    FMLCommonHandler.instance.bus.register(TextBufferRenderCache)
+    FMLCommonHandler.instance.bus.register(FrameStart)
+    Minecraft.getMinecraft.getResourceManager.asInstanceOf[IReloadableResourceManager].registerReloadListener(new IResourceManagerReloadListener {
+      override def onResourceManagerReload(manager: IResourceManager) {
+        FrameStart.reloadPending = true
+      }
+    })
     FMLCommonHandler.instance.bus.register(PetRenderer)
     FMLCommonHandler.instance.bus.register(Sound)
   }

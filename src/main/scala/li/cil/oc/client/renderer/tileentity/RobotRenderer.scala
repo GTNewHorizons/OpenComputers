@@ -1,18 +1,19 @@
 package li.cil.oc.client.renderer.tileentity
 
 import com.google.common.base.Strings
+import com.gtnewhorizon.gtnhlib.client.renderer.vertex.DefaultVertexFormat
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.api.driver.item.UpgradeRenderer
 import li.cil.oc.api.driver.item.UpgradeRenderer.MountPointName
 import li.cil.oc.api.event.RobotRenderEvent
 import li.cil.oc.client.Textures
+import li.cil.oc.client.renderer.CapturedMesh
 import li.cil.oc.common.EventHandler
 import li.cil.oc.common.tileentity
 import li.cil.oc.util.RenderState
 import net.minecraft.block.Block
 import net.minecraft.client.Minecraft
-import net.minecraft.client.renderer.GLAllocation
 import net.minecraft.client.renderer.RenderBlocks
 import net.minecraft.client.renderer.Tessellator
 import net.minecraft.client.renderer.entity.RenderManager
@@ -23,12 +24,10 @@ import net.minecraft.item.ItemBlock
 import net.minecraft.item.ItemStack
 import net.minecraft.tileentity.TileEntity
 import net.minecraft.util.EnumChatFormatting
-import net.minecraft.util.Vec3
 import net.minecraftforge.client.IItemRenderer.ItemRenderType._
 import net.minecraftforge.client.IItemRenderer.ItemRendererHelper._
 import net.minecraftforge.client.MinecraftForgeClient
 import net.minecraftforge.common.MinecraftForge
-import net.minecraftforge.common.util.ForgeDirection
 import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL12
 
@@ -36,8 +35,6 @@ import scala.collection.convert.WrapAsJava._
 import scala.collection.mutable
 
 object RobotRenderer extends TileEntitySpecialRenderer {
-  private val displayList = GLAllocation.generateDisplayLists(2)
-
   private val mountPoints = new Array[RobotRenderEvent.MountPoint](7)
 
   private val slotNameMapping = Map(
@@ -58,83 +55,98 @@ object RobotRenderer extends TileEntitySpecialRenderer {
   private val gt = 0.5f + gap
   private val gb = 0.5f - gap
 
-  private def normal(v: Vec3) {
-    val n = v.normalize()
-    GL11.glNormal3f(n.xCoord.toFloat, n.yCoord.toFloat, n.zCoord.toFloat)
+  private val size = 0.4f
+  private val l = 0.5f - size
+  private val h = 0.5f + size
+
+  private def setNormal(t: Tessellator, x: Float, y: Float, z: Float) {
+    val il = 1f / math.sqrt(x * x + y * y + z * z).toFloat
+    t.setNormal(x * il, y * il, z * il)
   }
 
-  def compileList() {
-    val t = Tessellator.instance
+  // Degenerate quad: the captured chassis mesh is drawn as GL_QUADS.
+  private def fanQuad(t: Tessellator, apexY: Float, apexU: Float,
+                      nx: Float, ny: Float, nz: Float,
+                      x1: Float, y1: Float, z1: Float, u1: Float, v1: Float,
+                      x2: Float, y2: Float, z2: Float, u2: Float, v2: Float) {
+    setNormal(t, nx, ny, nz)
+    t.addVertexWithUV(0.5f, apexY, 0.5f, apexU, 0.25)
+    t.addVertexWithUV(x1, y1, z1, u1, v1)
+    t.addVertexWithUV(x2, y2, z2, u2, v2)
+    t.addVertexWithUV(x2, y2, z2, u2, v2)
+  }
 
-    val size = 0.4f
-    val l = 0.5f - size
-    val h = 0.5f + size
-
-    GL11.glNewList(displayList, GL11.GL_COMPILE)
-
-    // This is _all_ deprecated old GL stuff... https://stackoverflow.com/a/13149580
-    GL11.glBegin(GL11.GL_TRIANGLE_FAN)
-    GL11.glTexCoord2f(0.25f, 0.25f)
-    GL11.glVertex3f(0.5f, 1, 0.5f)
-    GL11.glTexCoord2f(0, 0.5f)
-    GL11.glVertex3f(l, gt, h)
-    // normal(Vec3.createVectorHelper(0, 0.2, 1))
-    GL11.glTexCoord2f(0.5f, 0.5f)
-    GL11.glVertex3f(h, gt, h)
-    // normal(Vec3.createVectorHelper(1, 0.2, 0))
-    GL11.glTexCoord2f(0.5f, 0)
-    GL11.glVertex3f(h, gt, l)
-    // normal(Vec3.createVectorHelper(0, 0.2, -1))
-    GL11.glTexCoord2f(0, 0)
-    GL11.glVertex3f(l, gt, l)
-    // normal(Vec3.createVectorHelper(-1, 0.2, 0))
-    GL11.glTexCoord2f(0, 0.5f)
-    GL11.glVertex3f(l, gt, h)
-    GL11.glEnd()
-
-    t.startDrawingQuads()
+  private def emitTopPiece(t: Tessellator) {
+    fanQuad(t, 1, 0.25f, 0, 0.2f, 1, l, gt, h, 0, 0.5f, h, gt, h, 0.5f, 0.5f)
+    fanQuad(t, 1, 0.25f, 1, 0.2f, 0, h, gt, h, 0.5f, 0.5f, h, gt, l, 0.5f, 0)
+    fanQuad(t, 1, 0.25f, 0, 0.2f, -1, h, gt, l, 0.5f, 0, l, gt, l, 0, 0)
+    fanQuad(t, 1, 0.25f, -1, 0.2f, 0, l, gt, l, 0, 0, l, gt, h, 0, 0.5f)
     t.setNormal(0, -1, 0)
     t.addVertexWithUV(l, gt, h, 0, 1)
     t.addVertexWithUV(l, gt, l, 0, 0.5)
     t.addVertexWithUV(h, gt, l, 0.5, 0.5)
     t.addVertexWithUV(h, gt, h, 0.5, 1)
-    t.draw()
+  }
 
-    GL11.glEndList()
-
-    GL11.glNewList(displayList + 1, GL11.GL_COMPILE)
-
-    GL11.glBegin(GL11.GL_TRIANGLE_FAN)
-    GL11.glTexCoord2f(0.75f, 0.25f)
-    GL11.glVertex3f(0.5f, 0.03f, 0.5f)
-    GL11.glTexCoord2f(0.5f, 0)
-    GL11.glVertex3f(l, gb, l)
-    // normal(Vec3.createVectorHelper(0, -0.2, 1))
-    GL11.glTexCoord2f(1, 0)
-    GL11.glVertex3f(h, gb, l)
-    // normal(Vec3.createVectorHelper(1, -0.2, 0))
-    GL11.glTexCoord2f(1, 0.5f)
-    GL11.glVertex3f(h, gb, h)
-    // normal(Vec3.createVectorHelper(0, -0.2, -1))
-    GL11.glTexCoord2f(0.5f, 0.5f)
-    GL11.glVertex3f(l, gb, h)
-    // normal(Vec3.createVectorHelper(-1, -0.2, 0))
-    GL11.glTexCoord2f(0.5f, 0)
-    GL11.glVertex3f(l, gb, l)
-    GL11.glEnd()
-
-    t.startDrawingQuads()
+  private def emitBottomPiece(t: Tessellator) {
+    fanQuad(t, 0.03f, 0.75f, 0, -0.2f, -1, l, gb, l, 0.5f, 0, h, gb, l, 1, 0)
+    fanQuad(t, 0.03f, 0.75f, 1, -0.2f, 0, h, gb, l, 1, 0, h, gb, h, 1, 0.5f)
+    fanQuad(t, 0.03f, 0.75f, 0, -0.2f, 1, h, gb, h, 1, 0.5f, l, gb, h, 0.5f, 0.5f)
+    fanQuad(t, 0.03f, 0.75f, -1, -0.2f, 0, l, gb, h, 0.5f, 0.5f, l, gb, l, 0.5f, 0)
     t.setNormal(0, 1, 0)
     t.addVertexWithUV(l, gb, l, 0, 0.5)
     t.addVertexWithUV(l, gb, h, 0, 1)
     t.addVertexWithUV(h, gb, h, 0.5, 1)
     t.addVertexWithUV(h, gb, l, 0.5, 0.5)
-    t.draw()
-
-    GL11.glEndList()
   }
 
-  compileList()
+  private val pieces = new Array[CapturedMesh](2)
+
+  private[tileentity] def pieceMesh(top: Boolean): CapturedMesh = {
+    var mesh = pieces(if (top) 1 else 0)
+    if (mesh == null) {
+      mesh = CapturedMesh.build(DefaultVertexFormat.POSITION_TEXTURE_NORMAL, Textures.blockRobot)(emitPiece(_, top))
+      pieces(if (top) 1 else 0) = mesh
+    }
+    mesh
+  }
+
+  private def drawPiece(top: Boolean, robot: tileentity.Robot): Unit =
+    if (robot == null) pieceMesh(top).draw()
+    else MeshBackend.active.drawRobotPiece(top)
+
+  def emitPiece(t: Tessellator, top: Boolean): Unit = if (top) emitTopPiece(t) else emitBottomPiece(t)
+
+  def emitLight(t: Tessellator, step: Int) {
+    val size = 0.3f
+    val l = 0.5f - size
+    val h = 0.5f + size
+    val vStep = 1.0f / 32.0f
+    val u0 = 0.5f
+    val u1 = 1f
+    val v0 = 0.5f + step * vStep
+    val v1 = v0 + vStep
+
+    t.addVertexWithUV(l, gt, l, u0, v0)
+    t.addVertexWithUV(l, gb, l, u0, v1)
+    t.addVertexWithUV(l, gb, h, u1, v1)
+    t.addVertexWithUV(l, gt, h, u1, v0)
+
+    t.addVertexWithUV(l, gt, h, u0, v0)
+    t.addVertexWithUV(l, gb, h, u0, v1)
+    t.addVertexWithUV(h, gb, h, u1, v1)
+    t.addVertexWithUV(h, gt, h, u1, v0)
+
+    t.addVertexWithUV(h, gt, h, u0, v0)
+    t.addVertexWithUV(h, gb, h, u0, v1)
+    t.addVertexWithUV(h, gb, l, u1, v1)
+    t.addVertexWithUV(h, gt, l, u1, v0)
+
+    t.addVertexWithUV(h, gt, l, u0, v0)
+    t.addVertexWithUV(h, gb, l, u0, v1)
+    t.addVertexWithUV(l, gb, l, u1, v1)
+    t.addVertexWithUV(l, gt, l, u1, v0)
+  }
 
   def resetMountPoints(running: Boolean) {
     val offset = if (running) 0 else -0.06f
@@ -205,87 +217,73 @@ object RobotRenderer extends TileEntitySpecialRenderer {
 
   def renderChassis(robot: tileentity.Robot = null, offset: Double = 0, isRunningOverride: Boolean = false) {
     val isRunning = if (robot == null) isRunningOverride else robot.isRunning
-
-    val size = 0.3f
-    val l = 0.5f - size
-    val h = 0.5f + size
-    val vStep = 1.0f / 32.0f
-
-    val offsetV = ((offset - offset.toInt) * 16).toInt * vStep
-    val (u0, u1, v0, v1) = {
-      if (isRunning)
-        (0.5f, 1f, 0.5f + offsetV, 0.5f + vStep + offsetV)
-      else
-        (0.25f - vStep, 0.25f + vStep, 0.75f - vStep, 0.75f + vStep)
-    }
-
     resetMountPoints(robot != null && robot.isRunning)
     val event = new RobotRenderEvent(robot, mountPoints)
     MinecraftForge.EVENT_BUS.post(event)
     if (!event.isCanceled) {
       bindTexture(Textures.blockRobot)
-      if (!isRunning) {
-        GL11.glTranslatef(0, -2 * gap, 0)
+      if (MinecraftForgeClient.getRenderPass > 0) {
+        if (!isRunning) GL11.glTranslatef(0, -4 * gap, 0)
+        return
       }
-      GL11.glCallList(displayList + 1)
       if (!isRunning) {
         GL11.glTranslatef(0, -2 * gap, 0)
       }
 
-      if (MinecraftForgeClient.getRenderPass > 0) return
+      drawPiece(top = false, robot)
+      if (!isRunning) {
+        GL11.glTranslatef(0, -2 * gap, 0)
+      }
 
-      GL11.glCallList(displayList)
+      drawPiece(top = true, robot)
       GL11.glColor3f(1, 1, 1)
 
       if (isRunning) {
-        RenderState.disableLighting()
-
-        // Additive blending for the light.
-        GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE)
-        // Light color.
         val lightColor = if (robot != null && robot.info != null) robot.info.lightColor else 0xF23030
-        val r = ((lightColor >>> 16) & 0xFF).toByte
-        val g = ((lightColor >>> 8) & 0xFF).toByte
-        val b = ((lightColor >>> 0) & 0xFF).toByte
-        GL11.glColor3ub(r, g, b)
+        val red = ((lightColor >>> 16) & 0xFF) / 255f
+        val green = ((lightColor >>> 8) & 0xFF) / 255f
+        val blue = (lightColor & 0xFF) / 255f
+        val step = RobotLight.step(offset)
 
-        val t = Tessellator.instance
-        t.startDrawingQuads()
-        t.addVertexWithUV(l, gt, l, u0, v0)
-        t.addVertexWithUV(l, gb, l, u0, v1)
-        t.addVertexWithUV(l, gb, h, u1, v1)
-        t.addVertexWithUV(l, gt, h, u1, v0)
-
-        t.addVertexWithUV(l, gt, h, u0, v0)
-        t.addVertexWithUV(l, gb, h, u0, v1)
-        t.addVertexWithUV(h, gb, h, u1, v1)
-        t.addVertexWithUV(h, gt, h, u1, v0)
-
-        t.addVertexWithUV(h, gt, h, u0, v0)
-        t.addVertexWithUV(h, gb, h, u0, v1)
-        t.addVertexWithUV(h, gb, l, u1, v1)
-        t.addVertexWithUV(h, gt, l, u1, v0)
-
-        t.addVertexWithUV(h, gt, l, u0, v0)
-        t.addVertexWithUV(h, gb, l, u0, v1)
-        t.addVertexWithUV(l, gb, l, u1, v1)
-        t.addVertexWithUV(l, gt, l, u1, v0)
-        t.draw()
-
-        RenderState.enableLighting()
+        if (robot != null) MeshBackend.active.drawRobotLight(step, red, green, blue)
+        else {
+          RenderState.disableLighting()
+          GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE)
+          GL11.glColor3f(red, green, blue)
+          val t = Tessellator.instance
+          t.startDrawingQuads()
+          emitLight(t, step)
+          t.draw()
+          RenderState.enableLighting()
+        }
       }
     }
   }
 
+  private def hasUpgradeRenderer(robot: tileentity.Robot): Boolean =
+    hasUpgradeRenderer(robot, robot.componentSlots) || hasUpgradeRenderer(robot, robot.containerSlots)
+
+  private def hasUpgradeRenderer(robot: tileentity.Robot, slots: Range): Boolean = {
+    if (slots.isEmpty) return false
+    var slot = slots.start
+    val last = slots.last
+    while (slot <= last) {
+      val stack = robot.getStackInSlot(slot)
+      if (stack != null && stack.getItem.isInstanceOf[UpgradeRenderer]) return true
+      slot += 1
+    }
+    false
+  }
+
   override def renderTileEntityAt(entity: TileEntity, x: Double, y: Double, z: Double, f: Float) {
-    RenderState.checkError(getClass.getName + ".renderTileEntityAt: entering (aka: wasntme)")
+    RenderState.checkError(this, ".renderTileEntityAt: entering (aka: wasntme)")
 
     val proxy = entity.asInstanceOf[tileentity.RobotProxy]
     val robot = proxy.robot
     val worldTime = entity.getWorldObj.getTotalWorldTime + f
 
     GL11.glPushMatrix()
-    GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS)
+    GL11.glPushAttrib(RenderState.DrawAttribBits)
     GL11.glTranslated(x + 0.5, y + 0.5, z + 0.5)
 
     // If the move started while we were rendering and we have a reference to
@@ -321,12 +319,7 @@ object RobotRenderer extends TileEntitySpecialRenderer {
       GL11.glRotated(90 * remaining, 0, robot.turnAxis, 0)
     }
 
-    robot.yaw match {
-      case ForgeDirection.WEST => GL11.glRotatef(-90, 0, 1, 0)
-      case ForgeDirection.NORTH => GL11.glRotatef(180, 0, 1, 0)
-      case ForgeDirection.EAST => GL11.glRotatef(90, 0, 1, 0)
-      case _ => // No yaw.
-    }
+    BlockTransforms.rotateYaw(robot.yaw)
 
     GL11.glTranslatef(-0.5f, -0.5f, -0.5f)
 
@@ -435,7 +428,7 @@ object RobotRenderer extends TileEntitySpecialRenderer {
         case _ =>
       }
 
-      if (MinecraftForgeClient.getRenderPass == 0) {
+      if (MinecraftForgeClient.getRenderPass == 0 && hasUpgradeRenderer(robot)) {
         lazy val availableSlots = slotNameMapping.keys.to[mutable.Set]
         lazy val wildcardRenderers = mutable.Buffer.empty[(ItemStack, UpgradeRenderer)]
         lazy val slotMapping = Array.fill(mountPoints.length)(null: (ItemStack, UpgradeRenderer))
@@ -459,6 +452,7 @@ object RobotRenderer extends TileEntitySpecialRenderer {
           firstEmpty = slotMapping.indexOf(null)
         }
 
+        GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS)
         for ((info, mountPoint) <- (slotMapping, mountPoints).zipped if info != null) try {
           val (stack, renderer) = info
           GL11.glPushMatrix()
@@ -471,6 +465,7 @@ object RobotRenderer extends TileEntitySpecialRenderer {
             OpenComputers.log.warn("Failed rendering equipped upgrade.", e)
             robot.renderingErrored = true
         }
+        GL11.glPopAttrib()
       }
     }
     GL11.glPopMatrix()
@@ -520,6 +515,6 @@ object RobotRenderer extends TileEntitySpecialRenderer {
     GL11.glPopMatrix()
     GL11.glPopAttrib()
 
-    RenderState.checkError(getClass.getName + ".renderTileEntityAt: leaving")
+    RenderState.checkError(this, ".renderTileEntityAt: leaving")
   }
 }

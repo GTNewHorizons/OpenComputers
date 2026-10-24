@@ -180,7 +180,9 @@ object PacketHandler extends CommonPacketHandler {
 
   def onDisassemblerActiveChange(p: PacketParser) =
     p.readTileEntity[Disassembler]() match {
-      case Some(t) => t.isActive = p.readBoolean()
+      case Some(t) =>
+        t.isActive = p.readBoolean()
+        t.world.markBlockForUpdate(t.x, t.y, t.z)
       case _ => // Invalid packet.
     }
 
