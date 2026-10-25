@@ -2,6 +2,7 @@ package li.cil.oc.client.renderer.tileentity
 
 import com.google.common.base.Strings
 import com.gtnewhorizon.gtnhlib.client.renderer.vertex.DefaultVertexFormat
+import java.util
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.api.driver.item.UpgradeRenderer
@@ -31,24 +32,56 @@ import net.minecraftforge.common.MinecraftForge
 import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL12
 
-import scala.collection.convert.WrapAsJava._
-import scala.collection.mutable
-
 object RobotRenderer extends TileEntitySpecialRenderer {
-  private val mountPoints = new Array[RobotRenderEvent.MountPoint](7)
-
-  private val slotNameMapping = Map(
-    UpgradeRenderer.MountPointName.TopLeft -> 0,
-    UpgradeRenderer.MountPointName.TopRight -> 1,
-    UpgradeRenderer.MountPointName.TopBack -> 2,
-    UpgradeRenderer.MountPointName.BottomLeft -> 3,
-    UpgradeRenderer.MountPointName.BottomRight -> 4,
-    UpgradeRenderer.MountPointName.BottomBack -> 5,
-    UpgradeRenderer.MountPointName.BottomFront -> 6
+  private val mountPointNames = Array(
+    UpgradeRenderer.MountPointName.TopLeft,
+    UpgradeRenderer.MountPointName.TopRight,
+    UpgradeRenderer.MountPointName.TopBack,
+    UpgradeRenderer.MountPointName.BottomLeft,
+    UpgradeRenderer.MountPointName.BottomRight,
+    UpgradeRenderer.MountPointName.BottomBack,
+    UpgradeRenderer.MountPointName.BottomFront
   )
 
-  for ((name, index) <- slotNameMapping) {
-    mountPoints(index) = new RobotRenderEvent.MountPoint(name)
+  private val slotIndices = new util.HashMap[String, Integer]()
+  for (index <- mountPointNames.indices) {
+    slotIndices.put(mountPointNames(index), index)
+  }
+
+  private final class RenderSlots {
+    val mountPoints = new Array[RobotRenderEvent.MountPoint](mountPointNames.length)
+    for (index <- mountPointNames.indices) {
+      mountPoints(index) = new RobotRenderEvent.MountPoint(mountPointNames(index))
+    }
+    val availableSlots = new util.HashSet[String]()
+    val mountStacks = new Array[ItemStack](mountPoints.length)
+    val mountRenderers = new Array[UpgradeRenderer](mountPoints.length)
+    var wildcardStacks = new Array[ItemStack](4)
+    var wildcardRenderers = new Array[UpgradeRenderer](4)
+    var wildcardCount = 0
+
+    def clear() {
+      util.Arrays.fill(mountStacks.asInstanceOf[Array[AnyRef]], null)
+      util.Arrays.fill(mountRenderers.asInstanceOf[Array[AnyRef]], null)
+      util.Arrays.fill(wildcardStacks.asInstanceOf[Array[AnyRef]], 0, wildcardCount, null)
+      util.Arrays.fill(wildcardRenderers.asInstanceOf[Array[AnyRef]], 0, wildcardCount, null)
+      wildcardCount = 0
+    }
+  }
+
+  // Render thread only. Upgrade renderers and event handlers may render another robot, so state is per nesting depth.
+  private val slotPool = new util.ArrayList[RenderSlots]()
+  private var depth = 0
+
+  private def enter(): RenderSlots = {
+    if (depth == slotPool.size) slotPool.add(new RenderSlots)
+    val slots = slotPool.get(depth)
+    depth += 1
+    slots
+  }
+
+  private def exit() {
+    depth -= 1
   }
 
   private val gap = 1.0f / 28.0f
@@ -148,7 +181,7 @@ object RobotRenderer extends TileEntitySpecialRenderer {
     t.addVertexWithUV(l, gt, l, u1, v0)
   }
 
-  def resetMountPoints(running: Boolean) {
+  private def resetMountPoints(mountPoints: Array[RobotRenderEvent.MountPoint], running: Boolean) {
     val offset = if (running) 0 else -0.06f
 
     // Left top.
@@ -216,9 +249,15 @@ object RobotRenderer extends TileEntitySpecialRenderer {
   }
 
   def renderChassis(robot: tileentity.Robot = null, offset: Double = 0, isRunningOverride: Boolean = false) {
+    val slots = enter()
+    try renderChassis(slots, robot, offset, isRunningOverride)
+    finally exit()
+  }
+
+  private def renderChassis(slots: RenderSlots, robot: tileentity.Robot, offset: Double, isRunningOverride: Boolean) {
     val isRunning = if (robot == null) isRunningOverride else robot.isRunning
-    resetMountPoints(robot != null && robot.isRunning)
-    val event = new RobotRenderEvent(robot, mountPoints)
+    resetMountPoints(slots.mountPoints, robot != null && robot.isRunning)
+    val event = new RobotRenderEvent(robot, slots.mountPoints)
     MinecraftForge.EVENT_BUS.post(event)
     if (!event.isCanceled) {
       bindTexture(Textures.blockRobot)
@@ -260,14 +299,15 @@ object RobotRenderer extends TileEntitySpecialRenderer {
     }
   }
 
-  private def hasUpgradeRenderer(robot: tileentity.Robot): Boolean =
-    hasUpgradeRenderer(robot, robot.componentSlots) || hasUpgradeRenderer(robot, robot.containerSlots)
+  private def hasUpgradeRenderer(robot: tileentity.Robot): Boolean = {
+    val size = robot.getSizeInventory
+    hasUpgradeRenderer(robot, size - robot.componentCount, size) ||
+      hasUpgradeRenderer(robot, 1, robot.info.containers.length + 1)
+  }
 
-  private def hasUpgradeRenderer(robot: tileentity.Robot, slots: Range): Boolean = {
-    if (slots.isEmpty) return false
-    var slot = slots.start
-    val last = slots.last
-    while (slot <= last) {
+  private def hasUpgradeRenderer(robot: tileentity.Robot, from: Int, until: Int): Boolean = {
+    var slot = from
+    while (slot < until) {
       val stack = robot.getStackInSlot(slot)
       if (stack != null && stack.getItem.isInstanceOf[UpgradeRenderer]) return true
       slot += 1
@@ -276,6 +316,12 @@ object RobotRenderer extends TileEntitySpecialRenderer {
   }
 
   override def renderTileEntityAt(entity: TileEntity, x: Double, y: Double, z: Double, f: Float) {
+    val slots = enter()
+    try renderRobot(slots, entity, x, y, z, f)
+    finally exit()
+  }
+
+  private def renderRobot(slots: RenderSlots, entity: TileEntity, x: Double, y: Double, z: Double, f: Float) {
     RenderState.checkError(this, ".renderTileEntityAt: entering (aka: wasntme)")
 
     val proxy = entity.asInstanceOf[tileentity.RobotProxy]
@@ -324,7 +370,7 @@ object RobotRenderer extends TileEntitySpecialRenderer {
     GL11.glTranslatef(-0.5f, -0.5f, -0.5f)
 
     val offset = timeJitter + worldTime / 20.0
-    renderChassis(robot, offset)
+    renderChassis(slots, robot, offset, isRunningOverride = false)
 
     if (!robot.renderingErrored && x * x + y * y + z * z < 24 * 24) {
       Option(robot.getStackInSlot(0)) match {
@@ -429,43 +475,77 @@ object RobotRenderer extends TileEntitySpecialRenderer {
       }
 
       if (MinecraftForgeClient.getRenderPass == 0 && hasUpgradeRenderer(robot)) {
-        lazy val availableSlots = slotNameMapping.keys.to[mutable.Set]
-        lazy val wildcardRenderers = mutable.Buffer.empty[(ItemStack, UpgradeRenderer)]
-        lazy val slotMapping = Array.fill(mountPoints.length)(null: (ItemStack, UpgradeRenderer))
-
-        val renderers = (robot.componentSlots ++ robot.containerSlots).map(robot.getStackInSlot).
-          collect { case stack if stack != null && stack.getItem.isInstanceOf[UpgradeRenderer] => (stack, stack.getItem.asInstanceOf[UpgradeRenderer]) }
-
-        for ((stack, renderer) <- renderers) {
-          val preferredSlot = renderer.computePreferredMountPoint(stack, robot, availableSlots)
-          if (availableSlots.remove(preferredSlot)) {
-            slotMapping(slotNameMapping(preferredSlot)) = (stack, renderer)
+        slots.availableSlots.clear()
+        var nameIndex = 0
+        while (nameIndex < mountPointNames.length) {
+          slots.availableSlots.add(mountPointNames(nameIndex))
+          nameIndex += 1
+        }
+        try {
+          val size = robot.getSizeInventory
+          var slot = size - robot.componentCount
+          var phase = 0
+          var last = size
+          while (phase < 2) {
+            while (slot < last) {
+              val stack = robot.getStackInSlot(slot)
+              if (stack != null && stack.getItem.isInstanceOf[UpgradeRenderer]) {
+                val renderer = stack.getItem.asInstanceOf[UpgradeRenderer]
+                val preferredSlot = renderer.computePreferredMountPoint(stack, robot, slots.availableSlots)
+                if (slots.availableSlots.remove(preferredSlot)) {
+                  val index = slotIndices.get(preferredSlot).intValue
+                  slots.mountStacks(index) = stack
+                  slots.mountRenderers(index) = renderer
+                }
+                else if (preferredSlot == MountPointName.Any) {
+                  if (slots.wildcardCount == slots.wildcardStacks.length) {
+                    slots.wildcardStacks = util.Arrays.copyOf(slots.wildcardStacks, slots.wildcardCount * 2)
+                    slots.wildcardRenderers = util.Arrays.copyOf(slots.wildcardRenderers, slots.wildcardCount * 2)
+                  }
+                  slots.wildcardStacks(slots.wildcardCount) = stack
+                  slots.wildcardRenderers(slots.wildcardCount) = renderer
+                  slots.wildcardCount += 1
+                }
+              }
+              slot += 1
+            }
+            phase += 1
+            slot = 1
+            last = robot.info.containers.length + 1
           }
-          else if (preferredSlot == MountPointName.Any) {
-            wildcardRenderers += ((stack, renderer))
+
+          var firstEmpty = 0
+          var wildcard = 0
+          while (wildcard < slots.wildcardCount) {
+            while (firstEmpty < slots.mountStacks.length && slots.mountStacks(firstEmpty) != null) firstEmpty += 1
+            if (firstEmpty >= slots.mountStacks.length) wildcard = slots.wildcardCount
+            else {
+              slots.mountStacks(firstEmpty) = slots.wildcardStacks(wildcard)
+              slots.mountRenderers(firstEmpty) = slots.wildcardRenderers(wildcard)
+              wildcard += 1
+            }
           }
-        }
 
-        var firstEmpty = slotMapping.indexOf(null)
-        for (entry <- wildcardRenderers if firstEmpty >= 0) {
-          slotMapping(firstEmpty) = entry
-          firstEmpty = slotMapping.indexOf(null)
+          GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS)
+          var mount = 0
+          while (mount < slots.mountStacks.length) {
+            val stack = slots.mountStacks(mount)
+            if (stack != null) try {
+              GL11.glPushMatrix()
+              GL11.glTranslatef(0.5f, 0.5f, 0.5f)
+              slots.mountRenderers(mount).render(stack, slots.mountPoints(mount), robot, f)
+              GL11.glPopMatrix()
+            }
+            catch {
+              case e: Throwable =>
+                OpenComputers.log.warn("Failed rendering equipped upgrade.", e)
+                robot.renderingErrored = true
+            }
+            mount += 1
+          }
+          GL11.glPopAttrib()
         }
-
-        GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS)
-        for ((info, mountPoint) <- (slotMapping, mountPoints).zipped if info != null) try {
-          val (stack, renderer) = info
-          GL11.glPushMatrix()
-          GL11.glTranslatef(0.5f, 0.5f, 0.5f)
-          renderer.render(stack, mountPoint, robot, f)
-          GL11.glPopMatrix()
-        }
-        catch {
-          case e: Throwable =>
-            OpenComputers.log.warn("Failed rendering equipped upgrade.", e)
-            robot.renderingErrored = true
-        }
-        GL11.glPopAttrib()
+        finally slots.clear()
       }
     }
     GL11.glPopMatrix()
@@ -503,7 +583,7 @@ object RobotRenderer extends TileEntitySpecialRenderer {
       t.draw
 
       GL11.glEnable(GL11.GL_TEXTURE_2D) // For the font.
-      f.drawString((if (EventHandler.isItTime) EnumChatFormatting.OBFUSCATED.toString else "") + name, -halfWidth, 0, 0xFFFFFFFF)
+      f.drawString(if (EventHandler.isItTime) EnumChatFormatting.OBFUSCATED.toString + name else name, -halfWidth, 0, 0xFFFFFFFF)
 
       GL11.glDepthMask(true)
       GL11.glEnable(GL11.GL_LIGHTING)
