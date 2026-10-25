@@ -59,7 +59,7 @@ trait InputBuffer extends DisplayBuffer {
       t.draw()
       GL11.glEnable(GL11.GL_DEPTH_TEST)
 
-      RenderState.checkError(getClass.getName + ".drawBufferLayer: keyboard icon")
+      RenderState.checkError(this, ".drawBufferLayer: keyboard icon")
     }
   }
 

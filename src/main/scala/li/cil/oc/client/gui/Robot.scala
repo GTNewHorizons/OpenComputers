@@ -107,7 +107,7 @@ class Robot(playerInventory: InventoryPlayer, val robot: tileentity.Robot) exten
       GL11.glPushMatrix()
       GL11.glTranslatef(-3, -3, 0)
       GL11.glColor4f(1, 1, 1, 1)
-      BufferRenderer.drawBackground()
+      BufferRenderer.drawBackground(bufferRenderWidth.toInt, bufferRenderHeight.toInt, forRobot = true)
       GL11.glPopMatrix()
       RenderState.makeItBlend()
       val scaleX = bufferRenderWidth / buffer.renderWidth
@@ -247,14 +247,11 @@ class Robot(playerInventory: InventoryPlayer, val robot: tileentity.Robot) exten
     }
   }
 
-  override protected def changeSize(w: Double, h: Double, recompile: Boolean) = {
+  override protected def changeSize(w: Double, h: Double) = {
     val bw = w * TextBufferRenderCache.renderer.charRenderWidth
     val bh = h * TextBufferRenderCache.renderer.charRenderHeight
     val scaleX = math.min(bufferRenderWidth / bw, 1)
     val scaleY = math.min(bufferRenderHeight / bh, 1)
-    if (recompile) {
-      BufferRenderer.compileBackground(bufferRenderWidth.toInt, bufferRenderHeight.toInt, forRobot = true)
-    }
     math.min(scaleX, scaleY)
   }
 

@@ -362,11 +362,22 @@ object EventHandler {
       (month == Calendar.DECEMBER && dayOfMonth == 14)
   }
 
+  // Next check time shifted left by one, with the cached result in the low bit; one field so threads never see a torn pair.
+  @volatile private var isItTimeState = 0L
+
+  private final val IsItTimeInterval = 60000L
+
   def isItTime = {
-    val now = Calendar.getInstance()
-    val month = now.get(Calendar.MONTH)
-    val dayOfMonth = now.get(Calendar.DAY_OF_MONTH)
-    month == Calendar.APRIL && dayOfMonth == 1
+    val millis = System.currentTimeMillis()
+    val state = isItTimeState
+    val nextCheck = state >> 1
+    if (millis >= nextCheck || millis < nextCheck - IsItTimeInterval) {
+      val now = Calendar.getInstance()
+      val result = now.get(Calendar.MONTH) == Calendar.APRIL && now.get(Calendar.DAY_OF_MONTH) == 1
+      isItTimeState = ((millis + IsItTimeInterval) << 1) | (if (result) 1L else 0L)
+      result
+    }
+    else (state & 1L) != 0L
   }
 
   private def recraft(e: ItemCraftedEvent, item: ItemInfo, callback: ItemStack => Option[ItemStack]): Boolean = {

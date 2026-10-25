@@ -29,18 +29,16 @@ import scala.util.matching.Regex
 class Settings(val config: Config) {
   // ----------------------------------------------------------------------- //
   // client
+  val angelicaBatching = config.getBoolean("client.angelicaBatching")
   val screenTextFadeStartDistance = config.getDouble("client.screenTextFadeStartDistance")
   val maxScreenTextRenderDistance = config.getDouble("client.maxScreenTextRenderDistance")
   val textLinearFiltering = config.getBoolean("client.textLinearFiltering")
-  val textAntiAlias = config.getBoolean("client.textAntiAlias")
   val robotLabels = config.getBoolean("client.robotLabels")
   val soundVolume = config.getDouble("client.soundVolume").toFloat max 0 min 2
-  val fontCharScale = config.getDouble("client.fontCharScale") max 0.5 min 2
   val hologramFadeStartDistance = config.getDouble("client.hologramFadeStartDistance") max 0
   val hologramRenderDistance = config.getDouble("client.hologramRenderDistance") max 0
   val hologramFlickerFrequency = config.getDouble("client.hologramFlickerFrequency") max 0
   val monochromeColor = Integer.decode(config.getString("client.monochromeColor"))
-  val fontRenderer = config.getString("client.fontRenderer")
   val beepSampleRate = config.getInt("client.beepSampleRate")
   val beepAmplitude = config.getInt("client.beepVolume") max 0 min Byte.MaxValue
   val beepRadius = config.getDouble("client.beepRadius").toFloat max 1 min 32
@@ -328,6 +326,7 @@ class Settings(val config: Config) {
       OpenComputers.log.warn("Bad number of hologram max scales, ignoring.")
       Array(3.0, 4.0)
   }
+  val hologramMaxScale = math.max(hologramMaxScaleByTier(0), hologramMaxScaleByTier(1))
   val hologramMaxTranslationByTier = Array(config.getDoubleList("hologram.maxTranslation"): _*) match {
     case Array(tier1, tier2) =>
       Array((tier1: Double) max 0.0, (tier2: Double) max 0.0)

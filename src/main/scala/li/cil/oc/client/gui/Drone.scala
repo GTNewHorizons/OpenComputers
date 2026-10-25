@@ -4,7 +4,7 @@ import li.cil.oc.Localization
 import li.cil.oc.client.Textures
 import li.cil.oc.client.gui.widget.ProgressBar
 import li.cil.oc.client.renderer.TextBufferRenderCache
-import li.cil.oc.client.renderer.font.TextBufferRenderData
+import li.cil.oc.client.renderer.text.TextBufferRenderData
 import li.cil.oc.client.{PacketSender => ClientPacketSender}
 import li.cil.oc.common.container
 import li.cil.oc.common.entity
@@ -84,7 +84,7 @@ class Drone(playerInventory: InventoryPlayer, val drone: entity.Drone) extends D
     GL11.glPopAttrib()
   }
 
-  override protected def changeSize(w: Double, h: Double, recompile: Boolean) = 2.0
+  override protected def changeSize(w: Double, h: Double) = 2.0
 
   override protected def drawSecondaryForegroundLayer(mouseX: Int, mouseY: Int) {
     drawBufferLayer()
