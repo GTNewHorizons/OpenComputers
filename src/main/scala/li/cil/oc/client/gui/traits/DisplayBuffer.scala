@@ -15,36 +15,27 @@ trait DisplayBuffer extends GuiScreen {
 
   protected def bufferRows: Int
 
-  protected var guiSizeChanged = false
-
-  protected var currentWidth, currentHeight = -1
-
   protected var scale = 0.0
 
   override def initGui() = {
     super.initGui()
     BufferRenderer.init(Minecraft.getMinecraft.renderEngine)
-    guiSizeChanged = true
   }
 
   protected def drawBufferLayer() {
-    val oldWidth = currentWidth
-    val oldHeight = currentHeight
-    currentWidth = bufferColumns
-    currentHeight = bufferRows
-    scale = changeSize(currentWidth, currentHeight, guiSizeChanged || oldWidth != currentWidth || oldHeight != currentHeight)
+    scale = changeSize(bufferColumns, bufferRows)
 
-    RenderState.checkError(getClass.getName + ".drawBufferLayer: entering (aka: wasntme)")
+    RenderState.checkError(this, ".drawBufferLayer: entering (aka: wasntme)")
 
     GL11.glPushMatrix()
     RenderState.disableLighting()
     drawBuffer()
     GL11.glPopMatrix()
 
-    RenderState.checkError(getClass.getName + ".drawBufferLayer: buffer layer")
+    RenderState.checkError(this, ".drawBufferLayer: buffer layer")
   }
 
   protected def drawBuffer()
 
-  protected def changeSize(w: Double, h: Double, recompile: Boolean): Double
+  protected def changeSize(w: Double, h: Double): Double
 }

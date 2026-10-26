@@ -17,10 +17,8 @@ public interface IGlyphProvider {
     /**
      * Get a byte array of RGBA data describing the specified char.
      * <br>
-     * This is only called once for each char per resource reload cycle (i.e.
-     * it may called multiple times, but only if {@link #initialize()} was
-     * called in-between). This means implementations may be relatively
-     * inefficient (be reasonable) in generating the RGBA data.
+     * The returned buffer may be reused by the next call, so consume it before
+     * calling again.
      * <br>
      * The returned buffer is expected to be of a format so that it can be
      * directly passed on to <code>glTexSubImage2D</code>, meaning a byte array
@@ -33,6 +31,8 @@ public interface IGlyphProvider {
      * @see FontParserHex#getGlyph(int) See the hexfont parser for a reference implementation.
      */
     ByteBuffer getGlyph(int charCode);
+
+    boolean hasGlyph(int charCode);
 
     /**
      * Get the single-width glyph width for this provider, in pixels.
