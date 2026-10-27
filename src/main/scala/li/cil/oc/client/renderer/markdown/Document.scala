@@ -4,6 +4,7 @@ import li.cil.oc.api
 import li.cil.oc.client.renderer.markdown.segment.InteractiveSegment
 import li.cil.oc.client.renderer.markdown.segment.Segment
 import net.minecraft.client.Minecraft
+import net.minecraft.client.renderer.Tessellator
 import net.minecraft.client.gui.FontRenderer
 import org.lwjgl.opengl.GL11
 
@@ -86,16 +87,17 @@ object Document {
 
     GL11.glPushMatrix()
     GL11.glTranslatef(0, 0, 300)
-    GL11.glBegin(GL11.GL_QUADS)
-    GL11.glVertex2f(0, y)
-    GL11.glVertex2f(mc.displayWidth, y)
-    GL11.glVertex2f(mc.displayWidth, 0)
-    GL11.glVertex2f(0, 0)
-    GL11.glVertex2f(0, mc.displayHeight)
-    GL11.glVertex2f(mc.displayWidth, mc.displayHeight)
-    GL11.glVertex2f(mc.displayWidth, y + maxHeight)
-    GL11.glVertex2f(0, y + maxHeight)
-    GL11.glEnd()
+    val t = Tessellator.instance
+    t.startDrawingQuads()
+    t.addVertex(0, y, 0)
+    t.addVertex(mc.displayWidth, y, 0)
+    t.addVertex(mc.displayWidth, 0, 0)
+    t.addVertex(0, 0, 0)
+    t.addVertex(0, mc.displayHeight, 0)
+    t.addVertex(mc.displayWidth, mc.displayHeight, 0)
+    t.addVertex(mc.displayWidth, y + maxHeight, 0)
+    t.addVertex(0, y + maxHeight, 0)
+    t.draw()
     GL11.glPopMatrix()
     GL11.glColorMask(true, true, true, true)
 

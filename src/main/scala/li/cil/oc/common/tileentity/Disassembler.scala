@@ -163,6 +163,7 @@ class Disassembler extends traits.Environment with traits.PowerAcceptor with tra
   override def readFromNBTForClient(nbt: NBTTagCompound) {
     super.readFromNBTForClient(nbt)
     isActive = nbt.getBoolean("isActive")
+    if (world != null) world.markBlockForUpdate(x, y, z)
   }
 
   override def writeToNBTForClient(nbt: NBTTagCompound) {

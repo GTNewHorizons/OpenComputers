@@ -5,7 +5,7 @@ import li.cil.oc.Constants
 import li.cil.oc.api
 import li.cil.oc.api.event.RackMountableRenderEvent
 import li.cil.oc.client.Textures
-import li.cil.oc.client.renderer.tileentity.RenderUtil
+import li.cil.oc.client.renderer.Blink
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedWorld._
 import li.cil.oc.util.RenderState
@@ -55,7 +55,7 @@ object RackMountableRenderHandler {
         }
       }
 
-      if (System.currentTimeMillis() - e.data.getLong("lastAccess") < 400 && e.rack.world.rand.nextDouble() > 0.1) {
+      if (Blink.activity(e.data.getLong("lastAccess"), e.rack.world.rand)) {
         RenderState.disableLighting()
         RenderState.makeItBlend()
 
@@ -72,10 +72,10 @@ object RackMountableRenderHandler {
       if (e.data.getBoolean("isRunning")) {
         e.renderOverlay(Textures.blockRackServerOn)
       }
-      if (e.data.getBoolean("hasErrored") && RenderUtil.shouldShowErrorLight(e.rack.hashCode * (e.mountable + 1))) {
+      if (e.data.getBoolean("hasErrored") && Blink.shouldShowErrorLight(e.rack.hashCode * (e.mountable + 1))) {
         e.renderOverlay(Textures.blockRackServerError)
       }
-      if (System.currentTimeMillis() - e.data.getLong("lastFileSystemAccess") < 400 && e.rack.world.rand.nextDouble() > 0.1) {
+      if (Blink.activity(e.data.getLong("lastFileSystemAccess"), e.rack.world.rand)) {
         e.renderOverlay(Textures.blockRackServerActivity)
       }
       if ((System.currentTimeMillis() - e.data.getLong("lastNetworkActivity") < 300 && System.currentTimeMillis() % 200 > 100) && e.data.getBoolean("isRunning")) {

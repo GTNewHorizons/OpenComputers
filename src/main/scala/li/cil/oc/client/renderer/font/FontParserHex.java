@@ -23,6 +23,8 @@ public class FontParserHex implements IGlyphProvider {
 
     private final TIntObjectMap<byte[]> glyphs = new TIntObjectHashMap<>();
 
+    private ByteBuffer scratch = BufferUtils.createByteBuffer(32 * 8 * 4);
+
     private static int hex2int(char c) {
         if (c >= '0' && c <= '9') {
             return c - '0';
@@ -91,13 +93,21 @@ public class FontParserHex implements IGlyphProvider {
     }
 
     @Override
+    public boolean hasGlyph(int charCode) {
+        final byte[] glyph = glyphs.get(charCode);
+        return glyph != null && glyph.length > 0;
+    }
+
+    @Override
     public ByteBuffer getGlyph(int charCode) {
-        if (!glyphs.containsKey(charCode))
-            return null;
         final byte[] glyph = glyphs.get(charCode);
         if (glyph == null || glyph.length == 0)
             return null;
-        final ByteBuffer buffer = BufferUtils.createByteBuffer(glyph.length * getGlyphWidth() * 4);
+        final int size = glyph.length * getGlyphWidth() * 4;
+        if (scratch.capacity() < size)
+            scratch = BufferUtils.createByteBuffer(size);
+        final ByteBuffer buffer = scratch;
+        buffer.clear();
         for (byte aGlyph : glyph) {
             int c = ((int) aGlyph) & 0xFF;
             // Grab all bits by grabbing the leftmost one then shifting.
@@ -108,7 +118,7 @@ public class FontParserHex implements IGlyphProvider {
                 c <<= 1;
             }
         }
-        buffer.rewind();
+        buffer.flip();
         return buffer;
     }
 

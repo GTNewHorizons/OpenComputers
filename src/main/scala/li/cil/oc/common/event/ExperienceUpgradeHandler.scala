@@ -69,12 +69,15 @@ object ExperienceUpgradeHandler {
     val level = e.agent match {
       case robot: Robot =>
         var acc = 0
-        for (index <- 0 until robot.getSizeInventory) {
+        val size = robot.getSizeInventory
+        var index = 0
+        while (index < size) {
           robot.getComponentInSlot(index) match {
             case upgrade: component.UpgradeExperience =>
               acc += upgrade.level
             case _ =>
           }
+          index += 1
         }
         acc
       case _ => 0

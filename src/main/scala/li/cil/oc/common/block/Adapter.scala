@@ -39,6 +39,10 @@ class Adapter extends SimpleBlock with traits.GUI {
 
   override def createTileEntity(world: World, metadata: Int) = new tileentity.Adapter()
 
+  override def getRenderBlockPass = 1
+
+  override def canRenderInPass(pass: Int) = pass == 0 || pass == 1
+
   // ----------------------------------------------------------------------- //
 
   override def onNeighborBlockChange(world: World, x: Int, y: Int, z: Int, block: Block) =

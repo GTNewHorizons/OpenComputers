@@ -7,9 +7,9 @@ dependencies {
 
     api("com.github.GTNewHorizons:AE2FluidCraft-Rework:1.5.95-gtnh:dev")
     api("com.github.GTNewHorizons:Applied-Energistics-2-Unofficial:rv3-beta-999-GTNH:dev")
-    implementation("com.github.GTNewHorizons:GTNHLib:0.11.43:dev") {transitive = false}
+    implementation("com.github.GTNewHorizons:GTNHLib:0.11.54:dev") {transitive = false}
 
-    compileOnly("com.github.GTNewHorizons:Angelica:2.1.52:api") {transitive = false}
+    compileOnly("com.github.GTNewHorizons:Angelica:2.2.36:api") {transitive = false}
     compileOnly("com.github.GTNewHorizons:Avaritiaddons:1.9.4-GTNH:dev") {transitive = false}
     compileOnly("com.github.GTNewHorizons:BloodMagic:1.9.4:dev") {transitive = false}
     compileOnly("com.github.GTNewHorizons:BuildCraft:7.1.61:dev") {transitive = false}
@@ -55,4 +55,5 @@ dependencies {
     testImplementation("org.mockito:mockito-all:1.10.19")
     testImplementation("org.scalatest:scalatest_2.11:2.2.6")
     testImplementation("junit:junit:4.13.2")
+    testRuntimeOnly("it.unimi.dsi:fastutil:8.5.18")
 }
