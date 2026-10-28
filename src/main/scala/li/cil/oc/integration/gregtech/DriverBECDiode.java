@@ -79,7 +79,7 @@ public final class DriverBECDiode extends DriverSidedTileEntity {
       return new Object[] { filters };
     }
 
-    @Callback(doc = "function(filters:table) -- Sets the condensate filters by slot to fluid names, or nil for empty slots.")
+    @Callback(direct = true, limit = 32, doc = "function(filters:table) -- Sets the condensate filters by slot to fluid names, or nil for empty slots. Takes effect next tick.")
     public Object[] setCondensateFilters(Context context, Arguments args) {
       Map filters = args.checkTable(0);
       int filterCount = tileEntity.getCondensateFilterCount();
@@ -101,7 +101,7 @@ public final class DriverBECDiode extends DriverSidedTileEntity {
         values.add(fluid);
       }
 
-      tileEntity.setCondensateFilters(values);
+      ServerThread.schedule(() -> tileEntity.setCondensateFilters(values));
       return null;
     }
 
@@ -112,7 +112,7 @@ public final class DriverBECDiode extends DriverSidedTileEntity {
       return new Object[] { filter == null ? null : FluidRegistry.getFluidName(filter) };
     }
 
-    @Callback(direct = true, doc = "function(slot:number[, fluidName:string]) -- Sets the condensate filter in the given slot to the given fluid name, or clears it if nil.")
+    @Callback(direct = true, limit = 32, doc = "function(slot:number[, fluidName:string]) -- Sets the condensate filter in the given slot to the given fluid name, or clears it if nil. Takes effect next tick.")
     public Object[] setCondensateFilterAt(Context context, Arguments args) {
       int slot = getFilterSlot(args.checkInteger(0));
       String name = args.optString(1, null);
