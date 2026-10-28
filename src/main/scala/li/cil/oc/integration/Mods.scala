@@ -173,6 +173,7 @@ object Mods {
   object IDs {
     final val AgriCraft = "AgriCraft"
     final val Ae2Fc = "ae2fc"
+    final val AngelicaTesr = "angelica|tesr"
     final val AppliedEnergistics2 = "appliedenergistics2"
     final val AvaritiaAddons = "avaritiaddons"
     final val BattleGear2 = "battlegear2"

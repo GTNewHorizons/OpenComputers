@@ -16,7 +16,7 @@ object WirelessNetworkDebugRenderer {
   @SubscribeEvent
   def onRenderWorldLastEvent(e: RenderWorldLastEvent) {
     if (Settings.rTreeDebugRenderer) {
-      RenderState.checkError(getClass.getName + ".onRenderWorldLastEvent: entering (aka: wasntme)")
+      RenderState.checkError(this, ".onRenderWorldLastEvent: entering (aka: wasntme)")
 
       val world = ObfuscationReflectionHelper.getPrivateValue(classOf[net.minecraft.client.renderer.RenderGlobal], e.context, "theWorld", "field_72769_h", "r").asInstanceOf[World]
       WirelessNetwork.dimensions.get(world.provider.dimensionId) match {
@@ -36,45 +36,6 @@ object WirelessNetworkDebugRenderer {
           GL11.glDisable(GL11.GL_DEPTH_TEST)
           GL11.glDisable(GL11.GL_CULL_FACE)
 
-          def drawBox(minX: Double, minY: Double, minZ: Double, maxX: Double, maxY: Double, maxZ: Double) {
-            GL11.glBegin(GL11.GL_QUADS)
-            GL11.glVertex3d(minX, minY, minZ)
-            GL11.glVertex3d(minX, minY, maxZ)
-            GL11.glVertex3d(maxX, minY, maxZ)
-            GL11.glVertex3d(maxX, minY, minZ)
-            GL11.glEnd()
-            GL11.glBegin(GL11.GL_QUADS)
-            GL11.glVertex3d(minX, minY, minZ)
-            GL11.glVertex3d(maxX, minY, minZ)
-            GL11.glVertex3d(maxX, maxY, minZ)
-            GL11.glVertex3d(minX, maxY, minZ)
-            GL11.glEnd()
-            GL11.glBegin(GL11.GL_QUADS)
-            GL11.glVertex3d(maxX, maxY, minZ)
-            GL11.glVertex3d(maxX, maxY, maxZ)
-            GL11.glVertex3d(minX, maxY, maxZ)
-            GL11.glVertex3d(minX, maxY, minZ)
-            GL11.glEnd()
-            GL11.glBegin(GL11.GL_QUADS)
-            GL11.glVertex3d(maxX, maxY, maxZ)
-            GL11.glVertex3d(maxX, minY, maxZ)
-            GL11.glVertex3d(minX, minY, maxZ)
-            GL11.glVertex3d(minX, maxY, maxZ)
-            GL11.glEnd()
-            GL11.glBegin(GL11.GL_QUADS)
-            GL11.glVertex3d(minX, minY, minZ)
-            GL11.glVertex3d(minX, maxY, minZ)
-            GL11.glVertex3d(minX, maxY, maxZ)
-            GL11.glVertex3d(minX, minY, maxZ)
-            GL11.glEnd()
-            GL11.glBegin(GL11.GL_QUADS)
-            GL11.glVertex3d(maxX, minY, minZ)
-            GL11.glVertex3d(maxX, minY, maxZ)
-            GL11.glVertex3d(maxX, maxY, maxZ)
-            GL11.glVertex3d(maxX, maxY, minZ)
-            GL11.glEnd()
-          }
-
           GL11.glPolygonMode(GL11.GL_FRONT_AND_BACK, GL11.GL_LINE)
           for (((min, max), level) <- tree.allBounds) {
             val (minX, minY, minZ) = min
@@ -86,7 +47,7 @@ object WirelessNetworkDebugRenderer {
               ((color >> 0) & 0xFF) / 255f,
               0.25f)
             val size = 0.5 - level * 0.05
-            drawBox(minX - size, minY - size, minZ - size, maxX + size, maxY + size, maxZ + size)
+            DebugBox.drawBox(minX - size, minY - size, minZ - size, maxX + size, maxY + size, maxZ + size)
           }
           GL11.glPolygonMode(GL11.GL_FRONT_AND_BACK, GL11.GL_FILL)
 
@@ -95,7 +56,7 @@ object WirelessNetworkDebugRenderer {
         case _ =>
       }
 
-      RenderState.checkError(getClass.getName + ".onRenderWorldLastEvent: leaving")
+      RenderState.checkError(this, ".onRenderWorldLastEvent: leaving")
     }
   }
 

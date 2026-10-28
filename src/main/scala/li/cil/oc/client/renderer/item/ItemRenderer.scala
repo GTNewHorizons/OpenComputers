@@ -59,7 +59,7 @@ object ItemRenderer extends IItemRenderer {
     else helper == ItemRendererHelper.EQUIPPED_BLOCK
 
   override def renderItem(renderType: ItemRenderType, stack: ItemStack, data: AnyRef*) {
-    RenderState.checkError(getClass.getName + ".renderItem: entering (aka: wasntme)")
+    RenderState.checkError(this, ".renderItem: entering (aka: wasntme)")
 
     val mc = Minecraft.getMinecraft
     val tm = mc.getTextureManager
@@ -89,7 +89,7 @@ object ItemRenderer extends IItemRenderer {
       }
       GL11.glPopAttrib()
 
-      RenderState.checkError("ItemRenderer.renderItem: floppy")
+      RenderState.checkError(this, ".renderItem: floppy")
     }
 
     else if (descriptor == drone) {
@@ -117,7 +117,7 @@ object ItemRenderer extends IItemRenderer {
       GL11.glPopMatrix()
       GL11.glPopAttrib()
 
-      RenderState.checkError("ItemRenderer.renderItem: drone")
+      RenderState.checkError(this, ".renderItem: drone")
     }
 
     else if (descriptor == print) {
@@ -145,7 +145,7 @@ object ItemRenderer extends IItemRenderer {
       GL11.glPopMatrix()
       GL11.glPopAttrib()
 
-      RenderState.checkError("ItemRenderer.renderItem: print")
+      RenderState.checkError(this, ".renderItem: print")
     }
 
     else if (descriptor == cable) {
@@ -167,10 +167,10 @@ object ItemRenderer extends IItemRenderer {
       GL11.glPopMatrix()
       GL11.glPopAttrib()
 
-      RenderState.checkError("ItemRenderer.renderItem: print")
+      RenderState.checkError(this, ".renderItem: print")
     }
 
-    RenderState.checkError("ItemRenderer.renderItem: leaving")
+    RenderState.checkError(this, ".renderItem: leaving")
   }
 
   private def drawShape(shape: PrintData.Shape) {
@@ -189,76 +189,52 @@ object ItemRenderer extends IItemRenderer {
       GL11.glColor3ub(r, g, b)
     })
 
-    GL11.glBegin(GL11.GL_QUADS)
-    GL11.glDisable(GL11.GL_CULL_FACE)
+    val t = Tessellator.instance
+    t.startDrawingQuads()
 
     // Front.
     // GL11.glNormal3f(0, 0, 1)
-    GL11.glTexCoord2f(texture.getInterpolatedU(bounds.minX * 16), texture.getInterpolatedV(16 - bounds.minY * 16))
-    GL11.glVertex3d(bounds.minX, bounds.minY, bounds.maxZ)
-    GL11.glTexCoord2f(texture.getInterpolatedU(bounds.maxX * 16), texture.getInterpolatedV(16 - bounds.minY * 16))
-    GL11.glVertex3d(bounds.maxX, bounds.minY, bounds.maxZ)
-    GL11.glTexCoord2f(texture.getInterpolatedU(bounds.maxX * 16), texture.getInterpolatedV(16 - bounds.maxY * 16))
-    GL11.glVertex3d(bounds.maxX, bounds.maxY, bounds.maxZ)
-    GL11.glTexCoord2f(texture.getInterpolatedU(bounds.minX * 16), texture.getInterpolatedV(16 - bounds.maxY * 16))
-    GL11.glVertex3d(bounds.minX, bounds.maxY, bounds.maxZ)
+    t.addVertexWithUV(bounds.minX, bounds.minY, bounds.maxZ, texture.getInterpolatedU(bounds.minX * 16), texture.getInterpolatedV(16 - bounds.minY * 16))
+    t.addVertexWithUV(bounds.maxX, bounds.minY, bounds.maxZ, texture.getInterpolatedU(bounds.maxX * 16), texture.getInterpolatedV(16 - bounds.minY * 16))
+    t.addVertexWithUV(bounds.maxX, bounds.maxY, bounds.maxZ, texture.getInterpolatedU(bounds.maxX * 16), texture.getInterpolatedV(16 - bounds.maxY * 16))
+    t.addVertexWithUV(bounds.minX, bounds.maxY, bounds.maxZ, texture.getInterpolatedU(bounds.minX * 16), texture.getInterpolatedV(16 - bounds.maxY * 16))
 
     // Back.
     // GL11.glNormal3f(0, 0, -1)
-    GL11.glTexCoord2f(texture.getInterpolatedU(bounds.maxX * 16), texture.getInterpolatedV(16 - bounds.minY * 16))
-    GL11.glVertex3d(bounds.maxX, bounds.minY, bounds.minZ)
-    GL11.glTexCoord2f(texture.getInterpolatedU(bounds.minX * 16), texture.getInterpolatedV(16 - bounds.minY * 16))
-    GL11.glVertex3d(bounds.minX, bounds.minY, bounds.minZ)
-    GL11.glTexCoord2f(texture.getInterpolatedU(bounds.minX * 16), texture.getInterpolatedV(16 - bounds.maxY * 16))
-    GL11.glVertex3d(bounds.minX, bounds.maxY, bounds.minZ)
-    GL11.glTexCoord2f(texture.getInterpolatedU(bounds.maxX * 16), texture.getInterpolatedV(16 - bounds.maxY * 16))
-    GL11.glVertex3d(bounds.maxX, bounds.maxY, bounds.minZ)
+    t.addVertexWithUV(bounds.maxX, bounds.minY, bounds.minZ, texture.getInterpolatedU(bounds.maxX * 16), texture.getInterpolatedV(16 - bounds.minY * 16))
+    t.addVertexWithUV(bounds.minX, bounds.minY, bounds.minZ, texture.getInterpolatedU(bounds.minX * 16), texture.getInterpolatedV(16 - bounds.minY * 16))
+    t.addVertexWithUV(bounds.minX, bounds.maxY, bounds.minZ, texture.getInterpolatedU(bounds.minX * 16), texture.getInterpolatedV(16 - bounds.maxY * 16))
+    t.addVertexWithUV(bounds.maxX, bounds.maxY, bounds.minZ, texture.getInterpolatedU(bounds.maxX * 16), texture.getInterpolatedV(16 - bounds.maxY * 16))
 
     // Top.
     // GL11.glNormal3f(0, 1, 0)
-    GL11.glTexCoord2f(texture.getInterpolatedU(bounds.maxX * 16), texture.getInterpolatedV(bounds.maxZ * 16))
-    GL11.glVertex3d(bounds.maxX, bounds.maxY, bounds.maxZ)
-    GL11.glTexCoord2f(texture.getInterpolatedU(bounds.maxX * 16), texture.getInterpolatedV(bounds.minZ * 16))
-    GL11.glVertex3d(bounds.maxX, bounds.maxY, bounds.minZ)
-    GL11.glTexCoord2f(texture.getInterpolatedU(bounds.minX * 16), texture.getInterpolatedV(bounds.minZ * 16))
-    GL11.glVertex3d(bounds.minX, bounds.maxY, bounds.minZ)
-    GL11.glTexCoord2f(texture.getInterpolatedU(bounds.minX * 16), texture.getInterpolatedV(bounds.maxZ * 16))
-    GL11.glVertex3d(bounds.minX, bounds.maxY, bounds.maxZ)
+    t.addVertexWithUV(bounds.maxX, bounds.maxY, bounds.maxZ, texture.getInterpolatedU(bounds.maxX * 16), texture.getInterpolatedV(bounds.maxZ * 16))
+    t.addVertexWithUV(bounds.maxX, bounds.maxY, bounds.minZ, texture.getInterpolatedU(bounds.maxX * 16), texture.getInterpolatedV(bounds.minZ * 16))
+    t.addVertexWithUV(bounds.minX, bounds.maxY, bounds.minZ, texture.getInterpolatedU(bounds.minX * 16), texture.getInterpolatedV(bounds.minZ * 16))
+    t.addVertexWithUV(bounds.minX, bounds.maxY, bounds.maxZ, texture.getInterpolatedU(bounds.minX * 16), texture.getInterpolatedV(bounds.maxZ * 16))
 
     // Bottom.
     // GL11.glNormal3f(0, -1, 0)
-    GL11.glTexCoord2f(texture.getInterpolatedU(bounds.minX * 16), texture.getInterpolatedV(bounds.maxZ * 16))
-    GL11.glVertex3d(bounds.minX, bounds.minY, bounds.maxZ)
-    GL11.glTexCoord2f(texture.getInterpolatedU(bounds.minX * 16), texture.getInterpolatedV(bounds.minZ * 16))
-    GL11.glVertex3d(bounds.minX, bounds.minY, bounds.minZ)
-    GL11.glTexCoord2f(texture.getInterpolatedU(bounds.maxX * 16), texture.getInterpolatedV(bounds.minZ * 16))
-    GL11.glVertex3d(bounds.maxX, bounds.minY, bounds.minZ)
-    GL11.glTexCoord2f(texture.getInterpolatedU(bounds.maxX * 16), texture.getInterpolatedV(bounds.maxZ * 16))
-    GL11.glVertex3d(bounds.maxX, bounds.minY, bounds.maxZ)
+    t.addVertexWithUV(bounds.minX, bounds.minY, bounds.maxZ, texture.getInterpolatedU(bounds.minX * 16), texture.getInterpolatedV(bounds.maxZ * 16))
+    t.addVertexWithUV(bounds.minX, bounds.minY, bounds.minZ, texture.getInterpolatedU(bounds.minX * 16), texture.getInterpolatedV(bounds.minZ * 16))
+    t.addVertexWithUV(bounds.maxX, bounds.minY, bounds.minZ, texture.getInterpolatedU(bounds.maxX * 16), texture.getInterpolatedV(bounds.minZ * 16))
+    t.addVertexWithUV(bounds.maxX, bounds.minY, bounds.maxZ, texture.getInterpolatedU(bounds.maxX * 16), texture.getInterpolatedV(bounds.maxZ * 16))
 
     // Left.
     // GL11.glNormal3f(1, 0, 0)
-    GL11.glTexCoord2f(texture.getInterpolatedU(bounds.maxZ * 16), texture.getInterpolatedV(16 - bounds.maxY * 16))
-    GL11.glVertex3d(bounds.maxX, bounds.maxY, bounds.maxZ)
-    GL11.glTexCoord2f(texture.getInterpolatedU(bounds.maxZ * 16), texture.getInterpolatedV(16 - bounds.minY * 16))
-    GL11.glVertex3d(bounds.maxX, bounds.minY, bounds.maxZ)
-    GL11.glTexCoord2f(texture.getInterpolatedU(bounds.minZ * 16), texture.getInterpolatedV(16 - bounds.minY * 16))
-    GL11.glVertex3d(bounds.maxX, bounds.minY, bounds.minZ)
-    GL11.glTexCoord2f(texture.getInterpolatedU(bounds.minZ * 16), texture.getInterpolatedV(16 - bounds.maxY * 16))
-    GL11.glVertex3d(bounds.maxX, bounds.maxY, bounds.minZ)
+    t.addVertexWithUV(bounds.maxX, bounds.maxY, bounds.maxZ, texture.getInterpolatedU(bounds.maxZ * 16), texture.getInterpolatedV(16 - bounds.maxY * 16))
+    t.addVertexWithUV(bounds.maxX, bounds.minY, bounds.maxZ, texture.getInterpolatedU(bounds.maxZ * 16), texture.getInterpolatedV(16 - bounds.minY * 16))
+    t.addVertexWithUV(bounds.maxX, bounds.minY, bounds.minZ, texture.getInterpolatedU(bounds.minZ * 16), texture.getInterpolatedV(16 - bounds.minY * 16))
+    t.addVertexWithUV(bounds.maxX, bounds.maxY, bounds.minZ, texture.getInterpolatedU(bounds.minZ * 16), texture.getInterpolatedV(16 - bounds.maxY * 16))
 
     // Right.
     // GL11.glNormal3f(-1, 0, 0)
-    GL11.glTexCoord2f(texture.getInterpolatedU(bounds.maxZ * 16), texture.getInterpolatedV(16 - bounds.minY * 16))
-    GL11.glVertex3d(bounds.minX, bounds.minY, bounds.maxZ)
-    GL11.glTexCoord2f(texture.getInterpolatedU(bounds.maxZ * 16), texture.getInterpolatedV(16 - bounds.maxY * 16))
-    GL11.glVertex3d(bounds.minX, bounds.maxY, bounds.maxZ)
-    GL11.glTexCoord2f(texture.getInterpolatedU(bounds.minZ * 16), texture.getInterpolatedV(16 - bounds.maxY * 16))
-    GL11.glVertex3d(bounds.minX, bounds.maxY, bounds.minZ)
-    GL11.glTexCoord2f(texture.getInterpolatedU(bounds.minZ * 16), texture.getInterpolatedV(16 - bounds.minY * 16))
-    GL11.glVertex3d(bounds.minX, bounds.minY, bounds.minZ)
+    t.addVertexWithUV(bounds.minX, bounds.minY, bounds.maxZ, texture.getInterpolatedU(bounds.maxZ * 16), texture.getInterpolatedV(16 - bounds.minY * 16))
+    t.addVertexWithUV(bounds.minX, bounds.maxY, bounds.maxZ, texture.getInterpolatedU(bounds.maxZ * 16), texture.getInterpolatedV(16 - bounds.maxY * 16))
+    t.addVertexWithUV(bounds.minX, bounds.maxY, bounds.minZ, texture.getInterpolatedU(bounds.minZ * 16), texture.getInterpolatedV(16 - bounds.maxY * 16))
+    t.addVertexWithUV(bounds.minX, bounds.minY, bounds.minZ, texture.getInterpolatedU(bounds.minZ * 16), texture.getInterpolatedV(16 - bounds.minY * 16))
 
-    GL11.glEnd()
+    t.draw()
     GL11.glEnable(GL11.GL_CULL_FACE)
 
     GL11.glColor3f(1, 1, 1)

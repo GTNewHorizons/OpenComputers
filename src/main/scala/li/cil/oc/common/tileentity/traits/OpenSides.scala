@@ -40,6 +40,7 @@ trait OpenSides extends TileEntity {
   override def readFromNBTForClient(nbt: NBTTagCompound) {
     super.readFromNBTForClient(nbt)
     openSides = uncompressSides(nbt.getByte(Settings.namespace + "openSides"))
+    if (world != null) world.markBlockForUpdate(x, y, z)
   }
 
   override def writeToNBTForClient(nbt: NBTTagCompound) {

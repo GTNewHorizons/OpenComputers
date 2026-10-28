@@ -7,10 +7,10 @@ import net.minecraft.tileentity.TileEntity
 import org.lwjgl.opengl.GL11
 
 object HologramRendererFallback extends TileEntitySpecialRenderer {
-  var text = "Requires OpenGL 1.5"
+  private val text = "Requires OpenGL 1.5"
 
   override def renderTileEntityAt(te: TileEntity, x: Double, y: Double, z: Double, f: Float) {
-    RenderState.checkError(getClass.getName + ".renderTileEntityAt: entering (aka: wasntme)")
+    RenderState.checkError(this, ".renderTileEntityAt: entering (aka: wasntme)")
 
     val fontRenderer = Minecraft.getMinecraft.fontRenderer
 
@@ -23,6 +23,6 @@ object HologramRendererFallback extends TileEntitySpecialRenderer {
 
     GL11.glPopMatrix()
 
-    RenderState.checkError(getClass.getName + ".renderTileEntityAt: leaving")
+    RenderState.checkError(this, ".renderTileEntityAt: leaving")
   }
 }
