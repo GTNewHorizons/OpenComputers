@@ -116,15 +116,11 @@ public final class DriverBECDiode extends DriverSidedTileEntity {
     public Object[] setCondensateFilterAt(Context context, Arguments args) {
       int slot = getFilterSlot(args.checkInteger(0));
       String name = args.optString(1, null);
-      if (name == null) {
-        tileEntity.setCondensateFilterAt(slot, null);
-        return null;
-      }
-      Fluid fluid = FluidRegistry.getFluid(name);
-      if (fluid == null) {
+      Fluid fluid = name == null ? null : FluidRegistry.getFluid(name);
+      if (name != null && fluid == null) {
         throw new IllegalArgumentException("Unknown fluid: " + name);
       }
-      tileEntity.setCondensateFilterAt(slot, fluid);
+      ServerThread.schedule(() -> tileEntity.setCondensateFilterAt(slot, fluid));
       return null;
     }
 

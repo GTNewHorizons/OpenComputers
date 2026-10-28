@@ -135,13 +135,15 @@ public final class DriverBECIONode extends DriverSidedTileEntity {
 
     @Callback(direct = true, doc = "function(min:number) -- Sets the minimum parallel recipe count.")
     public Object[] setMinParallel(Context context, Arguments args) {
-      tileEntity.setMinParallel(args.checkInteger(0));
+      int min = args.checkInteger(0);
+      ServerThread.schedule(() -> tileEntity.setMinParallel(min));
       return null;
     }
 
     @Callback(direct = true, doc = "function(max:number) -- Sets the maximum parallel recipe count.")
     public Object[] setMaxParallel(Context context, Arguments args) {
-      tileEntity.setMaxParallel(args.checkInteger(0));
+      int max_para = args.checkInteger(0);
+      ServerThread.schedule(() -> tileEntity.setMaxParallel(max_para));
       return null;
     }
 

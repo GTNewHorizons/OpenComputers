@@ -68,7 +68,8 @@ public final class DriverBECStorage extends DriverSidedTileEntity {
 
     @Callback(direct = true, doc = "function(strength:number) -- Sets the field strength of this storage node.")
     public Object[] setFieldStrength(Context context, Arguments args) {
-      tileEntity.setFieldStrength(args.checkLong(0));
+      long strength = args.checkLong(0);
+      ServerThread.schedule(() -> tileEntity.setFieldStrength(strength));
       return null;
     }
 
