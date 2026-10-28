@@ -12,7 +12,7 @@ import org.lwjgl.opengl.GL11
 
 object PrinterRenderer extends TileEntitySpecialRenderer {
   override def renderTileEntityAt(tileEntity: TileEntity, x: Double, y: Double, z: Double, f: Float) {
-    RenderState.checkError(getClass.getName + ".renderTileEntityAt: entering (aka: wasntme)")
+    RenderState.checkError(this, ".renderTileEntityAt: entering (aka: wasntme)")
 
     val printer = tileEntity.asInstanceOf[Printer]
     if (printer.data.stateOff.size > 0) {
@@ -39,6 +39,6 @@ object PrinterRenderer extends TileEntitySpecialRenderer {
       GL11.glPopAttrib()
     }
 
-    RenderState.checkError(getClass.getName + ".renderTileEntityAt: leaving")
+    RenderState.checkError(this, ".renderTileEntityAt: leaving")
   }
 }

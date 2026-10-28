@@ -41,7 +41,8 @@ public interface UpgradeRenderer {
      *
      * @param stack                the item stack of the upgrade to render.
      * @param robot                the robot the upgrade is rendered on.
-     * @param availableMountPoints the mount points available for rendering in.
+     * @param availableMountPoints the mount points available for rendering in;
+     *                             reused between calls, do not keep a reference.
      * @return the mount point to reserve for the upgrade.
      */
     String computePreferredMountPoint(ItemStack stack, Robot robot, Set<String> availableMountPoints);

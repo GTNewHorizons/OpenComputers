@@ -7,9 +7,6 @@ import net.minecraft.util.IIcon
 import net.minecraft.util.ResourceLocation
 
 object Textures {
-  val fontAntiAliased = new ResourceLocation(Settings.resourceDomain, "textures/font/chars.png")
-  val fontAliased = new ResourceLocation(Settings.resourceDomain, "textures/font/chars_aliased.png")
-
   val guiBackground = new ResourceLocation(Settings.resourceDomain, "textures/gui/background.png")
   val guiBar = new ResourceLocation(Settings.resourceDomain, "textures/gui/bar.png")
   val guiBorders = new ResourceLocation(Settings.resourceDomain, "textures/gui/borders.png")
@@ -134,9 +131,6 @@ object Textures {
 
   @SideOnly(Side.CLIENT)
   def init(tm: TextureManager) {
-    tm.bindTexture(fontAntiAliased)
-    tm.bindTexture(fontAliased)
-
     tm.bindTexture(guiBackground)
     tm.bindTexture(guiBar)
     tm.bindTexture(guiBorders)

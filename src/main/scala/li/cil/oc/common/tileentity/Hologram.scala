@@ -66,10 +66,6 @@ class Hologram(var tier: Int) extends traits.Environment with SidedEnvironment w
   // Whether we need to recompile our display list.
   var needsRendering = false
 
-  // Store it here for convenience, this is the number of visible voxel faces
-  // as determined in the last VBO index update. See HologramRenderer.
-  var visibleQuads = 0
-
   // What parts of the hologram changed and need an update packet.
   var dirty = mutable.Set.empty[Short]
 
@@ -438,9 +434,9 @@ class Hologram(var tier: Int) extends traits.Environment with SidedEnvironment w
 
   override def shouldRenderInPass(pass: Int) = pass == 1
 
-  override def getMaxRenderDistanceSquared = scale / Settings.get.hologramMaxScaleByTier.max * Settings.get.hologramRenderDistance * Settings.get.hologramRenderDistance
+  override def getMaxRenderDistanceSquared = scale / Settings.get.hologramMaxScale * Settings.get.hologramRenderDistance * Settings.get.hologramRenderDistance
 
-  def getFadeStartDistanceSquared = scale / Settings.get.hologramMaxScaleByTier.max * Settings.get.hologramFadeStartDistance * Settings.get.hologramFadeStartDistance
+  def getFadeStartDistanceSquared = scale / Settings.get.hologramMaxScale * Settings.get.hologramFadeStartDistance * Settings.get.hologramFadeStartDistance
 
   private final val Sqrt2 = Math.sqrt(2)
   override def getRenderBoundingBox = {
