@@ -12,6 +12,7 @@ import li.cil.oc.api.machine.Context;
 import li.cil.oc.api.network.ManagedEnvironment;
 import li.cil.oc.api.network.Visibility;
 import li.cil.oc.api.prefab.DriverSidedTileEntity;
+import li.cil.oc.common.EventHandler;
 
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.World;
@@ -136,20 +137,21 @@ public final class DriverBECIONode extends DriverSidedTileEntity {
     @Callback(direct = true, limit = 256, doc = "function(min:number) -- Sets the minimum parallel recipe count. Takes effect next tick.")
     public Object[] setMinParallel(Context context, Arguments args) {
       int min = args.checkInteger(0);
-      ServerThread.schedule(() -> tileEntity.setMinParallel(min));
+      EventHandler.scheduleServer(() -> tileEntity.setMinParallel(min));
       return null;
     }
 
     @Callback(direct = true, limit = 256, doc = "function(max:number) -- Sets the maximum parallel recipe count. Takes effect next tick.")
     public Object[] setMaxParallel(Context context, Arguments args) {
-      int max_para = args.checkInteger(0);
-      ServerThread.schedule(() -> tileEntity.setMaxParallel(max_para));
+      int max = args.checkInteger(0);
+      EventHandler.scheduleServer(() -> tileEntity.setMaxParallel(max));
       return null;
     }
 
-    @Callback(doc = "function(divisor:number) -- Sets the speed divisor.")
+    @Callback(direct = true, limit = 256, doc = "function(divisor:number) -- Sets the speed divisor. Takes effect next tick.")
     public Object[] setSpeedDivisor(Context context, Arguments args) {
-      tileEntity.setSpeedDivisor(args.checkInteger(0));
+      int divisor = args.checkInteger(0);
+      EventHandler.scheduleServer(() -> tileEntity.setSpeedDivisor(divisor));
       return null;
     }
 

@@ -10,6 +10,7 @@ import li.cil.oc.api.machine.Context;
 import li.cil.oc.api.network.ManagedEnvironment;
 import li.cil.oc.api.network.Visibility;
 import li.cil.oc.api.prefab.DriverSidedTileEntity;
+import li.cil.oc.common.EventHandler;
 
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.World;
@@ -101,7 +102,7 @@ public final class DriverBECDiode extends DriverSidedTileEntity {
         values.add(fluid);
       }
 
-      ServerThread.schedule(() -> tileEntity.setCondensateFilters(values));
+      EventHandler.scheduleServer(() -> tileEntity.setCondensateFilters(values));
       return null;
     }
 
@@ -120,7 +121,7 @@ public final class DriverBECDiode extends DriverSidedTileEntity {
       if (name != null && fluid == null) {
         throw new IllegalArgumentException("Unknown fluid: " + name);
       }
-      ServerThread.schedule(() -> tileEntity.setCondensateFilterAt(slot, fluid));
+      EventHandler.scheduleServer(() -> tileEntity.setCondensateFilterAt(slot, fluid));
       return null;
     }
 
