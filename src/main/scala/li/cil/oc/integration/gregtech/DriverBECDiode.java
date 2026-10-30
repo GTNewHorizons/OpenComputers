@@ -10,6 +10,7 @@ import li.cil.oc.api.machine.Context;
 import li.cil.oc.api.network.ManagedEnvironment;
 import li.cil.oc.api.network.Visibility;
 import li.cil.oc.api.prefab.DriverSidedTileEntity;
+import li.cil.oc.common.EventHandler;
 
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.World;
@@ -63,12 +64,12 @@ public final class DriverBECDiode extends DriverSidedTileEntity {
       return 10;
     }
 
-    @Callback(doc = "function():number -- Returns the number of condensate filter slots.")
+    @Callback(direct = true, doc = "function():number -- Returns the number of condensate filter slots.")
     public Object[] getCondensateFilterCount(Context context, Arguments args) {
       return new Object[] { tileEntity.getCondensateFilterCount() };
     }
 
-    @Callback(doc = "function():table -- Returns the condensate filters by slot, using nil for empty slots.")
+    @Callback(direct = true, doc = "function():table -- Returns the condensate filters by slot, using nil for empty slots.")
     public Object[] getCondensateFilters(Context context, Arguments args) {
       Map<Integer, String> filters = new HashMap<>();
       List<Fluid> values = tileEntity.getCondensateFilters();
@@ -79,7 +80,7 @@ public final class DriverBECDiode extends DriverSidedTileEntity {
       return new Object[] { filters };
     }
 
-    @Callback(doc = "function(filters:table) -- Sets the condensate filters by slot to fluid names, or nil for empty slots.")
+    @Callback(direct = true, limit = 32, doc = "function(filters:table) -- Sets the condensate filters by slot to fluid names, or nil for empty slots. Takes effect next tick.")
     public Object[] setCondensateFilters(Context context, Arguments args) {
       Map filters = args.checkTable(0);
       int filterCount = tileEntity.getCondensateFilterCount();
@@ -101,30 +102,26 @@ public final class DriverBECDiode extends DriverSidedTileEntity {
         values.add(fluid);
       }
 
-      tileEntity.setCondensateFilters(values);
+      EventHandler.scheduleServer(() -> tileEntity.setCondensateFilters(values));
       return null;
     }
 
-    @Callback(doc = "function(slot:number):string -- Returns the name of the fluid used as condensate filter in the given slot, or nil if no filter is set.")
+    @Callback(direct = true, doc = "function(slot:number):string -- Returns the name of the fluid used as condensate filter in the given slot, or nil if no filter is set.")
     public Object[] getCondensateFilterAt(Context context, Arguments args) {
       int slot = getFilterSlot(args.checkInteger(0));
       Fluid filter = tileEntity.getCondensateFilterAt(slot);
       return new Object[] { filter == null ? null : FluidRegistry.getFluidName(filter) };
     }
 
-    @Callback(doc = "function(slot:number[, fluidName:string]) -- Sets the condensate filter in the given slot to the given fluid name, or clears it if nil.")
+    @Callback(direct = true, limit = 32, doc = "function(slot:number[, fluidName:string]) -- Sets the condensate filter in the given slot to the given fluid name, or clears it if nil. Takes effect next tick.")
     public Object[] setCondensateFilterAt(Context context, Arguments args) {
       int slot = getFilterSlot(args.checkInteger(0));
       String name = args.optString(1, null);
-      if (name == null) {
-        tileEntity.setCondensateFilterAt(slot, null);
-        return null;
-      }
-      Fluid fluid = FluidRegistry.getFluid(name);
-      if (fluid == null) {
+      Fluid fluid = name == null ? null : FluidRegistry.getFluid(name);
+      if (name != null && fluid == null) {
         throw new IllegalArgumentException("Unknown fluid: " + name);
       }
-      tileEntity.setCondensateFilterAt(slot, fluid);
+      EventHandler.scheduleServer(() -> tileEntity.setCondensateFilterAt(slot, fluid));
       return null;
     }
 
