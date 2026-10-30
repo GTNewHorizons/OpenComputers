@@ -11,6 +11,7 @@ import li.cil.oc.api.machine.Context;
 import li.cil.oc.api.network.ManagedEnvironment;
 import li.cil.oc.api.network.Visibility;
 import li.cil.oc.api.prefab.DriverSidedTileEntity;
+import li.cil.oc.common.EventHandler;
 
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.World;
@@ -61,14 +62,15 @@ public final class DriverBECStorage extends DriverSidedTileEntity {
       return 10;
     }
 
-    @Callback(doc = "function():number -- Returns the field strength of this storage node.")
+    @Callback(direct = true, doc = "function():number -- Returns the field strength of this storage node.")
     public Object[] getFieldStrength(Context context, Arguments args) {
       return new Object[] { tileEntity.getFieldStrength() };
     }
 
-    @Callback(doc = "function(strength:number) -- Sets the field strength of this storage node.")
+    @Callback(direct = true, limit = 32, doc = "function(strength:number) -- Sets the field strength of this storage node. Takes effect next tick.")
     public Object[] setFieldStrength(Context context, Arguments args) {
-      tileEntity.setFieldStrength(args.checkLong(0));
+      long strength = args.checkLong(0);
+      EventHandler.scheduleServer(() -> tileEntity.setFieldStrength(strength));
       return null;
     }
 

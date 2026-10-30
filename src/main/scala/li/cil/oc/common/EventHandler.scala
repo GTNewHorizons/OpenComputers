@@ -85,6 +85,9 @@ object EventHandler {
     }
   }
 
+  // For Java callers, which can't pass a lambda as a Scala Function0
+  def scheduleServer(task: Runnable): Unit = scheduleServer(() => task.run())
+
   def scheduleClient(f: () => Unit) {
     pendingClient.synchronized {
       pendingClient += f
