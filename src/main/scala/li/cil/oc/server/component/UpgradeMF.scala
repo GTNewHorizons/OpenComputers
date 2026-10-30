@@ -126,6 +126,7 @@ class UpgradeMF(val host: EnvironmentHost, private var coord: Option[BlockPositi
 
   private def updateBoundState() {
     wasInRange = inRange
+    if (mobile && coord.exists(target => !host.world.blockExists(target.x, target.y, target.z))) return
     if (node != null && node.network != null && wasInRange) {
       val target = coord.get
       host.world.getTileEntity(target) match {
