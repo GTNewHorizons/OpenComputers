@@ -104,6 +104,7 @@ object InventoryUtils {
           if (simulate) amount > 0
           else {
             inventory.setInventorySlotContents(slot, inserted)
+            inventory.markDirty()
             true
           }
         }
@@ -155,6 +156,7 @@ object InventoryUtils {
     stack.stackSize += extracted.stackSize
     if (stack.stackSize == 0) {
       inventory.setInventorySlotContents(slot, null)
+      inventory.markDirty()
     }
     else if (count > 0) {
       inventory.markDirty()
