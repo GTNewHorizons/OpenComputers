@@ -201,13 +201,14 @@ class UpgradeArcaneCrafting(val host: EnvironmentHost with internal.Robot) exten
           decrStackSize(slot, 1)
           val item = stack.getItem
           if (item.hasContainerItem(stack)) {
-            val container = item.getContainerItem(stack)
-            if (isDestroyed(container)) {
-              MinecraftForge.EVENT_BUS.post(new PlayerDestroyItemEvent(player, container))
-            } else if (shouldLeaveGrid(slot, container)) {
-              surplus += container
-            } else {
-              setInventorySlotContents(slot, container)
+            Option(item.getContainerItem(stack)).foreach { container =>
+              if (isDestroyed(container)) {
+                MinecraftForge.EVENT_BUS.post(new PlayerDestroyItemEvent(player, container))
+              } else if (shouldLeaveGrid(slot, container)) {
+                surplus += container
+              } else {
+                setInventorySlotContents(slot, container)
+              }
             }
           }
         }
