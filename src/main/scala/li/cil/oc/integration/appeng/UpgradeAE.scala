@@ -197,11 +197,7 @@ class UpgradeAE(val host: EnvironmentHost, val tier: Int) extends ManagedEnviron
   }
 
   @Callback(doc =
-    """function(database:address, entry:number[, number:amount]):number OR function(detail:table):number
-Detail keys: 'name' (string), 'damage' (number), 'size' (number), 'id' (number).
-Required: name OR id. Optional: damage, size
-Example: {name = "minecraft:bucket", size = 1} OR {id = 1}
--- Get items from your ae system.""")
+    "function(database:address, entry:number[, number:amount]):number OR function(detail:table):number -- Get items from your ae system.\n" + DocHelper.ItemTableOnlyDetail)
   def requestItems(context: Context, args: Arguments): Array[AnyRef] = {
     val invRobot = agent.mainInventory
     if (invRobot.getSizeInventory <= 0) return result(0)
@@ -272,11 +268,7 @@ Example: {name = "minecraft:bucket", size = 1} OR {id = 1}
   }
 
   @Callback(doc =
-    """function(database:address, entry:number[, number:amount]):number OR function(detail:table):number
-Detail keys: 'name' (string), 'size' (number), 'id' (number).
-Required: name OR id. Optional: size (Note: 1000 = 1 bucket)
-Example: {name = "water", size = 1000} OR {id = 1}
--- Get fluid from your ae system.""")
+    "function(database:address, entry:number[, number:amount]):number OR function(detail:table):number -- Get fluid from your ae system." + DocHelper.FluidTableOnlyDetail)
   def requestFluids(context: Context, args: Arguments): Array[AnyRef] = {
     val tanks = agent.tank
     if (tanks.tankCount <= 0) return result(0)

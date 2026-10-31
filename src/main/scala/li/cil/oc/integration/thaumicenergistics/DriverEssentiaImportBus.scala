@@ -5,6 +5,7 @@ import li.cil.oc.api.driver
 import li.cil.oc.api.driver.{EnvironmentProvider, NamedBlock}
 import li.cil.oc.api.machine.{Arguments, Callback, Context}
 import li.cil.oc.integration.ManagedTileEntityEnvironment
+import li.cil.oc.integration.appeng.DocHelper
 import li.cil.oc.integration.thaumicenergistics.internal.PartEssentiaBusBase
 import net.minecraft.item.ItemStack
 import net.minecraft.world.World
@@ -34,7 +35,7 @@ object DriverEssentiaImportBus extends driver.SidedBlock {
     @Callback(doc = "function(side:number[, slot:number]):string -- Get the configuration of the import bus pointing in the specified direction.")
     def getImportConfiguration(context: Context, args: Arguments): Array[AnyRef] = this.getPartConfig(context, args)
 
-    @Callback(doc = "function(side:number[, slot:number][, aspect:string OR detail:table]):boolean -- Configure the import bus pointing in the specified direction to import essentia matching the specified type.")
+    @Callback(doc = "function(side:number[, slot:number][, aspect:string OR detail:table]):boolean -- Configure the import bus pointing in the specified direction to import essentia matching the specified type.\n" + DocHelper.EssentiaTableOnlyDetail)
     def setImportConfiguration(context: Context, args: Arguments): Array[AnyRef] = this.setPartConfig[AEEssentiaStack](context, args)
 
     @Callback(doc = "function(side:number):number -- Get the number of valid slots in this import bus.")
