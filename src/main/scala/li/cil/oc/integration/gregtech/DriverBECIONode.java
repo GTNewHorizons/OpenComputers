@@ -12,6 +12,7 @@ import li.cil.oc.api.machine.Context;
 import li.cil.oc.api.network.ManagedEnvironment;
 import li.cil.oc.api.network.Visibility;
 import li.cil.oc.api.prefab.DriverSidedTileEntity;
+import li.cil.oc.common.EventHandler;
 
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.World;
@@ -81,7 +82,7 @@ public final class DriverBECIONode extends DriverSidedTileEntity {
       return new Object[] { naniteTierToMap(tileEntity.getProvidedTier()) };
     }
 
-    @Callback(doc = "function():table -- Returns the nanite tier required by the current recipe as {name, tier}, or nil.")
+    @Callback(direct = true, doc = "function():table -- Returns the nanite tier required by the current recipe as {name, tier}, or nil.")
     public Object[] getRequiredTier(Context context, Arguments args) {
       return new Object[] { naniteTierToMap(tileEntity.getRequiredTier()) };
     }
@@ -91,27 +92,27 @@ public final class DriverBECIONode extends DriverSidedTileEntity {
       return new Object[] { tileEntity.getAvailableNanites() };
     }
 
-    @Callback(doc = "function():number -- Returns the number of slowdowns currently applied.")
+    @Callback(direct = true, doc = "function():number -- Returns the number of slowdowns currently applied.")
     public Object[] getSlowdowns(Context context, Arguments args) {
       return new Object[] { tileEntity.getSlowdowns() };
     }
 
-    @Callback(doc = "function():number -- Returns the number of parallel recipes currently in progress.")
+    @Callback(direct = true, doc = "function():number -- Returns the number of parallel recipes currently in progress.")
     public Object[] getParallelRecipesInProgress(Context context, Arguments args) {
       return new Object[] { tileEntity.getParallelRecipesInProgress() };
     }
 
-    @Callback(doc = "function():number -- Returns the minimum parallel recipe count.")
+    @Callback(direct = true, doc = "function():number -- Returns the minimum parallel recipe count.")
     public Object[] getMinParallel(Context context, Arguments args) {
       return new Object[] { tileEntity.getMinParallel() };
     }
 
-    @Callback(doc = "function():number -- Returns the maximum parallel recipe count.")
+    @Callback(direct = true, doc = "function():number -- Returns the maximum parallel recipe count.")
     public Object[] getMaxParallel(Context context, Arguments args) {
       return new Object[] { tileEntity.getMaxParallel() };
     }
 
-    @Callback(doc = "function():number -- Returns the manual slowdown value.")
+    @Callback(direct = true, doc = "function():number -- Returns the manual slowdown value.")
     public Object[] getManualSlowdown(Context context, Arguments args) {
       return new Object[] { tileEntity.getManualSlowdown() };
     }
@@ -128,26 +129,29 @@ public final class DriverBECIONode extends DriverSidedTileEntity {
       return new Object[] { result };
     }
 
-    @Callback(doc = "function():string -- Returns the machine state: 'idle', 'unpowered', 'assembler-offline', 'nanite-tier-too-low', 'paused-step', 'paused-immediate', 'crafting', or 'internal-error'.")
+    @Callback(direct = true, doc = "function():string -- Returns the machine state: 'idle', 'unpowered', 'assembler-offline', 'nanite-tier-too-low', 'paused-step', 'paused-immediate', 'crafting', or 'internal-error'.")
     public Object[] getState(Context context, Arguments args) {
       return new Object[] { tileEntity.getState() };
     }
 
-    @Callback(doc = "function(min:number) -- Sets the minimum parallel recipe count.")
+    @Callback(direct = true, limit = 256, doc = "function(min:number) -- Sets the minimum parallel recipe count. Takes effect next tick.")
     public Object[] setMinParallel(Context context, Arguments args) {
-      tileEntity.setMinParallel(args.checkInteger(0));
+      int min = args.checkInteger(0);
+      EventHandler.scheduleServer(() -> tileEntity.setMinParallel(min));
       return null;
     }
 
-    @Callback(doc = "function(max:number) -- Sets the maximum parallel recipe count.")
+    @Callback(direct = true, limit = 256, doc = "function(max:number) -- Sets the maximum parallel recipe count. Takes effect next tick.")
     public Object[] setMaxParallel(Context context, Arguments args) {
-      tileEntity.setMaxParallel(args.checkInteger(0));
+      int max = args.checkInteger(0);
+      EventHandler.scheduleServer(() -> tileEntity.setMaxParallel(max));
       return null;
     }
 
-    @Callback(doc = "function(divisor:number) -- Sets the speed divisor.")
+    @Callback(direct = true, limit = 256, doc = "function(divisor:number) -- Sets the speed divisor. Takes effect next tick.")
     public Object[] setSpeedDivisor(Context context, Arguments args) {
-      tileEntity.setSpeedDivisor(args.checkInteger(0));
+      int divisor = args.checkInteger(0);
+      EventHandler.scheduleServer(() -> tileEntity.setSpeedDivisor(divisor));
       return null;
     }
 

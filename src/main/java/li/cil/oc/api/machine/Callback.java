@@ -55,6 +55,10 @@ public @interface Callback {
      * <br>
      * An exception to that rule is {@link li.cil.oc.api.network.Connector#changeBuffer(double)},
      * which is synchronized, so you can consume/produce power in direct calls.
+     * <br>
+     * If something needs to be callable more than once per tick, but might cause race conditions,
+     * use {@link li.cil.oc.common.EventHandler#scheduleServer(scala.Function0)} in addition to direct
+     * to schedule it for the next server tick.
      */
     boolean direct() default false;
 
