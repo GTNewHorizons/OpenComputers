@@ -8,7 +8,7 @@ import li.cil.oc.api.machine.{Arguments, Callback, Context}
 import li.cil.oc.api.network.Environment
 import li.cil.oc.util.ResultWrapper.result
 
-import java.util.Locale
+import scala.collection.JavaConverters._
 
 trait AESettingsEnvironment extends Environment {
   protected def settingsTarget(context: Context, args: Arguments): (IConfigManager, AnyRef, Int)
@@ -23,7 +23,7 @@ trait AESettingsEnvironment extends Environment {
   }
 
   private def listValues(setting: Settings): String =
-    possibleValues(setting).map(_.name).mkString(", ")
+    setting.getPossibleValues.asScala.map(_.name).mkString(", ")
 
   private def isRegistered(manager: IConfigManager, setting: Settings): Boolean =
     manager.getSettings.contains(setting)
