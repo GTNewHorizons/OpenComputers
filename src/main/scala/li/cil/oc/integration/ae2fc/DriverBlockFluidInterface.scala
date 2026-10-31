@@ -7,7 +7,7 @@ import li.cil.oc.api.machine.{Arguments, Callback, Context}
 import li.cil.oc.api.network.ManagedEnvironment
 import li.cil.oc.api.prefab.DriverSidedTileEntity
 import li.cil.oc.integration.ManagedTileEntityEnvironment
-import li.cil.oc.integration.appeng.AEStackFactory
+import li.cil.oc.integration.appeng.{AEStackFactory, DocHelper}
 import li.cil.oc.util.ResultWrapper._
 import net.minecraft.item.ItemStack
 import net.minecraft.world.World
@@ -31,7 +31,7 @@ object DriverBlockFluidInterface extends DriverSidedTileEntity {
       result(tile.getConfig.getStackInSlot(slot))
     }
 
-    @Callback(doc = "function([slot:number][, detail:table]):boolean -- Configure the fluid interface.")
+    @Callback(doc = "function([slot:number][, detail:table]):boolean -- Configure the fluid interface.\n" + DocHelper.FluidTableOnlyDetail)
     def setFluidInterfaceConfiguration(context: Context, args: Arguments): Array[AnyRef] = {
       val (slot, offset) = if (args.isInteger(0)) (args.checkInteger(0) - 1, 1) else (0, 0)
       val stack = if (args.count() <= offset) null.asInstanceOf[IAEFluidStack]

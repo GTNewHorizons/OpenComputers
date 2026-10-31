@@ -5,6 +5,7 @@ import li.cil.oc.api.driver
 import li.cil.oc.api.driver.{EnvironmentProvider, NamedBlock}
 import li.cil.oc.api.machine.{Arguments, Callback, Context}
 import li.cil.oc.integration.ManagedTileEntityEnvironment
+import li.cil.oc.integration.appeng.DocHelper
 import li.cil.oc.integration.thaumicenergistics.internal.PartEssentiaBusBase
 import li.cil.oc.util.ExtendedArguments._
 import li.cil.oc.util.ResultWrapper._
@@ -36,7 +37,7 @@ object DriverEssentiaExportBus extends driver.SidedBlock {
     @Callback(doc = "function(side:number[, slot:number]):string -- Get the configuration of the export bus pointing in the specified direction.")
     def getExportConfiguration(context: Context, args: Arguments): Array[AnyRef] = this.getPartConfig(context, args)
 
-    @Callback(doc = "function(side:number[, slot:number][, aspect:string OR detail:table]):boolean -- Configure the export bus pointing in the specified direction to export essentia matching the specified type.")
+    @Callback(doc = "function(side:number[, slot:number][, aspect:string OR detail:table]):boolean -- Configure the export bus pointing in the specified direction to export essentia matching the specified type.\n" + DocHelper.EssentiaTableOnlyDetail)
     def setExportConfiguration(context: Context, args: Arguments): Array[AnyRef] = this.setPartConfig[AEEssentiaStack](context, args)
 
     @Callback(doc = "function(side:number):number -- Get the number of valid slots in this export bus.")

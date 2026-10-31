@@ -46,11 +46,11 @@ object DriverPartInterface extends driver.SidedBlock {
     }
 
     // Note: change the index from 4 to 1
-    @Callback(doc = "function(slot:number, index:number[, database:address, entry:number, size:number]):boolean OR function(slot:number, index:number[, detail:table, type:string]):boolean -- Set the pattern input at the given index.")
+    @Callback(doc = "function(slot:number, index:number[, database:address, entry:number, size:number]):boolean OR function(slot:number, index:number[, detail:table[, type:string]]):boolean -- Set the pattern input at the given index.\n" + DocHelper.DeprecatedType + DocHelper.AllTypesDetail)
     def setInterfacePatternInput(context: Context, args: Arguments): Array[AnyRef] =
       setPatternSlot(context, args, "in")
 
-    @Callback(doc = "function(slot:number, index:number[, database:address, entry:number, size:number]):boolean OR function(slot:number, index:number[, detail:table, type:string]):boolean -- Set the pattern input at the given index.")
+    @Callback(doc = "function(slot:number, index:number[, database:address, entry:number, size:number]):boolean OR function(slot:number, index:number[, detail:table[, type:string]]):boolean -- Set the pattern input at the given index.\n" + DocHelper.DeprecatedType + DocHelper.AllTypesDetail)
     def setInterfacePatternOutput(context: Context, args: Arguments): Array[AnyRef] =
       setPatternSlot(context, args, "out")
 

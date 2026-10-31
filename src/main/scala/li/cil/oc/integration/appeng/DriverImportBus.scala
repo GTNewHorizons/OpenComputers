@@ -33,7 +33,7 @@ object DriverImportBus extends driver.SidedBlock {
     @Callback(doc = "function(side:number[, slot:number]):boolean -- Get the configuration of the import bus pointing in the specified direction.")
     def getImportConfiguration(context: Context, args: Arguments): Array[AnyRef] = this.getPartConfig(context, args)
 
-    @Callback(doc = "function(side:number[, slot:number][, database:address, entry:number]):boolean OR function(side:number[, slot:number][, detail:table]):boolean -- Configure the import bus pointing in the specified direction to import item stacks matching the specified descriptor.")
+    @Callback(doc = "function(side:number[, slot:number][, database:address, entry:number]):boolean OR function(side:number[, slot:number][, detail:table]):boolean -- Configure the import bus pointing in the specified direction to import item stacks matching the specified descriptor.\n" + DocHelper.ItemTableOnlyDetail)
     def setImportConfiguration(context: Context, args: Arguments): Array[AnyRef] = this.setPartConfig[IAEItemStack](context, args)
 
     @Callback(doc = "function(side:number):number -- Get the number of valid slots in this import bus.")

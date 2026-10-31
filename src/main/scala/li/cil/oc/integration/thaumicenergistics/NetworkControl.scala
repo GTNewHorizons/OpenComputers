@@ -7,7 +7,7 @@ import appeng.util.IterationCounter
 import li.cil.oc.api.Persistable
 import li.cil.oc.api.machine.{Arguments, Callback, Context}
 import li.cil.oc.api.network.{ManagedEnvironment, Node}
-import li.cil.oc.integration.appeng.AEStackFactory
+import li.cil.oc.integration.appeng.{AEStackFactory, DocHelper}
 import li.cil.oc.integration.appeng.internal.SubscriptionBase
 import li.cil.oc.util.ResultWrapper._
 import net.minecraft.nbt.NBTTagCompound
@@ -25,7 +25,7 @@ trait NetworkControl[AETile >: Null <: TileEntity with IGridProxyable with IActi
 
   def node: Node
 
-  @Callback(doc = "function([aspect: string OR detail:table]):table -- Get a list of the stored essentia in the network, or a single requested essentia if a descriptor table is provided.")
+  @Callback(doc = "function([aspect: string OR detail:table]):table -- Get a list of the stored essentia in the network, or a single requested essentia if a descriptor table is provided. Tip: To query a single specific essentia, it is recommended to use getResourceInNetwork.\n" + DocHelper.EssentiaTableOnlyDetail)
   def getEssentiaInNetwork(context: Context, args: Arguments): Array[AnyRef] = {
     val monitor = tile.getProxy.getStorage.getMEMonitor(ESSENTIA_STACK_TYPE).asInstanceOf[IMEMonitor[AEEssentiaStack]]
     if (monitor == null)
