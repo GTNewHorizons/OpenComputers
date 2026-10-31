@@ -84,10 +84,14 @@ trait NetworkControl[AETile >: Null <: TileEntity with IGridProxyable with IActi
     result(buffer.toArray)
   }
 
-  @Callback(doc = "function([detail:table, type:string]):table -- Get a known recipe. This can be used to issue crafting requests.")
+  @Callback(doc = "function(detail:table[, type:string]):table -- Get a known recipe. This can be used to issue crafting requests.\n" + DocHelper.DeprecatedType)
   def getCraftable(context: Context, args: Arguments): Array[AnyRef] = {
     val table = args.checkTable(0)
-    val tp = args.checkString(1)
+    val tp = if (args.isString(1)) args.checkString(1)
+    else table.get("type") match {
+      case str: String => str
+      case _ => throw new IllegalArgumentException("Invalid detail table: Missing or invalid 'type' key")
+    }
     val stack = AEStackFactory.parse(tp, table).asInstanceOf[AEStack]
     val monitor = tile.getProxy.getStorage.getMEMonitor(stack.getStackType).asInstanceOf[IMEMonitor[AEStack]]
     if (monitor != null) {
