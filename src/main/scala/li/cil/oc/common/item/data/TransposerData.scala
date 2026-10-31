@@ -1,6 +1,6 @@
 package li.cil.oc.common.item.data
 
-import li.cil.oc.common.item.data.TransposerData.FLUID_TRANSFER_RATE
+import li.cil.oc.common.item.data.TransposerData.{FLUID_TRANSFER_RATE, TIER}
 import li.cil.oc.{Constants, Settings}
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
@@ -11,16 +11,19 @@ class TransposerData(itemName: String = Constants.BlockName.Transposer) extends 
     load(stack)
   }
 
-  var fluidTransferRate: Int = Settings.get.transposerFluidTransferRate
+  var fluidTransferRate: Long = Settings.get.transposerFluidTransferRate
+  var tier: Option[String] = None
 
   def load(nbt: NBTTagCompound): Unit = {
     if (nbt.hasKey(FLUID_TRANSFER_RATE)) {
-      fluidTransferRate = nbt.getInteger(FLUID_TRANSFER_RATE)
+      fluidTransferRate = nbt.getLong(FLUID_TRANSFER_RATE)
     }
+    tier = Option(nbt.getString(TIER)).filter(_.nonEmpty)
   }
 
   def save(nbt: NBTTagCompound): Unit = {
-    nbt.setInteger(FLUID_TRANSFER_RATE, fluidTransferRate)
+    nbt.setLong(FLUID_TRANSFER_RATE, fluidTransferRate)
+    tier.foreach(nbt.setString(TIER, _))
   }
 
   def copyItemStack(): ItemStack = {
@@ -33,4 +36,5 @@ class TransposerData(itemName: String = Constants.BlockName.Transposer) extends 
 
 object TransposerData {
   val FLUID_TRANSFER_RATE: String = Settings.namespace + "fluidTransferRate"
+  val TIER: String = Settings.namespace + "tier"
 }

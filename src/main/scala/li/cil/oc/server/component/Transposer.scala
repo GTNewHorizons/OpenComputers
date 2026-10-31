@@ -11,7 +11,7 @@ import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.api.network.Visibility
 import li.cil.oc.api.{Items, prefab}
-import li.cil.oc.common.item.data.TransposerData.FLUID_TRANSFER_RATE
+import li.cil.oc.common.item.data.TransposerData
 import li.cil.oc.common.tileentity
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.BlockPosition
@@ -55,7 +55,7 @@ object Transposer {
       result
     }
 
-    override def fluidTransferRate(): Int = host.info.fluidTransferRate
+    override def fluidTransferRate(): Long = host.info.fluidTransferRate
   }
 
   class Upgrade(val host: EnvironmentHost) extends Common {
@@ -63,19 +63,16 @@ object Transposer {
 
     override def position = BlockPosition(host)
 
-    override def fluidTransferRate(): Int = {
+    override def fluidTransferRate(): Long = {
       host match {
         case microcontroller: tileentity.Microcontroller =>
           microcontroller
             .info
             .components
             .find(_.isItemEqual(Items.get(Constants.BlockName.Transposer).createItemStack(1)))
-            .filter(_.hasTagCompound)
-            .map(_.getTagCompound)
-            .filter(_.hasKey(FLUID_TRANSFER_RATE))
-            .map(_.getInteger(FLUID_TRANSFER_RATE))
-            .getOrElse(Settings.get.transposerFluidTransferRate)
-        case _ => 0
+            .map(stack => new TransposerData(stack).fluidTransferRate)
+            .getOrElse(Settings.get.transposerFluidTransferRate.toLong)
+        case _ => 0L
       }
     }
   }
