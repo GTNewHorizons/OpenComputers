@@ -41,4 +41,8 @@ class Disassembler extends SimpleBlock with traits.PowerAcceptor with traits.Sta
   override def hasTileEntity(metadata: Int) = true
 
   override def createTileEntity(world: World, metadata: Int) = new tileentity.Disassembler()
+
+  override def getRenderBlockPass = 1
+
+  override def canRenderInPass(pass: Int) = pass == 0 || pass == 1
 }

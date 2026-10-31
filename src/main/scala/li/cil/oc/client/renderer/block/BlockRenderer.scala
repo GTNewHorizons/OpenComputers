@@ -3,6 +3,8 @@ package li.cil.oc.client.renderer.block
 import com.gtnewhorizons.angelica.api.ThreadSafeISBRH
 import cpw.mods.fml.client.registry.ISimpleBlockRenderingHandler
 import li.cil.oc.Settings
+import li.cil.oc.client.Textures
+import li.cil.oc.client.renderer.tileentity.CubeFaces
 import li.cil.oc.client.renderer.tileentity.RobotRenderer
 import li.cil.oc.common
 import net.minecraft.block.Block
@@ -10,6 +12,7 @@ import net.minecraft.client.renderer.RenderBlocks
 import net.minecraft.client.renderer.Tessellator
 import net.minecraft.util.IIcon
 import net.minecraft.world.IBlockAccess
+import net.minecraftforge.client.ForgeHooksClient
 import net.minecraftforge.common.util.ForgeDirection
 import org.lwjgl.opengl.GL11
 
@@ -86,7 +89,22 @@ object BlockRenderer extends ISimpleBlockRenderingHandler {
   override def renderWorldBlock(world: IBlockAccess, x: Int, y: Int, z: Int, block: Block, modelId: Int, realRenderer: RenderBlocks) = {
 
     val renderer = patchedRenderer(realRenderer, block)
+    val overlayPass = !renderer.hasOverrideBlockTexture && ForgeHooksClient.getWorldRenderPass == 1
     world.getTileEntity(x, y, z) match {
+      case adapter: common.tileentity.Adapter =>
+        if (overlayPass) renderOpenSides(x, y, z, Textures.Adapter.iconOn, CubeFaces.openSides(adapter))
+        else renderer.renderStandardBlock(block, x, y, z)
+      case disassembler: common.tileentity.Disassembler =>
+        if (!overlayPass) renderer.renderStandardBlock(block, x, y, z)
+        else if (disassembler.isActive) {
+          val t = beginOverlay()
+          CubeFaces.emitInflatedTop(t, Textures.Disassembler.iconTopOn, x, y, z)
+          CubeFaces.emitInflatedSides(t, Textures.Disassembler.iconSideOn, CubeFaces.Walls, x, y, z)
+          true
+        }
+        else false
+      case splitter: common.tileentity.NetSplitter if overlayPass =>
+        renderOpenSides(x, y, z, Textures.NetSplitter.iconOn, CubeFaces.openSides(splitter))
       case assembler: common.tileentity.Assembler =>
         Assembler.render(assembler.block, assembler.getBlockMetadata, x, y, z, renderer)
 
@@ -129,6 +147,20 @@ object BlockRenderer extends ISimpleBlockRenderingHandler {
         result
     }
   }
+
+  private def beginOverlay(): Tessellator = {
+    val t = Tessellator.instance
+    t.setBrightness(0xF000F0)
+    t.setColorOpaque_F(1, 1, 1)
+    t
+  }
+
+  private def renderOpenSides(x: Int, y: Int, z: Int, icon: IIcon, mask: Int): Boolean =
+    if (mask == 0) false
+    else {
+      CubeFaces.emitInflatedSides(beginOverlay(), icon, mask, x, y, z)
+      true
+    }
 
   private def needsFlipping(block: Block) =
     block.isInstanceOf[common.block.Hologram] ||

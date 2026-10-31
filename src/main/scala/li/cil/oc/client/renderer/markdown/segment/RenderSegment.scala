@@ -5,6 +5,7 @@ import li.cil.oc.api.manual.InteractiveImageRenderer
 import li.cil.oc.client.renderer.markdown.Document
 import li.cil.oc.client.renderer.markdown.MarkupFormat
 import net.minecraft.client.gui.FontRenderer
+import net.minecraft.client.renderer.Tessellator
 import org.lwjgl.opengl.GL11
 
 private[markdown] class RenderSegment(val parent: Segment, val title: String, val imageRenderer: ImageRenderer) extends InteractiveSegment {
@@ -53,12 +54,13 @@ private[markdown] class RenderSegment(val parent: Segment, val title: String, va
     if (hovered.isDefined) {
       GL11.glColor4f(1, 1, 1, 0.15f)
       GL11.glDisable(GL11.GL_TEXTURE_2D)
-      GL11.glBegin(GL11.GL_QUADS)
-      GL11.glVertex2f(0, 0)
-      GL11.glVertex2f(0, imageRenderer.getHeight)
-      GL11.glVertex2f(imageRenderer.getWidth, imageRenderer.getHeight)
-      GL11.glVertex2f(imageRenderer.getWidth, 0)
-      GL11.glEnd()
+      val t = Tessellator.instance
+      t.startDrawingQuads()
+      t.addVertex(0, 0, 0)
+      t.addVertex(0, imageRenderer.getHeight, 0)
+      t.addVertex(imageRenderer.getWidth, imageRenderer.getHeight, 0)
+      t.addVertex(imageRenderer.getWidth, 0, 0)
+      t.draw()
       GL11.glEnable(GL11.GL_TEXTURE_2D)
     }
 

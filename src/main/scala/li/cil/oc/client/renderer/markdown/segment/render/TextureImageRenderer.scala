@@ -5,6 +5,7 @@ import javax.imageio.ImageIO
 
 import li.cil.oc.api.manual.ImageRenderer
 import net.minecraft.client.Minecraft
+import net.minecraft.client.renderer.Tessellator
 import net.minecraft.client.renderer.texture.AbstractTexture
 import net.minecraft.client.renderer.texture.TextureUtil
 import net.minecraft.client.resources.IResourceManager
@@ -33,16 +34,13 @@ class TextureImageRenderer(val location: ResourceLocation) extends ImageRenderer
   override def render(mouseX: Int, mouseY: Int): Unit = {
     Minecraft.getMinecraft.getTextureManager.bindTexture(location)
     GL11.glColor4f(1, 1, 1, 1)
-    GL11.glBegin(GL11.GL_QUADS)
-    GL11.glTexCoord2f(0, 0)
-    GL11.glVertex2f(0, 0)
-    GL11.glTexCoord2f(0, 1)
-    GL11.glVertex2f(0, texture.height)
-    GL11.glTexCoord2f(1, 1)
-    GL11.glVertex2f(texture.width, texture.height)
-    GL11.glTexCoord2f(1, 0)
-    GL11.glVertex2f(texture.width, 0)
-    GL11.glEnd()
+    val t = Tessellator.instance
+    t.startDrawingQuads()
+    t.addVertexWithUV(0, 0, 0, 0, 0)
+    t.addVertexWithUV(0, texture.height, 0, 0, 1)
+    t.addVertexWithUV(texture.width, texture.height, 0, 1, 1)
+    t.addVertexWithUV(texture.width, 0, 0, 1, 0)
+    t.draw()
   }
 
   private class ImageTexture(val location: ResourceLocation) extends AbstractTexture {

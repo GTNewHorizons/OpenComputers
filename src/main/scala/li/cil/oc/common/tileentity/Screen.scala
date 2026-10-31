@@ -312,7 +312,7 @@ class Screen(var tier: Int) extends traits.TextBuffer with SidedEnvironment with
 
   @SideOnly(Side.CLIENT)
   override def getRenderBoundingBox =
-    if ((width == 1 && height == 1) || !isOrigin) super.getRenderBoundingBox
+    if (!isOrigin) super.getRenderBoundingBox
     else cachedBounds match {
       case Some(bounds) => bounds
       case _ =>
