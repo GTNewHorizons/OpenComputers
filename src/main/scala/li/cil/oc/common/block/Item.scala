@@ -56,7 +56,7 @@ class Item(value: Block) extends ItemBlock(value) {
   override def getItemStackDisplayName(stack: ItemStack): String = {
     val name = super.getItemStackDisplayName(stack)
     if (api.Items.get(stack) == api.Items.get(Constants.BlockName.Transposer)) {
-      TransposerData.tierName(new TransposerData(stack).fluidTransferRate) match {
+      new TransposerData(stack).tier match {
         case Some(tier) => StatCollector.translateToLocalFormatted("tile.oc.transposer.name.tier", name, tier)
         case _ => name
       }
