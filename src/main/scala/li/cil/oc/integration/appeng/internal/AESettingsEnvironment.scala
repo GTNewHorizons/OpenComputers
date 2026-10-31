@@ -63,9 +63,9 @@ trait AESettingsEnvironment extends Environment {
       case _: YesNo =>
         if (args.checkBoolean(index)) YesNo.YES else YesNo.NO
       case _ =>
-        val name = args.checkString(index).trim.toUpperCase(Locale.ENGLISH)
-        possibleValues(setting).find(_.name == name).getOrElse(throw new IllegalArgumentException(
-          s"bad arguments #${index + 1} (excepted one of ${listValues(setting)})"))
+        val name = args.checkString(index).trim
+        possibleValues(setting).find(_.name.equalsIgnoreCase(name)).getOrElse(throw new IllegalArgumentException(
+          s"bad arguments #${index + 1} (expected one of ${listValues(setting)})"))
     }
   }
 }
