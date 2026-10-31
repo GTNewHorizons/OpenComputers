@@ -7,6 +7,7 @@ import li.cil.oc.api.driver
 import li.cil.oc.api.driver.{EnvironmentProvider, NamedBlock}
 import li.cil.oc.api.machine.{Arguments, Callback, Context}
 import li.cil.oc.integration.ManagedTileEntityEnvironment
+import li.cil.oc.integration.appeng.DocHelper
 import li.cil.oc.integration.appeng.internal.PartSharedItemBusBase
 import net.minecraft.item.ItemStack
 import net.minecraft.world.World
@@ -34,7 +35,7 @@ object DriverFluidExportBus extends driver.SidedBlock {
     @Callback(doc = "function(side:number, [ slot:number]):boolean -- Get the configuration of the export bus pointing in the specified direction.")
     def getExportConfiguration(context: Context, args: Arguments): Array[AnyRef] = this.getPartConfig(context, args)
 
-    @Callback(doc = "function(side:number[, slot:number][, database:address, entry:number]):boolean OR function(side:number[, slot:number][, detail: table):boolean -- Configure the export bus pointing in the specified direction to export item stacks matching the specified descriptor.")
+    @Callback(doc = "function(side:number[, slot:number][, database:address, entry:number]):boolean OR function(side:number[, slot:number][, detail: table):boolean -- Configure the export bus pointing in the specified direction to export fluids matching the specified descriptor.\n" + DocHelper.FluidTableOnlyDetail)
     def setExportConfiguration(context: Context, args: Arguments): Array[AnyRef] = this.setPartConfig[IAEFluidStack](context, args)
 
     @Callback(doc = "function(side:number):number -- Get the number of valid slots in this export bus.")

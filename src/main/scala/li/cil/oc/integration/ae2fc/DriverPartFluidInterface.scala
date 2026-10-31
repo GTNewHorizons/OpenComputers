@@ -7,7 +7,7 @@ import li.cil.oc.api.driver
 import li.cil.oc.api.driver.{EnvironmentProvider, NamedBlock}
 import li.cil.oc.api.machine.{Arguments, Callback, Context}
 import li.cil.oc.integration.ManagedTileEntityEnvironment
-import li.cil.oc.integration.appeng.AEStackFactory
+import li.cil.oc.integration.appeng.{AEStackFactory, DocHelper}
 import li.cil.oc.integration.appeng.internal.PartInterfaceEnvironment
 import li.cil.oc.util.ExtendedArguments.extendedArguments
 import li.cil.oc.util.ResultWrapper.result
@@ -40,7 +40,7 @@ object DriverPartFluidInterface extends driver.SidedBlock {
       result(getPart(side).getConfig.getStackInSlot(slot))
     }
 
-    @Callback(doc = "function(side:number[, slot:number][, detail:table]):boolean -- Configure the fluid interface.")
+    @Callback(doc = "function(side:number[, slot:number][, detail:table]):boolean -- Configure the fluid interface.\n" + DocHelper.FluidTableOnlyDetail)
     def setFluidInterfaceConfiguration(context: Context, args: Arguments): Array[AnyRef] = {
       val side = args.checkSideAny(0)
       val (slot, offset) = if (args.isInteger(1)) (args.checkInteger(1) - 1, 2) else (0, 1)

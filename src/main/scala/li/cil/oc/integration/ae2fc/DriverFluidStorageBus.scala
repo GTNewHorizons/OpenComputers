@@ -7,6 +7,7 @@ import li.cil.oc.api.driver
 import li.cil.oc.api.driver.{EnvironmentProvider, NamedBlock}
 import li.cil.oc.api.machine.{Arguments, Callback, Context}
 import li.cil.oc.integration.ManagedTileEntityEnvironment
+import li.cil.oc.integration.appeng.DocHelper
 import li.cil.oc.integration.appeng.internal.PartStorageBusBase
 import net.minecraft.item.ItemStack
 import net.minecraft.world.World
@@ -33,7 +34,7 @@ object DriverFluidStorageBus extends driver.SidedBlock {
     @Callback(doc = "function(side:number[, slot:number]):boolean -- Get the configuration of the storage bus pointing in the specified direction.")
     def getStorageConfiguration(context: Context, args: Arguments): Array[AnyRef] = this.getPartConfig(context, args)
 
-    @Callback(doc = "function(side:number[, slot:number][, database:address, entry:number]):boolean OR function(side:number[, slot:number][, detail:table]):boolean -- Configure the storage bus pointing in the specified direction to storage item stacks matching the specified descriptor.")
+    @Callback(doc = "function(side:number[, slot:number][, database:address, entry:number]):boolean OR function(side:number[, slot:number][, detail:table]):boolean -- Configure the storage bus pointing in the specified direction to storage fluids matching the specified descriptor.\n" + DocHelper.FluidTableOnlyDetail)
     def setStorageConfiguration(context: Context, args: Arguments): Array[AnyRef] = this.setPartConfig[IAEFluidStack](context, args)
 
     @Callback(doc = "function(side:number):boolean -- Get the ore filter of the storage bus pointing in the specified direction.")
