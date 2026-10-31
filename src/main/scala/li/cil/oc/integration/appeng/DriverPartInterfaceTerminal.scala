@@ -4,7 +4,7 @@ import appeng.api.AEApi
 import appeng.api.parts.IPartHost
 import appeng.api.util.{DimensionalCoord, IInterfaceViewable}
 import appeng.parts.AEBasePart
-import appeng.parts.p2p.PartP2PTunnel
+import appeng.parts.p2p.PartP2PInterface
 import appeng.parts.reporting.PartInterfaceTerminal
 import li.cil.oc.api.driver
 import li.cil.oc.api.driver.{EnvironmentProvider, NamedBlock}
@@ -12,7 +12,6 @@ import li.cil.oc.api.machine.{Arguments, Callback, Context}
 import li.cil.oc.api.prefab.AbstractValue
 import li.cil.oc.integration.ManagedTileEntityEnvironment
 import li.cil.oc.util.ResultWrapper.result
-import net.minecraft.inventory.IInventory
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.{NBTTagCompound, NBTTagList}
 import net.minecraft.world.World
@@ -73,7 +72,6 @@ object DriverPartInterfaceTerminal extends driver.SidedBlock {
     @Callback(doc = "function(source:table{location:table, slot:number}, target:table{location:table[, slot:number]}):boolean, number|string -- Sends a pattern from source to target. Returns transfer result and target slot or error message.")
     def send(context: Context, args: Arguments): Array[AnyRef] = {
       val sourceData = TransferData.create(args.checkTable(0))
-      if (sourceData.slot == -1) return result(false, "Source slot cannot be empty")
       val targetData = TransferData.create(args.checkTable(1))
       sendInternal(Array(TransferTask(sourceData, targetData))).head
     }
@@ -97,7 +95,7 @@ object DriverPartInterfaceTerminal extends driver.SidedBlock {
       result(sendInternal(tasks))
     }
 
-    private case class TransferData(location: DimensionalCoord, side: ForgeDirection)(val slot: Int)
+    private case class TransferData(location: DimensionalCoord, side: ForgeDirection)(val slot: Option[Int])
 
     private object TransferData {
       def create(args: java.util.Map[_, _]): TransferData = {
@@ -110,9 +108,9 @@ object DriverPartInterfaceTerminal extends driver.SidedBlock {
           case str: String => ForgeDirection.valueOf(str.toUpperCase)
           case _ => ForgeDirection.UNKNOWN
         }
-        val slot: Integer = args.get("slot") match {
-          case value: java.lang.Number => value.intValue
-          case _ => -1
+        val slot = args.get("slot") match {
+          case value: java.lang.Number => Some(value.intValue)
+          case _ => None
         }
         TransferData(location, side)(slot)
       }
@@ -138,25 +136,40 @@ object DriverPartInterfaceTerminal extends driver.SidedBlock {
       result
     }
 
-    private def transferPattern(sourceInv: IInventory, sourceSlot: Int, targetInv: IInventory, targetSlot: Int): Either[String, Int] = {
-      if (sourceSlot == -1) return Left("Source slot cannot be empty")
-      if (sourceSlot < 0 || sourceSlot >= sourceInv.getSizeInventory) return Left("Source slot out of bounds")
-      val sourceStack = sourceInv.getStackInSlot(sourceSlot)
-      if (sourceStack == null) return Left("Can't find source pattern")
-      val targetSlotActual: Int = if (targetSlot == -1) {
-        (0 until targetInv.getSizeInventory).find(i => targetInv.getStackInSlot(i) == null) match {
-          case Some(emptyIndex) => emptyIndex
-          case None => return Left("No empty slot in target machine")
-        }
-      } else {
-        if (targetSlot < 0 || targetSlot >= targetInv.getSizeInventory) return Left("Target slot out of bounds")
-        val targetStack = targetInv.getStackInSlot(targetSlot)
-        if (targetStack != null) return Left("Target slot is not empty")
-        targetSlot
+    private def transferPattern(source: IInterfaceViewable, sourceSlot: Option[Int], target: IInterfaceViewable, targetSlot: Option[Int]): Either[String, Int] = {
+      val sourceInv = source.getPatterns
+      val from = sourceSlot match {
+        case Some(slot) => slot
+        case None => return Left("Source slot cannot be empty")
       }
-      targetInv.setInventorySlotContents(targetSlotActual, sourceStack)
-      sourceInv.setInventorySlotContents(sourceSlot, null)
-      Right(targetSlotActual)
+      if (from < 0 || from >= sourceInv.getSizeInventory) return Left("Source slot out of bounds")
+      val pattern = sourceInv.getStackInSlot(from)
+      if (pattern == null) return Left("Can't find source pattern")
+
+      val targetInv = target.getPatterns
+      val to = freeTargetSlot(target, targetSlot) match {
+        case Right(slot) => slot
+        case Left(error) => return Left(error)
+      }
+      if (!targetInv.isItemValidForSlot(to, pattern)) return Left("Target slot does not accept this pattern")
+
+      targetInv.setInventorySlotContents(to, pattern)
+      sourceInv.setInventorySlotContents(from, null)
+      Right(to)
+    }
+
+    // The given slot or else the first free one. Locked slots are never used.
+    private def freeTargetSlot(target: IInterfaceViewable, targetSlot: Option[Int]): Either[String, Int] = {
+      val inv = target.getPatterns
+      val unlockedSlots = target.numSlots
+      targetSlot match {
+        case None => (0 until unlockedSlots).find(inv.getStackInSlot(_) == null).toRight("No empty slot in target machine")
+        case Some(slot) =>
+          if (slot < 0 || slot >= inv.getSizeInventory) Left("Target slot out of bounds")
+          else if (slot >= unlockedSlots) Left("Target slot is locked")
+          else if (inv.getStackInSlot(slot) != null) Left("Target slot is not empty")
+          else Right(slot)
+      }
     }
 
     private def sendInternal(tasks: Seq[TransferTask]) = {
@@ -166,7 +179,7 @@ object DriverPartInterfaceTerminal extends driver.SidedBlock {
         val targetData = task.target
         (finds.get(sourceData), finds.get(targetData)) match {
           case (Some(source), Some(target)) =>
-            transferPattern(source.getPatterns, sourceData.slot, target.getPatterns, targetData.slot) match {
+            transferPattern(source, sourceData.slot, target, targetData.slot) match {
               case Right(slot) => result(true, slot)
               case Left(msg) => result(false, msg)
             }
@@ -177,18 +190,20 @@ object DriverPartInterfaceTerminal extends driver.SidedBlock {
       }.toArray
     }
 
+    // The interfaces this terminal lists, apart from hidden ones and interface P2P outputs.
     private def allMachines: Iterable[IInterfaceViewable] = {
       val grid = getGrid
-      if (grid == null) return Array.empty[IInterfaceViewable]
+      if (grid == null) return Iterable.empty
       AEApi.instance().registries().interfaceTerminal().getSupportedClasses.view
         .flatMap(c => grid.getMachines(c).asScala)
         .map(_.getMachine.asInstanceOf[IInterfaceViewable])
-        .filter { m =>
-          m.shouldDisplay && (m match {
-            case p: PartP2PTunnel[_] => !p.isOutput
-            case _ => true
-          })
-        }
+        .filter(_.shouldDisplay)
+        .filterNot(isP2POutput)
+    }
+
+    private def isP2POutput(machine: IInterfaceViewable) = machine match {
+      case p2p: PartP2PInterface => p2p.isOutput
+      case _ => false
     }
 
     private def getGrid = part.getActionableNode.getGrid
