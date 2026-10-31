@@ -13,4 +13,14 @@ object DocHelper {
   final val ItemTableOnlyDetail = "The `detail` table " + ItemFields
   final val FluidTableOnlyDetail = "The `detail` table " + FluidFields
   final val EssentiaTableOnlyDetail = "The `detail` table " + EssentiaFields
+
+  private final val LocationFields = "requires `x`, `y`, `z`. (Optional: `dimId`)"
+  final val LocationTableDetail = "The `location` table " + LocationFields
+
+  private final val SourceFields = "requires `location` and `slot`. (Optional: `side`)"
+  private final val TargetFields = "requires `location`. (Optional: `slot`, `side`)"
+
+  final val SourceTableDetail = "The `source` table " + SourceFields
+  final val TargetTableDetail = "The `target` table " + TargetFields
+  final val PatternTransferDetail = SourceTableDetail + "\n" + TargetTableDetail + "\n" + LocationTableDetail
 }

@@ -53,7 +53,7 @@ object DriverPartInterfaceTerminal extends driver.SidedBlock {
       result(new InterfaceViewableArrayValue(allMachines.filter(_.getName == name)))
     }
 
-    @Callback(doc = "function(location:table{x:number, y:number: z:number[, dimId:number]}[, side:number|string]):table -- Returns a list of interfaces at the specified location. 'side' can be a Forge direction number or name.")
+    @Callback(doc = "function(location:table[, side:number|string]):table -- Returns a list of interfaces at the specified location. 'side' can be a Forge direction number or name.\n" + DocHelper.LocationTableDetail)
     def getInterfacesByLocation(context: Context, args: Arguments): Array[AnyRef] = {
       val location = ConverterDimensionalCoord.parse(args.checkTable(0), host.getLocation.getDimension)
       var filtered = allMachines.filter(_.getLocation == location)
@@ -70,7 +70,7 @@ object DriverPartInterfaceTerminal extends driver.SidedBlock {
       result(new InterfaceViewableArrayValue(filtered))
     }
 
-    @Callback(doc = "function(source:table{location:table, slot:number}, target:table{location:table[, slot:number]}):boolean, number|string -- Sends a pattern from source to target. Returns transfer result and target slot or error message.")
+    @Callback(doc = "function(source:table, target:table):boolean, number|string -- Sends a pattern from source to target. Returns transfer result and target slot or error message.\n" + DocHelper.PatternTransferDetail)
     def send(context: Context, args: Arguments): Array[AnyRef] = {
       val sourceData = TransferData.create(args.checkTable(0))
       if (sourceData.slot == -1) return result(false, "Source slot cannot be empty")
@@ -78,7 +78,7 @@ object DriverPartInterfaceTerminal extends driver.SidedBlock {
       sendInternal(Array(TransferTask(sourceData, targetData))).head
     }
 
-    @Callback(doc = "function(tasks:table{{source:table, target:table}, ...}):table -- Executes multiple transfers in one batch. Returns an array of results, each containing [success:boolean, slotOrError:any].")
+    @Callback(doc = "function(tasks:table{{source:table, target:table}, ...}):table -- Executes multiple transfers in one batch. Returns an array of results, each containing [success:boolean, slotOrError:any].\n" + DocHelper.PatternTransferDetail)
     def sendBatch(context: Context, args: Arguments): Array[AnyRef] = {
       val tasks = mutable.ArrayBuffer[TransferTask]()
       args.checkTable(0).asScala.foreach {
