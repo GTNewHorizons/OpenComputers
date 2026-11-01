@@ -6,6 +6,7 @@ import li.cil.oc.api.network.{EnvironmentHost, ManagedEnvironment}
 import li.cil.oc.common.{Slot, Tier}
 import li.cil.oc.server.component
 import li.cil.oc.util.BlockPosition
+import li.cil.oc.api.internal
 import li.cil.oc.{Constants, Settings, api}
 import net.minecraft.item.ItemStack
 import net.minecraftforge.common.DimensionManager
@@ -19,7 +20,7 @@ object DriverUpgradeMF extends Item with HostAware {
     api.Items.get(Constants.ItemName.MFU))
 
   override def worksWith(stack: ItemStack, host: Class[_ <: EnvironmentHost]): Boolean =
-    worksWith(stack) && isAdapter(host)
+    worksWith(stack) && (isAdapter(host) || isRobot(host) || isDrone(host))
 
   override def slot(stack: ItemStack): String = Slot.Upgrade
 
@@ -27,19 +28,25 @@ object DriverUpgradeMF extends Item with HostAware {
 
   override def createEnvironment(stack: ItemStack, host: EnvironmentHost): ManagedEnvironment = {
     if (host.world != null && !host.world.isRemote) {
-      if (stack.hasTagCompound) {
-        stack.getTagCompound.getIntArray(Settings.namespace + "coord") match {
-          case Array(x, y, z, dim, side) =>
-            Option(DimensionManager.getWorld(dim)) match {
-              case Some(world) => return new component.UpgradeMF(host, BlockPosition(x, y, z, world), ForgeDirection.getOrientation(side))
-              case _ => // Invalid dimension ID
-            }
-          case _ => // Invalid tag
-        }
+      val linked = linkedBlock(stack)
+      host match {
+        // Robots and drones bind it themselves, so it works unlinked too.
+        case _: internal.Robot | _: internal.Drone =>
+          return new component.UpgradeMF(host, linked.map(_._1), linked.map(_._2).getOrElse(ForgeDirection.UNKNOWN))
+        case _ => linked.foreach { case (position, side) => return new component.UpgradeMF(host, Some(position), side) }
       }
     }
     null
   }
+
+  // The block and side a player linked the MFU to by sneak-clicking it.
+  private def linkedBlock(stack: ItemStack): Option[(BlockPosition, ForgeDirection)] =
+    if (!stack.hasTagCompound) None
+    else stack.getTagCompound.getIntArray(Settings.namespace + "coord") match {
+      case Array(x, y, z, dim, side) =>
+        Option(DimensionManager.getWorld(dim)).map(world => (BlockPosition(x, y, z, world), ForgeDirection.getOrientation(side)))
+      case _ => None
+    }
 
   object Provider extends EnvironmentProvider {
     override def getEnvironment(stack: ItemStack): Class[_] =
