@@ -13,15 +13,6 @@ import scala.collection.JavaConverters._
 trait AESettingsEnvironment extends Environment {
   protected def settingsTarget(context: Context, args: Arguments): (IConfigManager, AnyRef, Int)
 
-  private def possibleValues(setting: Settings): Vector[Enum[_]] = {
-    val values = Vector.newBuilder[Enum[_]]
-    val iterator = setting.getPossibleValues.iterator()
-    while (iterator.hasNext) {
-      values += iterator.next().asInstanceOf[Enum[_]]
-    }
-    values.result()
-  }
-
   private def listValues(setting: Settings): String =
     setting.getPossibleValues.asScala.map(_.name).mkString(", ")
 
@@ -64,7 +55,7 @@ trait AESettingsEnvironment extends Environment {
         if (args.checkBoolean(index)) YesNo.YES else YesNo.NO
       case _ =>
         val name = args.checkString(index).trim
-        possibleValues(setting).find(_.name.equalsIgnoreCase(name)).getOrElse(throw new IllegalArgumentException(
+        setting.getPossibleValues.asScala.find(_.name.equalsIgnoreCase(name)).getOrElse(throw new IllegalArgumentException(
           s"bad arguments #${index + 1} (expected one of ${listValues(setting)})"))
     }
   }
