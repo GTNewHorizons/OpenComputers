@@ -6,7 +6,7 @@ import li.cil.oc.api.driver
 import li.cil.oc.api.driver.{EnvironmentProvider, NamedBlock}
 import li.cil.oc.api.machine.{Arguments, Callback, Context}
 import li.cil.oc.integration.ManagedTileEntityEnvironment
-import li.cil.oc.integration.appeng.internal.{PartInterfaceEnvironment, PartPatternEnvironment}
+import li.cil.oc.integration.appeng.internal.{AESettingsEnvironment, PartInterfaceEnvironment, PartPatternEnvironment}
 import li.cil.oc.util.ExtendedArguments.extendedArguments
 import li.cil.oc.util.ResultWrapper.result
 import net.minecraft.item.ItemStack
@@ -26,10 +26,27 @@ object DriverPartInterface extends driver.SidedBlock {
 
   override def createEnvironment(world: World, x: Int, y: Int, z: Int, side: ForgeDirection) = new Environment(world.getTileEntity(x, y, z).asInstanceOf[IPartHost])
 
-  final class Environment(val host: IPartHost)(implicit val tag: ClassTag[PartInterface]) extends ManagedTileEntityEnvironment[IPartHost](host, "me_interface") with NamedBlock with PartInterfaceEnvironment[PartInterface] with PartPatternEnvironment[PartInterface] {
+  final class Environment(val host: IPartHost)(implicit val tag: ClassTag[PartInterface])
+    extends ManagedTileEntityEnvironment[IPartHost](host, "me_interface")
+    with NamedBlock
+    with PartInterfaceEnvironment[PartInterface]
+    with PartPatternEnvironment[PartInterface]
+    with AESettingsEnvironment.BlockingModeSetting
+    with AESettingsEnvironment.SmartBlockSetting
+    with AESettingsEnvironment.InterfaceTerminalSetting
+    with AESettingsEnvironment.InsertionModeSetting
+    with AESettingsEnvironment.AdvancedBlockingModeSetting
+    with AESettingsEnvironment.LockCraftingModeSetting
+    with AESettingsEnvironment.PatternOptimizationSetting
+    with AESettingsEnvironment.FuzzyModeSetting {
     override def preferredName = "me_interface"
 
     override def priority = 0
+
+    override protected def settingsTarget(context: Context, args: Arguments) = {
+      val part = getPart(args.checkSideAny(0))
+      (part.getConfigManager, part, 1)
+    }
 
     @Callback(doc = "function(side:number[, slot:number]):table -- Get the configuration of the interface pointing in the specified direction.")
     def getInterfaceConfiguration(context: Context, args: Arguments): Array[AnyRef] = getConfig(context, args)

@@ -6,7 +6,7 @@ import li.cil.oc.api.machine.{Arguments, Callback, Context}
 import li.cil.oc.api.network.ManagedEnvironment
 import li.cil.oc.api.prefab.DriverSidedTileEntity
 import li.cil.oc.integration.ManagedTileEntityEnvironment
-import li.cil.oc.integration.appeng.internal.{BlockInterfaceEnvironment, BlockPatternEnvironment}
+import li.cil.oc.integration.appeng.internal.{AESettingsEnvironment, BlockInterfaceEnvironment, BlockPatternEnvironment}
 import li.cil.oc.util.ExtendedArguments._
 import li.cil.oc.util.ResultWrapper.result
 import net.minecraft.item.ItemStack
@@ -19,10 +19,25 @@ object DriverBlockInterface extends DriverSidedTileEntity {
   def createEnvironment(world: World, x: Int, y: Int, z: Int, side: ForgeDirection): ManagedEnvironment =
     new Environment(world.getTileEntity(x, y, z).asInstanceOf[TileInterface])
 
-  final class Environment(val tile: TileInterface) extends ManagedTileEntityEnvironment[TileInterface](tile, "me_interface") with NamedBlock with NetworkControl[TileInterface] with BlockInterfaceEnvironment with BlockPatternEnvironment {
+  final class Environment(val tile: TileInterface)
+    extends ManagedTileEntityEnvironment[TileInterface](tile, "me_interface")
+    with NamedBlock
+    with NetworkControl[TileInterface]
+    with BlockInterfaceEnvironment
+    with BlockPatternEnvironment
+    with AESettingsEnvironment.BlockingModeSetting
+    with AESettingsEnvironment.SmartBlockSetting
+    with AESettingsEnvironment.InterfaceTerminalSetting
+    with AESettingsEnvironment.InsertionModeSetting
+    with AESettingsEnvironment.AdvancedBlockingModeSetting
+    with AESettingsEnvironment.LockCraftingModeSetting
+    with AESettingsEnvironment.PatternOptimizationSetting
+    with AESettingsEnvironment.FuzzyModeSetting {
     override def preferredName = "me_interface"
 
     override def priority = 5
+
+    override protected def settingsTarget(context: Context, args: Arguments) = (tile.getConfigManager, tile, 0)
 
     //noinspection ScalaUnusedSymbol
     @Callback(doc = "function([slot:number]):table -- Get the configuration of the interface.")
