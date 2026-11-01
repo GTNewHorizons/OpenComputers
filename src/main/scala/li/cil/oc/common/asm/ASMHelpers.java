@@ -122,7 +122,7 @@ public final class ASMHelpers {
     }
   }
 
-  public static MethodNode copyMethodNode(MethodNode methodNode) {
+  public static synchronized MethodNode copyMethodNode(MethodNode methodNode) {
     MethodNode newMethodNode = new MethodNode(
       methodNode.access, methodNode.name, methodNode.desc, methodNode.signature,
       methodNode.exceptions == null ? null : methodNode.exceptions.toArray(new String[0])
