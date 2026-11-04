@@ -7,7 +7,7 @@ import li.cil.oc.api.driver.{NamedBlock, SidedBlock}
 import li.cil.oc.api.machine.{Arguments, Callback, Context}
 import li.cil.oc.api.network.ManagedEnvironment
 import li.cil.oc.integration.ManagedTileEntityEnvironment
-import li.cil.oc.integration.appeng.AEStackFactory
+import li.cil.oc.integration.appeng.{AEStackFactory, DocHelper}
 import li.cil.oc.util.ResultWrapper.result
 import net.minecraft.world.World
 import net.minecraftforge.common.util.ForgeDirection
@@ -115,7 +115,7 @@ object DriverMEInputHatch extends SidedBlock {
     def getConfiguration(context: Context, args: Arguments): Array[AnyRef] =
       result(tile.getSlotConfig(resolveSlot(args, MTEHatchInputBusME.SLOT_COUNT)))
 
-    @Callback(doc = "function(slot:number[, detail:table]):boolean -- Configures the ME input bus.")
+    @Callback(doc = "function(slot:number[, detail:table]):boolean -- Configures the ME input bus.\n" + DocHelper.AllTypesDetail)
     def setConfiguration(context: Context, args: Arguments): Array[AnyRef] = {
       val slot = resolveSlot(args, MTEHatchInputBusME.SLOT_COUNT)
       val stack = parseDetail[IAEItemStack](detailTable(args))
@@ -193,7 +193,7 @@ object DriverMEInputHatch extends SidedBlock {
     def getConfiguration(context: Context, args: Arguments): Array[AnyRef] =
       result(tile.getSlotConfig(resolveSlot(args, MTEHatchInputME.SLOT_COUNT)))
 
-    @Callback(doc = "function(slot:number[, detail:table]):boolean -- Configures the ME input hatch.")
+    @Callback(doc = "function(slot:number[, detail:table]):boolean -- Configures the ME input hatch.\n" + DocHelper.AllTypesDetail)
     def setConfiguration(context: Context, args: Arguments): Array[AnyRef] = {
       val slot = resolveSlot(args, MTEHatchInputME.SLOT_COUNT)
       val stack = parseDetail[IAEFluidStack](detailTable(args))
