@@ -5,6 +5,7 @@ import li.cil.oc.api.driver
 import li.cil.oc.api.driver.{EnvironmentProvider, NamedBlock}
 import li.cil.oc.api.machine.{Arguments, Callback, Context}
 import li.cil.oc.integration.ManagedTileEntityEnvironment
+import li.cil.oc.integration.appeng.internal.AESettingsEnvironment
 import li.cil.oc.integration.thaumicenergistics.internal.PartEssentiaBusBase
 import li.cil.oc.util.ExtendedArguments._
 import li.cil.oc.util.ResultWrapper._
@@ -28,10 +29,22 @@ object DriverEssentiaExportBus extends driver.SidedBlock {
 
   override def createEnvironment(world: World, x: Int, y: Int, z: Int, side: ForgeDirection) = new Environment(world, world.getTileEntity(x, y, z).asInstanceOf[IPartHost])
 
-  final class Environment(val world: World, val host: IPartHost)(implicit val tag: ClassTag[PartEssentiaExportBus]) extends ManagedTileEntityEnvironment[IPartHost](host, "essentia_exportbus") with NamedBlock with PartEssentiaBusBase[PartEssentiaExportBus] {
+  final class Environment(val world: World, val host: IPartHost)(implicit val tag: ClassTag[PartEssentiaExportBus])
+    extends ManagedTileEntityEnvironment[IPartHost](host, "essentia_exportbus")
+    with NamedBlock
+    with PartEssentiaBusBase[PartEssentiaExportBus]
+    with AESettingsEnvironment.RedstoneControlledSetting
+    with AESettingsEnvironment.FuzzyModeSetting
+    with AESettingsEnvironment.CraftOnlySetting
+    with AESettingsEnvironment.SchedulingModeSetting {
     override def preferredName = "essentia_exportbus"
 
     override def priority = 2
+
+    override protected def settingsTarget(context: Context, args: Arguments) = {
+      val part = getPart(args.checkSideAny(0))
+      (part.getConfigManager, part, 1)
+    }
 
     @Callback(doc = "function(side:number[, slot:number]):string -- Get the configuration of the export bus pointing in the specified direction.")
     def getExportConfiguration(context: Context, args: Arguments): Array[AnyRef] = this.getPartConfig(context, args)

@@ -7,7 +7,8 @@ import li.cil.oc.api.driver
 import li.cil.oc.api.driver.{EnvironmentProvider, NamedBlock}
 import li.cil.oc.api.machine.{Arguments, Callback, Context}
 import li.cil.oc.integration.ManagedTileEntityEnvironment
-import li.cil.oc.integration.appeng.internal.PartSharedItemBusBase
+import li.cil.oc.integration.appeng.internal.{AESettingsEnvironment, PartSharedItemBusBase}
+import li.cil.oc.util.ExtendedArguments._
 import net.minecraft.item.ItemStack
 import net.minecraft.world.World
 import net.minecraftforge.common.util.ForgeDirection
@@ -25,11 +26,23 @@ object DriverFluidExportBus extends driver.SidedBlock {
 
   override def createEnvironment(world: World, x: Int, y: Int, z: Int, side: ForgeDirection) = new Environment(world.getTileEntity(x, y, z).asInstanceOf[IPartHost])
 
-  final class Environment(val host: IPartHost)(implicit val tag: ClassTag[PartFluidExportBus]) extends ManagedTileEntityEnvironment[IPartHost](host, "fluid_exportbus") with NamedBlock with PartSharedItemBusBase[PartFluidExportBus] {
+  final class Environment(val host: IPartHost)(implicit val tag: ClassTag[PartFluidExportBus])
+    extends ManagedTileEntityEnvironment[IPartHost](host, "fluid_exportbus")
+    with NamedBlock
+    with PartSharedItemBusBase[PartFluidExportBus]
+    with AESettingsEnvironment.RedstoneControlledSetting
+    with AESettingsEnvironment.FuzzyModeSetting
+    with AESettingsEnvironment.CraftOnlySetting
+    with AESettingsEnvironment.SchedulingModeSetting {
 
     override def preferredName = "fluid_exportbus"
 
     override def priority = 2
+
+    override protected def settingsTarget(context: Context, args: Arguments) = {
+      val part = getPart(args.checkSideAny(0))
+      (part.getConfigManager, part, 1)
+    }
 
     @Callback(doc = "function(side:number, [ slot:number]):boolean -- Get the configuration of the export bus pointing in the specified direction.")
     def getExportConfiguration(context: Context, args: Arguments): Array[AnyRef] = this.getPartConfig(context, args)

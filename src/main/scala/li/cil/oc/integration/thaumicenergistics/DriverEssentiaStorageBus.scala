@@ -5,7 +5,9 @@ import li.cil.oc.api.driver
 import li.cil.oc.api.driver.{EnvironmentProvider, NamedBlock}
 import li.cil.oc.api.machine.{Arguments, Callback, Context}
 import li.cil.oc.integration.ManagedTileEntityEnvironment
+import li.cil.oc.integration.appeng.internal.AESettingsEnvironment
 import li.cil.oc.integration.thaumicenergistics.internal.PartEssentiaStorageBusBase
+import li.cil.oc.util.ExtendedArguments._
 import net.minecraft.item.ItemStack
 import net.minecraft.world.World
 import net.minecraftforge.common.util.ForgeDirection
@@ -26,10 +28,23 @@ object DriverEssentiaStorageBus extends driver.SidedBlock {
 
   override def createEnvironment(world: World, x: Int, y: Int, z: Int, side: ForgeDirection) = new Environment(world.getTileEntity(x, y, z).asInstanceOf[IPartHost])
 
-  final class Environment(val host: IPartHost)(implicit val tag: ClassTag[PartEssentiaStorageBus]) extends ManagedTileEntityEnvironment[IPartHost](host, "essentia_storagebus") with NamedBlock with PartEssentiaStorageBusBase[PartEssentiaStorageBus] {
+  final class Environment(val host: IPartHost)(implicit val tag: ClassTag[PartEssentiaStorageBus])
+    extends ManagedTileEntityEnvironment[IPartHost](host, "essentia_storagebus")
+    with NamedBlock
+    with PartEssentiaStorageBusBase[PartEssentiaStorageBus]
+    with AESettingsEnvironment.AccessSetting
+    with AESettingsEnvironment.ExtractionModeSetting
+    with AESettingsEnvironment.FuzzyModeSetting
+    with AESettingsEnvironment.StorageFilterSetting
+    with AESettingsEnvironment.StickyModeSetting {
     override def preferredName = "essentia_storagebus"
 
     override def priority = 2
+
+    override protected def settingsTarget(context: Context, args: Arguments) = {
+      val part = getPart(args.checkSideAny(0))
+      (part.getConfigManager, part, 1)
+    }
 
     @Callback(doc = "function(side:number[, slot:number]):boolean -- Get the configuration of the storage bus pointing in the specified direction.")
     def getStorageConfiguration(context: Context, args: Arguments): Array[AnyRef] = this.getPartConfig(context, args)

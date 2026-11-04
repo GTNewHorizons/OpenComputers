@@ -26,8 +26,6 @@ import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.event.entity.player.PlayerDestroyItemEvent
 
 import scala.collection.convert.WrapAsJava._
-import scala.collection.mutable
-import scala.util.control.Breaks._
 
 class UpgradeCrafting(val host: EnvironmentHost with internal.Robot) extends prefab.ManagedEnvironment with DeviceInfo {
   override val node = Network.newNode(this, Visibility.Network).
@@ -55,53 +53,66 @@ class UpgradeCrafting(val host: EnvironmentHost with internal.Robot) extends pre
     var amountPossible = 0
 
     def craft(wantedCount: Int): Seq[_] = {
-      var player = host.player
+      val player = host.player
       load(player.inventory)
-      val cm = CraftingManager.getInstance
-      var countCrafted = 0
-      val originalCraft = cm.findMatchingRecipe(CraftingInventory, host.world)
-      if (originalCraft == null) {
-        return Seq(false, 0)
+
+      // The result of the recipe the grid holds, or null if it matches none in which case nothing is crafted.
+      val firstResult = findRecipeResult()
+      if (firstResult == null) return Seq(false, 0)
+
+      var craftedCount = 0
+      var result = firstResult
+
+      // Repeat the first craft until the wanted count is reached or the grid no longer makes the same item.
+      while (craftedCount < wantedCount && isSameResult(firstResult, result)) {
+        craftedCount += result.stackSize
+        craftOnce(player, result)
+        result = findRecipeResult()
       }
-      breakable {
-        while (countCrafted < wantedCount) {
-          val result = cm.findMatchingRecipe(CraftingInventory, host.world)
-          if (result == null || result.stackSize < 1) break()
-          if (!originalCraft.isItemEqual(result)) {
-            break()
-          }
-          countCrafted += result.stackSize
-          FMLCommonHandler.instance.firePlayerCraftingEvent(player, result, this)
-          val surplus = mutable.ArrayBuffer.empty[ItemStack]
-          for (slot <- 0 until getSizeInventory) {
-            val stack = getStackInSlot(slot)
-            if (stack != null) {
-              decrStackSize(slot, 1)
-              val item = stack.getItem
-              if (item.hasContainerItem(stack)) {
-                val container = item.getContainerItem(stack)
-                if (container.isItemStackDamageable && container.getItemDamage > container.getMaxDamage) {
-                  MinecraftForge.EVENT_BUS.post(new PlayerDestroyItemEvent(player, container))
-                }
-                else if (container.getItem.doesContainerItemLeaveCraftingGrid(container) || getStackInSlot(slot) != null) {
-                  surplus += container
-                }
-                else {
-                  setInventorySlotContents(slot, container)
-                }
-              }
-            }
-          }
-          save(player.inventory)
-          InventoryUtils.addToPlayerInventory(result, player)
-          for (stack <- surplus) {
-            InventoryUtils.addToPlayerInventory(stack, player)
-          }
-          load(player.inventory)
-        }
-      }
-      Seq(originalCraft != null, countCrafted)
+
+      Seq(true, craftedCount)
     }
+
+    private def findRecipeResult(): ItemStack =
+      CraftingManager.getInstance.findMatchingRecipe(this, host.world)
+
+    private def isSameResult(firstResult: ItemStack, result: ItemStack) =
+      result != null && result.stackSize > 0 && firstResult.isItemEqual(result)
+
+    private def craftOnce(player: EntityPlayer, result: ItemStack) {
+      FMLCommonHandler.instance.firePlayerCraftingEvent(player, result, this)
+      val surplus = consumeIngredients(player)
+      save(player.inventory)
+      (result +: surplus).foreach(InventoryUtils.addToPlayerInventory(_, player))
+      load(player.inventory)
+    }
+
+    // Takes one item from every grid slot and leaves its container item there. Returns the containers that can't stay.
+    private def consumeIngredients(player: EntityPlayer): Seq[ItemStack] =
+      (0 until getSizeInventory).flatMap(consumeIngredient(player, _))
+
+    private def consumeIngredient(player: EntityPlayer, slot: Int): Option[ItemStack] = {
+      val ingredient = getStackInSlot(slot)
+      if (ingredient == null) return None
+      decrStackSize(slot, 1)
+      containerItem(ingredient).flatMap(returnContainerItem(player, slot, _))
+    }
+
+    private def containerItem(stack: ItemStack): Option[ItemStack] =
+      if (stack.getItem.hasContainerItem(stack)) Option(stack.getItem.getContainerItem(stack)) else None
+
+    private def returnContainerItem(player: EntityPlayer, slot: Int, container: ItemStack): Option[ItemStack] =
+      if (container.isItemStackDamageable && container.getItemDamage > container.getMaxDamage) {
+        MinecraftForge.EVENT_BUS.post(new PlayerDestroyItemEvent(player, container))
+        None
+      }
+      else if (container.getItem.doesContainerItemLeaveCraftingGrid(container) || getStackInSlot(slot) != null) {
+        Some(container)
+      }
+      else {
+        setInventorySlotContents(slot, container)
+        None
+      }
 
     def load(inventory: IInventory) {
       amountPossible = Int.MaxValue
