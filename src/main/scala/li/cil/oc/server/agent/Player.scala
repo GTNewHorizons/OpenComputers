@@ -1,7 +1,6 @@
 package li.cil.oc.server.agent
 
 import java.util.UUID
-
 import com.mojang.authlib.GameProfile
 import cpw.mods.fml.common.ObfuscationReflectionHelper
 import cpw.mods.fml.common.eventhandler.Event
@@ -15,7 +14,7 @@ import li.cil.oc.integration.Mods
 import li.cil.oc.integration.appeng.ModAppEng
 import li.cil.oc.integration.magtools.ModMagnanimousTools
 import li.cil.oc.integration.tcon.ModTinkersConstruct
-import li.cil.oc.integration.util.PortalGun
+import li.cil.oc.integration.util.{MatterManipulator, PortalGun}
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.InventoryUtils
 import net.minecraft.block.Block
@@ -30,7 +29,7 @@ import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.entity.player.EntityPlayer.EnumStatus
 import net.minecraft.init.Blocks
 import net.minecraft.init.Items
-import net.minecraft.inventory.{IInventory, ContainerPlayer}
+import net.minecraft.inventory.{ContainerPlayer, IInventory}
 import net.minecraft.item.ItemBlock
 import net.minecraft.item.ItemStack
 import net.minecraft.network.NetHandlerPlayServer
@@ -292,6 +291,10 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
       posY += offset.offsetY * 0.6
       posZ += offset.offsetZ * 0.6
       val newStack = stack.useItemRightClick(world, this)
+      if (MatterManipulator.isMatterManipulator(stack)) {
+        newStack.getItem.onUsingTick(newStack, this, Integer.MAX_VALUE - 1)
+        newStack.getItem.onUsingTick(newStack, this, Integer.MAX_VALUE - MatterManipulator.getPlaceTicks(stack) * 10)
+      }
       if (isUsingItem) {
         val remaining = customItemInUseBecauseMinecraftIsBloodyStupidAndMakesRandomMethodsClientSided.getMaxItemUseDuration - heldTicks
         customItemInUseBecauseMinecraftIsBloodyStupidAndMakesRandomMethodsClientSided.onPlayerStoppedUsing(world, this, remaining)
