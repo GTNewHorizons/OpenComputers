@@ -591,7 +591,13 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
     }
   }
 
-  override def isComponentSlot(slot: Int, stack: ItemStack) = (containerSlots ++ componentSlots) contains slot
+  override def isComponentSlot(slot: Int, stack: ItemStack): Boolean = {
+    ((containerSlots ++ componentSlots) contains slot) ||
+      (Option(Driver.driverFor(stack, getClass)) match {
+        case Some(driver) => driver.slot(stack) == Slot.Tool
+        case _ => false
+    })
+  }
 
   def containerSlotType(slot: Int) = if (containerSlots contains slot) {
     val stack = info.containers(slot - 1)
