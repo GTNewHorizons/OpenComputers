@@ -25,6 +25,8 @@ object ModGregtech extends ModProxy {
     Driver.add(new DriverBECStorage)
     Driver.add(new DriverBECDiode)
 
+    Driver.add(new DriverDTPF)
+
     RecipeHandler.init()
   }
 }
