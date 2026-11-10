@@ -52,7 +52,7 @@ class Waypoint extends traits.Environment with traits.Rotatable with traits.Reds
 
   override protected def initialize(): Unit = {
     super.initialize()
-    EventHandler.scheduleServer(() => Waypoints.add(this))
+    if (isServer) EventHandler.scheduleServer(() => Waypoints.add(this))
   }
 
   override def dispose(): Unit = {
