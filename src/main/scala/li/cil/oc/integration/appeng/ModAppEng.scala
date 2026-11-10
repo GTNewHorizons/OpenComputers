@@ -4,6 +4,7 @@ import appeng.api.AEApi
 import appeng.api.parts.IPartHost
 import appeng.api.storage.data.{IAEFluidStack, IAEItemStack}
 import appeng.util.item.{AEFluidStackType, AEItemStackType}
+import cpw.mods.fml.common.FMLCommonHandler
 import cpw.mods.fml.common.registry.GameRegistry
 import li.cil.oc.api.Driver
 import li.cil.oc.common.Tier
@@ -57,6 +58,7 @@ object ModAppEng extends ModProxy {
     Driver.add(DriverUpgradeAE.Provider)
 
     WirelessHandlerUpgradeAE.register()
+    FMLCommonHandler.instance.bus.register(RequestedJobs)
     val multi = new li.cil.oc.common.item.Delegator()
     GameRegistry.registerItem(multi, "item.ae")
     addSubItem(new ItemUpgradeAE(multi, Tier.One), Constants.ItemName.UpgradeAE1, "oc:me_upgrade1")
