@@ -471,6 +471,7 @@ object Tablet {
   def onWorldUnload(e: WorldEvent.Unload) {
     Client.clear(e.world)
     Server.clear(e.world)
+    if (currentlyAnalyzing.exists(_._1.world.contains(e.world))) currentlyAnalyzing = None
   }
 
   @SubscribeEvent
@@ -521,6 +522,8 @@ object Tablet {
           cache.cleanUp()
           wrapper = cache.get(id, this)
         }
+        currentStack = null
+        currentHolder = null
 
         wrapper.stack = stack
         wrapper.player = holder
