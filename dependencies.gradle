@@ -25,6 +25,7 @@ dependencies {
     compileOnly("com.github.GTNewHorizons:ModularUI:1.3.4:dev") {transitive = false}
     compileOnly("com.github.GTNewHorizons:ModularUI2:2.3.80-1.7.10:dev") {transitive = false}
     compileOnly("com.github.GTNewHorizons:NotEnoughItems:2.8.111-GTNH:dev") {transitive = false}
+    compileOnly("com.github.GTNewHorizons:NotEnoughEnergistics:99.99.99:dev")
     compileOnly("com.github.GTNewHorizons:ProjectRed:4.12.39-GTNH:dev") {transitive = false}
     compileOnly("com.github.GTNewHorizons:Railcraft:9.17.29:dev") {transitive = false}
     compileOnly("com.github.GTNewHorizons:StructureLib:1.4.42:dev") {transitive = false}
