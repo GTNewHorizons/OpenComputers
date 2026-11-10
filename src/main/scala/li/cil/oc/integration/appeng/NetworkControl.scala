@@ -84,10 +84,14 @@ trait NetworkControl[AETile >: Null <: TileEntity with IGridProxyable with IActi
     result(buffer.toArray)
   }
 
-  @Callback(doc = "function([detail:table, type:string]):table -- Get a known recipe. This can be used to issue crafting requests.")
+  @Callback(doc = "function(detail:table[, type:string]):table -- Get a known recipe. This can be used to issue crafting requests.\n" + DocHelper.DeprecatedType + DocHelper.AllTypesDetail)
   def getCraftable(context: Context, args: Arguments): Array[AnyRef] = {
     val table = args.checkTable(0)
-    val tp = args.checkString(1)
+    val tp = if (args.isString(1)) args.checkString(1)
+    else table.get("type") match {
+      case str: String => str
+      case _ => throw new IllegalArgumentException("Invalid detail table: Missing or invalid 'type' key")
+    }
     val stack = AEStackFactory.parse(tp, table).asInstanceOf[AEStack]
     val monitor = tile.getProxy.getStorage.getMEMonitor(stack.getStackType).asInstanceOf[IMEMonitor[AEStack]]
     if (monitor != null) {
@@ -129,6 +133,23 @@ trait NetworkControl[AETile >: Null <: TileEntity with IGridProxyable with IActi
     result(builder.result())
   }
 
+  @Callback(doc = "function(detail:table):table -- Retrieves a stored resource from the network.\n" + DocHelper.AllTypesDetail + "Tip: You can directly pass tables returned by other APIs.")
+  def getResourceInNetwork(context: Context, args: Arguments): Array[AnyRef] = {
+    val table = args.checkTable(0)
+    val tp = table.get("type") match {
+      case str: String => str
+      case _ => throw new IllegalArgumentException("Invalid detail table: Missing or invalid 'type' key")
+    }
+    val stack = AEStackFactory.parse(tp, table).asInstanceOf[AEStack]
+    val monitor = tile.getProxy.getStorage.getMEMonitor(stack.getStackType).asInstanceOf[IMEMonitor[AEStack]]
+    if (monitor != null) {
+      result(monitor.getAvailableItem(stack, IterationCounter.fetchNewId()))
+    }
+    else {
+      result(null)
+    }
+  }
+
   @Callback(doc = "function([filter:table]):table -- Get a list of the stored items in the network.")
   def getItemsInNetwork(context: Context, args: Arguments): Array[AnyRef] = {
     val filter = args.optTable(0, Map.empty[AnyRef, AnyRef]).collect {
@@ -141,7 +162,7 @@ trait NetworkControl[AETile >: Null <: TileEntity with IGridProxyable with IActi
       .toArray)
   }
 
-  @Callback(doc = "function(name:string|id:number[, damage:number[, nbt:string]]):table OR function(detail:table):table -- Retrieves the stored item in the network by its unlocalized name. For the first format, 'nbt' expects an SNBT string.")
+  @Callback(doc = "[DEPRECATED] Use getResourceInNetwork instead.\nfunction(name:string|id:number[, damage:number[, nbt:string]]):table OR function(detail:table):table -- Retrieves the stored item in the network by its unlocalized name. For the first format, 'nbt' expects an SNBT string.\n" + DocHelper.ItemTableOnlyDetail)
   def getItemInNetwork(context: Context, args: Arguments): Array[AnyRef] = {
     val aeItemStack = if (args.isTable(0)) {
       AEStackFactory.parse[IAEItemStack](args.checkTable(0))
@@ -184,7 +205,7 @@ trait NetworkControl[AETile >: Null <: TileEntity with IGridProxyable with IActi
       .toArray)
   }
 
-  @Callback(doc = "function([name:string]):table OR function(detail:table):table -- Get a list of the stored fluids in the network.")
+  @Callback(doc = "[DEPRECATED] Use getResourceInNetwork instead.\nfunction([name:string]):table OR function(detail:table):table -- Get a list of the stored fluids in the network.\n" + DocHelper.FluidTableOnlyDetail)
   def getFluidInNetwork(context: Context, args: Arguments): Array[AnyRef] = {
     val aeFluidStack = if (args.isTable(0)) {
       AEStackFactory.parse[IAEFluidStack](args.checkTable(0))

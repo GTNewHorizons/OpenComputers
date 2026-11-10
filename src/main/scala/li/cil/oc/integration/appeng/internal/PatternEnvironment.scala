@@ -56,7 +56,11 @@ trait PatternEnvironment extends Environment {
     val stack: IAEStack[_] = if (args.count() <= offset + 2) null
     else if (args.isTable(offset + 2)) {
       val table = args.checkTable(offset + 2)
-      val tp = args.checkString(offset + 3)
+      val tp = if (args.isString(offset + 3)) args.checkString(offset + 3)
+      else table.get("type") match {
+        case str: String => str
+        case _ => throw new IllegalArgumentException("Invalid detail table: Missing or invalid 'type' key")
+      }
       AEStackFactory.parse(tp, table)
     }
     else {
