@@ -20,8 +20,6 @@ object ScreenRenderer extends TileEntitySpecialRenderer {
 
   private val fadeRatio = 1.0 / (maxRenderDistanceSq - fadeDistanceSq)
 
-  private var screen: Screen = null
-
   private lazy val screens = Set(
     api.Items.get(Constants.BlockName.ScreenTier1),
     api.Items.get(Constants.BlockName.ScreenTier2),
@@ -34,12 +32,12 @@ object ScreenRenderer extends TileEntitySpecialRenderer {
   override def renderTileEntityAt(t: TileEntity, x: Double, y: Double, z: Double, f: Float) {
     RenderState.checkError(this, ".renderTileEntityAt: entering (aka: wasntme)")
 
-    screen = t.asInstanceOf[Screen]
+    val screen = t.asInstanceOf[Screen]
     if (!screen.isOrigin) {
       return
     }
 
-    val distance = playerDistanceSq() / math.min(screen.width, screen.height)
+    val distance = playerDistanceSq(screen) / math.min(screen.width, screen.height)
     if (distance > maxRenderDistanceSq) {
       return
     }
@@ -56,9 +54,9 @@ object ScreenRenderer extends TileEntitySpecialRenderer {
     GL11.glPushMatrix()
     GL11.glTranslated(x + 0.5, y + 0.5, z + 0.5)
 
-    if (showsUpIndicator) {
+    if (showsUpIndicator(screen)) {
       GL11.glPushMatrix()
-      transform()
+      transform(screen)
       GL11.glTranslatef(screen.width / 2f - 0.5f, screen.height / 2f - 0.5f, 0.05f)
       MeshBackend.active.drawUpIndicator()
       GL11.glPopMatrix()
@@ -69,7 +67,7 @@ object ScreenRenderer extends TileEntitySpecialRenderer {
       TextBufferRenderCache.inWorld = true
       val profiler = Minecraft.getMinecraft.mcProfiler
       profiler.startSection("opencomputers:screen_text")
-      try draw()
+      try draw(screen)
       finally {
         TextBufferRenderCache.inWorld = false
         profiler.endSection()
@@ -85,7 +83,7 @@ object ScreenRenderer extends TileEntitySpecialRenderer {
     if (distance > fadeDistanceSq) math.max(0, 1 - ((distance - fadeDistanceSq) * fadeRatio).toFloat)
     else 1f
 
-  private def transform() {
+  private def transform(screen: Screen) {
     BlockTransforms.rotateYaw(screen.yaw)
     BlockTransforms.rotatePitch(screen.pitch)
 
@@ -97,13 +95,13 @@ object ScreenRenderer extends TileEntitySpecialRenderer {
     GL11.glScalef(1, -1, 1)
   }
 
-  private def showsUpIndicator: Boolean = (screen.facing == ForgeDirection.UP || screen.facing == ForgeDirection.DOWN) && {
+  private def showsUpIndicator(screen: Screen): Boolean = (screen.facing == ForgeDirection.UP || screen.facing == ForgeDirection.DOWN) && {
     val player = Minecraft.getMinecraft.thePlayer
     val stack = player.getHeldItem
     stack != null && (Wrench.holdsApplicableWrench(player, screen.position) || screens.contains(api.Items.get(stack)))
   }
 
-  private def draw() {
+  private def draw(screen: Screen) {
     RenderState.checkError(this, ".draw: entering (aka: wasntme)")
 
     val sx = screen.width
@@ -111,7 +109,7 @@ object ScreenRenderer extends TileEntitySpecialRenderer {
     val tw = sx * 16f
     val th = sy * 16f
 
-    transform()
+    transform(screen)
 
     // Offset from border.
     GL11.glTranslatef(sx * 2.25f / tw, sy * 2.25f / th, 0)
@@ -151,7 +149,7 @@ object ScreenRenderer extends TileEntitySpecialRenderer {
     RenderState.checkError(this, ".draw: text")
   }
 
-  private def playerDistanceSq() = {
+  private def playerDistanceSq(screen: Screen) = {
     val player = Minecraft.getMinecraft.thePlayer
     val bounds = screen.getRenderBoundingBox
 
