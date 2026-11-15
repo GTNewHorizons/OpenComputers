@@ -5,7 +5,6 @@ import java.io._
 import java.nio.file._
 import java.nio.file.attribute.BasicFileAttributes
 import java.util.concurrent.CancellationException
-import java.util.concurrent.ConcurrentLinkedDeque
 import java.util.concurrent.Future
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
@@ -51,7 +50,6 @@ object SaveHandler {
       val path = statePath
       val dimPath = new io.File(path, dimension.toString)
       val chunkPath = new io.File(dimPath, s"${this.pos.chunkXPos}.${this.pos.chunkZPos}")
-      chunkDirs.add(chunkPath)
       if (!chunkPath.exists()) {
         chunkPath.mkdirs()
       }
@@ -70,7 +68,6 @@ object SaveHandler {
 
   val stateSaveHandler: SafeThreadPool = ThreadPoolFactory.createSafePool("SaveHandler", 1)
 
-  val chunkDirs = new ConcurrentLinkedDeque[io.File]()
   val saving = mutable.HashMap.empty[String, Future[_]]
 
   def savePath = new io.File(DimensionManager.getCurrentSaveRootDirectory, Settings.savePath)

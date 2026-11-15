@@ -17,10 +17,10 @@ import org.lwjgl.opengl.GL11
 import java.io.File
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
-import java.util.concurrent.Executors
 import scala.collection.JavaConverters.asScalaIteratorConverter
 import scala.collection.mutable
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
 trait InputBuffer extends DisplayBuffer {
   protected def buffer: api.internal.TextBuffer
@@ -126,8 +126,6 @@ trait InputBuffer extends DisplayBuffer {
       code == Keyboard.KEY_RMETA
   }
 
-  private val fileIoContext: ExecutionContext = ExecutionContext.fromExecutor(Executors.newFixedThreadPool(2))
-
   private case class FileResult(relativePath: String, file: File)
 
   private def getFiles(path: String): List[FileResult] = {
@@ -184,8 +182,8 @@ trait InputBuffer extends DisplayBuffer {
             })
         }
       }
-    }(fileIoContext).failed.foreach { e =>
+    }.failed.foreach { e =>
       OpenComputers.log.warn("Failed to handle drop file.", e)
-    }(fileIoContext)
+    }
   }
 }

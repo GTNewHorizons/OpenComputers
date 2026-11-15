@@ -90,7 +90,7 @@ object BlockRenderer extends ISimpleBlockRenderingHandler {
 
     val renderer = patchedRenderer(realRenderer, block)
     val overlayPass = !renderer.hasOverrideBlockTexture && ForgeHooksClient.getWorldRenderPass == 1
-    world.getTileEntity(x, y, z) match {
+    try world.getTileEntity(x, y, z) match {
       case adapter: common.tileentity.Adapter =>
         if (overlayPass) renderOpenSides(x, y, z, Textures.Adapter.iconOn, CubeFaces.openSides(adapter))
         else renderer.renderStandardBlock(block, x, y, z)
@@ -146,6 +146,7 @@ object BlockRenderer extends ISimpleBlockRenderingHandler {
 
         result
     }
+    finally if (renderer ne realRenderer) renderer.blockAccess = null
   }
 
   private def beginOverlay(): Tessellator = {

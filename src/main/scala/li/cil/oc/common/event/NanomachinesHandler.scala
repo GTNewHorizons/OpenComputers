@@ -13,6 +13,7 @@ import li.cil.oc.api.nanomachines.Controller
 import li.cil.oc.client.Textures
 import li.cil.oc.common.EventHandler
 import li.cil.oc.common.nanomachines.ControllerImpl
+import li.cil.oc.common.nanomachines.Nanomachines
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.ScaledResolution
 import net.minecraft.client.renderer.Tessellator
@@ -22,6 +23,7 @@ import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.client.event.RenderGameOverlayEvent
 import net.minecraftforge.event.entity.living.LivingEvent
 import net.minecraftforge.event.entity.player.PlayerEvent
+import net.minecraftforge.event.world.WorldEvent
 
 object NanomachinesHandler {
 
@@ -105,6 +107,9 @@ object NanomachinesHandler {
         case _ => // Not a player.
       }
     }
+
+    @SubscribeEvent
+    def onWorldUnload(e: WorldEvent.Unload): Unit = if (e.world.isRemote) Nanomachines.clientControllers.retain((player, _) => player.worldObj ne e.world)
 
     @SubscribeEvent
     def onPlayerSave(e: PlayerEvent.SaveToFile): Unit = {
