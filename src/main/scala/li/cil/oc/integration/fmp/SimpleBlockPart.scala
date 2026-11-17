@@ -30,5 +30,5 @@ abstract class SimpleBlockPart extends TMultiPart with TIconHitEffects {
   override def addHitEffects(hit: MovingObjectPosition, effectRenderer: EffectRenderer): Unit = IconHitEffects.addHitEffects(this, hit, effectRenderer)
 
   @SideOnly(Side.CLIENT)
-  override def addDestroyEffects(effectRenderer: EffectRenderer): Unit = IconHitEffects.addDestroyEffects(this, effectRenderer)
+  override def addDestroyEffects(hit: MovingObjectPosition, effectRenderer: EffectRenderer): Unit = IconHitEffects.addDestroyEffects(this, effectRenderer)
 }
