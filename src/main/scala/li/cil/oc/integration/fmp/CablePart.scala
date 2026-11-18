@@ -2,6 +2,7 @@ package li.cil.oc.integration.fmp
 
 import codechicken.lib.data.MCDataInput
 import codechicken.lib.data.MCDataOutput
+import codechicken.lib.raytracer.IndexedCuboid6
 import codechicken.lib.vec.Cuboid6
 import codechicken.lib.vec.Vector3
 import codechicken.microblock.ISidedHollowConnect
@@ -74,6 +75,15 @@ class CablePart(val original: Option[tileentity.Cable] = None) extends SimpleBlo
   override def getHollowSize(side: Int) = 4 // 4 pixels as this is width of cable.
 
   override def getSlotMask = 1 << 6 // 6 is center part.
+
+  override def getSubParts: java.lang.Iterable[IndexedCuboid6] = JCuboidPart.subParts(this)
+
+  override def getCollisionBoxes: java.lang.Iterable[Cuboid6] = JCuboidPart.collisionBoxes(this)
+
+  @SideOnly(Side.CLIENT)
+  override def drawBreaking(renderBlocks: RenderBlocks): Unit = JCuboidPart.renderBreaking(this, renderBlocks)
+
+  override def occlusionTest(npart: TMultiPart): Boolean = NormalOcclusionTest.apply(this, npart) && super.occlusionTest(npart)
 
   // ----------------------------------------------------------------------- //
 

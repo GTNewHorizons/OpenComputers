@@ -501,7 +501,7 @@ object Network extends api.detail.NetworkAPI {
 
   private def getMultiPartNode(tileEntity: TileEntity) =
     tileEntity match {
-      case host: TileMultipart => host.partList.find(_.isInstanceOf[CablePart]) match {
+      case host: TileMultipart => host.jPartList.asScala.find(_.isInstanceOf[CablePart]) match {
         case Some(part: CablePart) => Some(part.node)
         case _ => None
       }
@@ -518,7 +518,7 @@ object Network extends api.detail.NetworkAPI {
 
   private def cableColorFMP(tileEntity: TileEntity) =
     tileEntity match {
-      case host: TileMultipart => (host.partList collect {
+      case host: TileMultipart => (host.jPartList.asScala collect {
         case cable: CablePart => cable.color
       }).headOption.getOrElse(Color.LightGray)
       case _ => Color.LightGray
@@ -532,11 +532,11 @@ object Network extends api.detail.NetworkAPI {
   private def canConnectFromSideFMP(tileEntity: TileEntity, side: ForgeDirection) =
     tileEntity match {
       case host: TileMultipart =>
-        host.partList.forall {
+        host.jPartList.asScala.forall {
           case part: JNormalOcclusion if !part.isInstanceOf[CablePart] =>
             val ownBounds = Iterable(new Cuboid6(Cable.cachedBounds(side.flag)))
             val otherBounds = part.getOcclusionBoxes
-            NormalOcclusionTest(ownBounds, otherBounds)
+            NormalOcclusionTest.testBoxes(ownBounds.asJava, otherBounds)
           case part: TFacePart => !part.solid(side.ordinal) || (part.getSlotMask & codechicken.multipart.PartMap.face(side.ordinal).mask) == 0
           case _ => true
         }

@@ -21,6 +21,8 @@ import net.minecraftforge.event.entity.player.PlayerDestroyItemEvent
 import net.minecraftforge.event.entity.player.PlayerInteractEvent
 import net.minecraftforge.event.entity.player.PlayerInteractEvent.Action
 
+import scala.collection.JavaConverters._
+
 object EventHandler {
   private var currentlyPlacing = false
 
@@ -101,7 +103,7 @@ object EventHandler {
 
   protected def canAddPrint(t: TileMultipart, p: SimpleBlockPart): Boolean = p match {
     case print: PrintPart =>
-      val (offSum, onSum) = t.partList.foldLeft((print.data.stateOff.size, print.data.stateOn.size))((acc, part) => {
+      val (offSum, onSum) = t.jPartList.asScala.foldLeft((print.data.stateOff.size, print.data.stateOn.size))((acc, part) => {
         val (offAcc, onAcc) = acc
         val (offCount, onCount) = part match {
           case innerPrint: PrintPart => (innerPrint.data.stateOff.size, innerPrint.data.stateOn.size)

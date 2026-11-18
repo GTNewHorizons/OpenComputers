@@ -13,7 +13,7 @@
     "BuildCraft|Core",
     "ComputerCraft",
     "EnderStorage",
-    "ForgeMultipart",
+    "ForgeMultipart@[2.0.0,)",
     "IC2",
     "MineFactoryReloaded",
     "ProjRed|Transmission",
