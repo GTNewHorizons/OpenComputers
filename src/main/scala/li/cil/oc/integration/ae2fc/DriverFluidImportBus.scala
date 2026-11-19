@@ -7,7 +7,8 @@ import li.cil.oc.api.driver
 import li.cil.oc.api.driver.{EnvironmentProvider, NamedBlock}
 import li.cil.oc.api.machine.{Arguments, Callback, Context}
 import li.cil.oc.integration.ManagedTileEntityEnvironment
-import li.cil.oc.integration.appeng.internal.PartSharedItemBusBase
+import li.cil.oc.integration.appeng.internal.{AESettingsEnvironment, PartSharedItemBusBase}
+import li.cil.oc.util.ExtendedArguments._
 import net.minecraft.item.ItemStack
 import net.minecraft.world.World
 import net.minecraftforge.common.util.ForgeDirection
@@ -25,10 +26,20 @@ object DriverFluidImportBus extends driver.SidedBlock {
 
   override def createEnvironment(world: World, x: Int, y: Int, z: Int, side: ForgeDirection) = new Environment(world.getTileEntity(x, y, z).asInstanceOf[IPartHost])
 
-  final class Environment(val host: IPartHost)(implicit val tag: ClassTag[PartFluidImportBus]) extends ManagedTileEntityEnvironment[IPartHost](host, "fluid_importbus") with NamedBlock with PartSharedItemBusBase[PartFluidImportBus] {
+  final class Environment(val host: IPartHost)(implicit val tag: ClassTag[PartFluidImportBus])
+    extends ManagedTileEntityEnvironment[IPartHost](host, "fluid_importbus")
+    with NamedBlock
+    with PartSharedItemBusBase[PartFluidImportBus]
+    with AESettingsEnvironment.RedstoneControlledSetting
+    with AESettingsEnvironment.FuzzyModeSetting {
     override def preferredName = "fluid_importbus"
 
     override def priority = 1
+
+    override protected def settingsTarget(context: Context, args: Arguments) = {
+      val part = getPart(args.checkSideAny(0))
+      (part.getConfigManager, part, 1)
+    }
 
     @Callback(doc = "function(side:number[, slot:number]):boolean -- Get the configuration of the import bus pointing in the specified direction.")
     def getImportConfiguration(context: Context, args: Arguments): Array[AnyRef] = this.getPartConfig(context, args)

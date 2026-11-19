@@ -17,6 +17,8 @@ object ModGregtech extends ModProxy {
     Driver.add(new DriverEnergyContainer)
     Driver.add(DriverLSC)
     Driver.add(DriverMEInputHatch)
+    Driver.add(DriverOutputHatch)
+    Driver.add(DriverOutputBus)
     Driver.add(new ConverterDataStick)
 
     Driver.add(new DriverBECIONode)
