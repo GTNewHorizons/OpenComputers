@@ -1,9 +1,11 @@
 package li.cil.oc.integration.appeng
 
 import appeng.api.AEApi
+import appeng.api.networking.IGrid
 import appeng.api.parts.IPartHost
 import appeng.api.util.{DimensionalCoord, IInterfaceViewable}
 import appeng.parts.AEBasePart
+import appeng.parts.misc.PartPatternRepeater
 import appeng.parts.p2p.PartP2PInterface
 import appeng.parts.reporting.PartInterfaceTerminal
 import li.cil.oc.api.driver
@@ -194,8 +196,9 @@ object DriverPartInterfaceTerminal extends driver.SidedBlock {
     private def allMachines: Iterable[IInterfaceViewable] = {
       val grid = getGrid
       if (grid == null) return Iterable.empty
-      AEApi.instance().registries().interfaceTerminal().getSupportedClasses.view
-        .flatMap(c => grid.getMachines(c).asScala)
+      val supported = AEApi.instance().registries().interfaceTerminal().getSupportedClasses
+      reachableGrids(grid).view
+        .flatMap(g => supported.view.flatMap(c => g.getMachines(c).asScala))
         .map(_.getMachine.asInstanceOf[IInterfaceViewable])
         .filter(_.shouldDisplay)
         .filterNot(isP2POutput)
@@ -204,6 +207,25 @@ object DriverPartInterfaceTerminal extends driver.SidedBlock {
     private def isP2POutput(machine: IInterfaceViewable) = machine match {
       case p2p: PartP2PInterface => p2p.isOutput
       case _ => false
+    }
+
+    private def reachableGrids(start: IGrid): Iterable[IGrid] = {
+      val grids = mutable.LinkedHashSet[IGrid](start)
+      val pending = mutable.Queue[IGrid](start)
+      while (pending.nonEmpty) {
+        for (node <- pending.dequeue().getMachines(classOf[PartPatternRepeater]).asScala) {
+          val repeater = node.getMachine.asInstanceOf[PartPatternRepeater]
+          val pair = repeater.getPair
+          if (repeater.isProvider && node.isActive && pair != null && !pair.isProvider) {
+            val pairNode = pair.getGridNode
+            if (pairNode != null && pairNode.isActive) {
+              val pairGrid = pairNode.getGrid
+              if (grids.add(pairGrid)) pending.enqueue(pairGrid)
+            }
+          }
+        }
+      }
+      grids
     }
 
     private def getGrid = part.getActionableNode.getGrid
