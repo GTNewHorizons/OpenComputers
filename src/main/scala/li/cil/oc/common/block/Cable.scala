@@ -29,6 +29,7 @@ import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
 import net.minecraftforge.common.util.ForgeDirection
 
+import scala.collection.JavaConverters._
 import scala.reflect.ClassTag
 
 class Cable(protected implicit val tileTag: ClassTag[tileentity.Cable]) extends SimpleBlock with traits.SpecialBlock with traits.CustomDrops[tileentity.Cable] {
@@ -186,7 +187,7 @@ object Cable {
 
   private def hasMultiPartNode(tileEntity: TileEntity) =
     tileEntity match {
-      case host: TileMultipart => host.partList.exists(_.isInstanceOf[CablePart])
+      case host: TileMultipart => host.jPartList.asScala.exists(_.isInstanceOf[CablePart])
       case _ => false
     }
 
@@ -200,7 +201,7 @@ object Cable {
 
   private def cableColorFMP(tileEntity: TileEntity) =
     tileEntity match {
-      case host: TileMultipart => (host.partList collect {
+      case host: TileMultipart => (host.jPartList.asScala collect {
         case cable: CablePart => cable.color
       }).headOption.getOrElse(Color.LightGray)
       case _ => Color.LightGray
@@ -214,12 +215,11 @@ object Cable {
   private def canConnectFromSideFMP(tileEntity: TileEntity, side: ForgeDirection) =
     tileEntity match {
       case host: TileMultipart =>
-        host.partList.forall {
+        host.jPartList.asScala.forall {
           case part: JNormalOcclusion if !part.isInstanceOf[CablePart] =>
-            import scala.collection.convert.WrapAsScala._
             val ownBounds = Iterable(new Cuboid6(cachedBounds(side.flag)))
             val otherBounds = part.getOcclusionBoxes
-            NormalOcclusionTest(ownBounds, otherBounds)
+            NormalOcclusionTest.testBoxes(ownBounds.asJava, otherBounds)
           case part: TFacePart => !part.solid(side.ordinal) || (part.getSlotMask & codechicken.multipart.PartMap.face(side.ordinal).mask) == 0
           case _ => true
         }

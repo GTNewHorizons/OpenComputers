@@ -5,9 +5,12 @@ import java.lang
 import codechicken.lib.data.MCDataInput
 import codechicken.lib.data.MCDataOutput
 import codechicken.lib.raytracer.ExtendedMOP
+import codechicken.lib.raytracer.IndexedCuboid6
 import codechicken.lib.vec.Cuboid6
 import codechicken.lib.vec.Vector3
 import codechicken.multipart.IRedstonePart
+import codechicken.multipart.JCuboidPart
+import codechicken.multipart.NormalOcclusionTest
 import codechicken.multipart.PartMap
 import codechicken.multipart.TCuboidPart
 import codechicken.multipart.TEdgePart
@@ -15,7 +18,6 @@ import codechicken.multipart.TFacePart
 import codechicken.multipart.TMultiPart
 import codechicken.multipart.TNormalOcclusion
 import codechicken.multipart.TSlottedPart
-import codechicken.multipart.scalatraits.TSlottedTile
 import cpw.mods.fml.relauncher.Side
 import cpw.mods.fml.relauncher.SideOnly
 import li.cil.oc.Constants
@@ -41,6 +43,7 @@ import net.minecraft.util.Vec3
 import net.minecraftforge.common.util.ForgeDirection
 import org.lwjgl.opengl.GL11
 
+import scala.collection.JavaConverters._
 import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._
 
@@ -119,6 +122,13 @@ class PrintPart(val original: Option[tileentity.Print] = None) extends SimpleBlo
 
   override def getCollisionBoxes = getOcclusionBoxes
 
+  override def getSubParts: lang.Iterable[IndexedCuboid6] = JCuboidPart.subParts(this)
+
+  @SideOnly(Side.CLIENT)
+  override def drawBreaking(renderBlocks: RenderBlocks): Unit = JCuboidPart.renderBreaking(this, renderBlocks)
+
+  override def occlusionTest(npart: TMultiPart): Boolean = NormalOcclusionTest.apply(this, npart) && super.occlusionTest(npart)
+
   override def getRenderBounds = getBounds
 
   override def getSlotMask: Int = {
@@ -162,15 +172,7 @@ class PrintPart(val original: Option[tileentity.Print] = None) extends SimpleBlo
       toggling = true
       state = !state
       // Update slot info in tile... kinda meh, but works.
-      tile match {
-        case slotted: TSlottedTile =>
-          for (i <- slotted.v_partMap.indices) {
-            if (slotted.v_partMap(i) == this)
-              slotted.v_partMap(i) = null
-          }
-          tile.bindPart(this)
-        case _ =>
-      }
+      tile.refreshPartSlots(this)
       world.playSoundEffect(x + 0.5, y + 0.5, z + 0.5, "random.click", 0.3F, if (state) 0.6F else 0.5F)
       tile.notifyPartChange(this)
       sendDescUpdate()
@@ -266,7 +268,7 @@ class PrintPart(val original: Option[tileentity.Print] = None) extends SimpleBlo
   }
 
   protected def computeInput(): Int = {
-    val inner = tile.partList.foldLeft(0)((power, part) => part match {
+    val inner = tile.jPartList.asScala.foldLeft(0)((power, part) => part match {
       case print: PrintPart if print.data.emitRedstone(print.state) => math.max(power, print.data.redstoneLevel)
       case _ => power
     })
