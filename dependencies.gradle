@@ -5,8 +5,8 @@ dependencies {
     shadowImplementation name: 'OC-JNLua', version: '20230530.0', ext: 'jar'
     shadowImplementation name: 'OC-JNLua-Natives', version: '20220928.1', ext: 'jar'
 
-    api("com.github.GTNewHorizons:AE2FluidCraft-Rework:1.5.95-gtnh:dev")
-    api("com.github.GTNewHorizons:Applied-Energistics-2-Unofficial:rv3-beta-999-GTNH:dev")
+    api("com.github.GTNewHorizons:AE2FluidCraft-Rework:1.6.1-gtnh:dev")
+    api("com.github.GTNewHorizons:Applied-Energistics-2-Unofficial:rv3-beta-1078-GTNH:dev")
     implementation("com.github.GTNewHorizons:GTNHLib:0.11.54:dev") {transitive = false}
 
     compileOnly("com.github.GTNewHorizons:Angelica:2.2.36:api") {transitive = false}
