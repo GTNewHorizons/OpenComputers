@@ -1,7 +1,7 @@
 package li.cil.oc.integration.appeng
 
 import appeng.api.AEApi
-import appeng.api.config.Actionable
+import appeng.api.config.{Actionable, CraftingMode}
 import appeng.api.networking.IGridNode
 import appeng.api.networking.crafting.{CraftingItemList, ICraftingLink, ICraftingRequester}
 import appeng.api.networking.security.{BaseActionSource, IActionHost, MachineSource}
@@ -9,6 +9,7 @@ import appeng.api.networking.storage.IBaseMonitor
 import appeng.api.storage.data.{IAEFluidStack, IAEItemStack, IAEStack, IItemList}
 import appeng.api.storage.{IMEInventory, IMEMonitor, IMEMonitorHandlerReceiver}
 import appeng.api.util.AECableType
+import appeng.me.cache.CraftingGridCache
 import appeng.me.cluster.implementations.CraftingCPUCluster
 import appeng.me.helpers.IGridProxyable
 import appeng.tile.crafting.TileCraftingMonitorTile
@@ -365,7 +366,7 @@ object NetworkControl extends AETypes {
     @Callback(doc = "function():table -- Returns the item stack representation of the crafting result.")
     def getStack(context: Context, args: Arguments): Array[AnyRef] = result(stack)
 
-    @Callback(doc = "function([amount:number[, prioritizePower:boolean[, cpuName:string]]]):userdata -- Requests the item to be crafted, returning an object that allows tracking the crafting status.")
+    @Callback(doc = "function([amount:number[, prioritizePower:boolean[, cpuName:string[, ignoreMissing:boolean[, lite:boolean]]]]]):userdata -- Requests the item to be crafted, returning an object that allows tracking the crafting status.")
     def request(context: Context, args: Arguments): Array[AnyRef] = {
       if (controller == null || controller.isInvalid) {
         return result(Unit, "no controller")
@@ -375,9 +376,11 @@ object NetworkControl extends AETypes {
       val request = stack.copy
       request.setStackSize(count)
 
-      val craftingGrid = controller.getProxy.getCrafting
+      val craftingGrid = controller.getProxy.getCrafting.asInstanceOf[CraftingGridCache]
       val source = new MachineSource(controller)
-      val future = craftingGrid.beginCraftingJob(controller.getWorldObj, controller.getProxy.getGrid, source, request, null)
+      val craftingMode = if (args.optBoolean(3, false)) CraftingMode.IGNORE_MISSING else CraftingMode.STANDARD
+      val lite = args.optBoolean(4, craftingGrid.getLiteCraftingDefault)
+      val future = craftingGrid.beginCraftingJob(controller.getWorldObj, controller.getProxy.getGrid, source, request, craftingMode, lite, null)
       val prioritizePower = args.optBoolean(1, true)
       val cpuName = args.optString(2, "")
       val cpu = if (cpuName.nonEmpty) {
