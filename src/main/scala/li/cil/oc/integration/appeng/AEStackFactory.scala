@@ -50,6 +50,7 @@ object AEStackFactory {
         entry.converter(stack, map)
         map.put("size", Long.box(stack.getStackSize))
         map.put("isCraftable", Boolean.box(stack.isCraftable))
+        map.put("type", stack.getStackType.getId)
       case None => throw new UnregisteredAETypeException(s"Type ${id} hasn't been registered");
     }
   }
